@@ -1,0 +1,46 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/orderdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://eureka-server:8761/eureka}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
+    issuer: ${JWT_ISSUER:ecommerce-ms}
+
+# Feign + correlation header forwarding
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 8000
+
+product-service:
+  # Use discovery by default with name "product-service" (lb://)
+  name: product-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

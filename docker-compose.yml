@@ -1,0 +1,131 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # creates only one DB by default; services will create their own schemas via Flyway,
+      # but they still need DBs. We’ll use multiple DBs via init script below.
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce-net
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8761:8761"
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-net
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    networks:
+      - ecommerce-net
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8081"
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ecommerce-net
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8082"
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ecommerce-net
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/productdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8083"
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ecommerce-net
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orderdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Feign uses Eureka name "product-service" already
+      PRODUCT_SERVICE_NAME: product-service
+    expose:
+      - "8084"
+    depends_on:
+      - postgres
+      - eureka-server
+      - product-service
+    networks:
+      - ecommerce-net
+
+networks:
+  ecommerce-net:
+
+volumes:
+  pgdata:

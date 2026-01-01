@@ -1,0 +1,89 @@
+Example curl (end-to-end)
+1) Register user
+curl -s -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email":"user1@test.com",
+    "password":"Password123!",
+    "roles":["USER"]
+  }'
+
+2) Register admin
+curl -s -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email":"admin@test.com",
+    "password":"Password123!",
+    "roles":["ADMIN"]
+  }'
+
+3) Login user (capture token)
+USER_TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user1@test.com","password":"Password123!"}' | jq -r .accessToken)
+
+echo $USER_TOKEN
+
+4) Login admin (capture token)
+ADMIN_TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.com","password":"Password123!"}' | jq -r .accessToken)
+
+echo $ADMIN_TOKEN
+
+5) Admin creates a category
+CATEGORY_ID=$(curl -s -X POST http://localhost:8080/categories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"name":"Electronics"}' | jq -r .id)
+
+echo $CATEGORY_ID
+
+6) Admin creates a product
+PRODUCT_ID=$(curl -s -X POST http://localhost:8080/products \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d "{
+    \"categoryId\":\"$CATEGORY_ID\",
+    \"name\":\"Mouse\",
+    \"description\":\"Wireless mouse\",
+    \"priceCents\":1999,
+    \"currency\":\"BRL\",
+    \"stock\":10,
+    \"active\":true
+  }" | jq -r .id)
+
+echo $PRODUCT_ID
+
+7) Public browse products (no auth)
+curl -s http://localhost:8080/products | jq
+
+8) User creates an order
+curl -s -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $USER_TOKEN" \
+  -d "{
+    \"items\":[{\"productId\":\"$PRODUCT_ID\",\"quantity\":2}],
+    \"shippingAddress\":{
+      \"line1\":\"Rua A, 100\",
+      \"line2\":\"Ap 10\",
+      \"city\":\"Salvador\",
+      \"state\":\"BA\",
+      \"zip\":\"40000-000\",
+      \"country\":\"BR\"
+    },
+    \"paymentMethod\":\"PIX\"
+  }" | jq
+
+9) User lists their orders
+curl -s http://localhost:8080/orders/my \
+  -H "Authorization: Bearer $USER_TOKEN" | jq
+
+10) Admin updates order status
+ORDER_ID=$(curl -s http://localhost:8080/orders/my \
+  -H "Authorization: Bearer $USER_TOKEN" | jq -r '.[0].id')
+
+curl -s -X PATCH "http://localhost:8080/orders/$ORDER_ID/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"status":"SHIPPED"}' | jq
