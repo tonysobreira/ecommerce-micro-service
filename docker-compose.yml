@@ -15,6 +15,28 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/postgres-init:/docker-entrypoint-initdb.d
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin2
+    restart: always
+    ports:
+      - 8090:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@localhost.com
+      PGADMIN_DEFAULT_PASSWORD: 1234
+    volumes:
+      - ./data/pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
     networks:
       - ecommerce-net
 
@@ -29,6 +51,11 @@ services:
       - postgres
     networks:
       - ecommerce-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
 
   api-gateway:
     build: ./api-gateway
@@ -40,10 +67,11 @@ services:
       JWT_ISSUER: ecommerce-ms
     ports:
       - "8080:8080"
-    depends_on:
-      - eureka-server
     networks:
       - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
 
   auth-service:
     build: ./auth-service
@@ -58,11 +86,13 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
     expose:
       - "8081"
-    depends_on:
-      - postgres
-      - eureka-server
     networks:
       - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
 
   user-service:
     build: ./user-service
@@ -96,11 +126,13 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
     expose:
       - "8083"
-    depends_on:
-      - postgres
-      - eureka-server
     networks:
       - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
 
   order-service:
     build: ./order-service
@@ -117,12 +149,15 @@ services:
       PRODUCT_SERVICE_NAME: product-service
     expose:
       - "8084"
-    depends_on:
-      - postgres
-      - eureka-server
-      - product-service
     networks:
       - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      product-service:
+        condition: service_started
 
 networks:
   ecommerce-net:
