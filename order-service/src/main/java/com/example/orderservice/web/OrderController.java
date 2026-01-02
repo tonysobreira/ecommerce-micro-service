@@ -35,13 +35,13 @@ public class OrderController {
 	}
 
 	@GetMapping("/{orderId}")
-	public OrderResponse get(@PathVariable UUID orderId, Authentication auth) {
+	public OrderResponse get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return service.get(p.getUserId(), p.isAdmin(), orderId);
 	}
 
 	@PatchMapping("/{orderId}/status")
-	public OrderResponse updateStatus(@PathVariable UUID orderId, @Valid @RequestBody OrderStatusPatchRequest req,
+	public OrderResponse updateStatus(@PathVariable("orderId") UUID orderId, @Valid @RequestBody OrderStatusPatchRequest req,
 			Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		// SecurityConfig already requires ADMIN for this route, but double-check is OK:

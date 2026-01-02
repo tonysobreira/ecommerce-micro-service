@@ -27,7 +27,7 @@ public class InternalProductController {
 	 * /internal/products/quote?ids=uuid1,uuid2
 	 */
 	@GetMapping("/quote")
-	public QuoteResponse quote(@RequestParam String ids) {
+	public QuoteResponse quote(@RequestParam("ids") String ids) {
 		List<UUID> productIds = Arrays.stream(ids.split(",")).filter(s -> !s.isBlank()).map(String::trim)
 				.map(UUID::fromString).toList();
 

@@ -27,7 +27,7 @@ public class ProductController {
 	}
 
 	@GetMapping("/{id}")
-	public ProductResponse get(@PathVariable UUID id) {
+	public ProductResponse get(@PathVariable("id") UUID id) {
 		return toResponse(service.get(id));
 	}
 
