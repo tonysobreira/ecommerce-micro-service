@@ -31,19 +31,20 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}")
-	public UserResponse getById(@PathVariable UUID id, Authentication auth) {
+	public UserResponse getById(@PathVariable("id") UUID id, Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
 		return mapper.toResponse(service.getActive(id));
 	}
 
 	@PutMapping("/{id}")
-	public UserResponse update(@PathVariable UUID id, @Valid @RequestBody UserUpdateRequest req, Authentication auth) {
+	public UserResponse update(@PathVariable("id") UUID id, @Valid @RequestBody UserUpdateRequest req,
+			Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
 		return mapper.toResponse(service.update(id, req));
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable UUID id, Authentication auth) {
+	public void delete(@PathVariable("id") UUID id, Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
 		service.softDelete(id);
 	}

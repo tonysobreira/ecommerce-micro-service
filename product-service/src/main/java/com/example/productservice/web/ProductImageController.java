@@ -21,7 +21,7 @@ public class ProductImageController {
 	}
 
 	@GetMapping
-	public List<ProductImageResponse> listByProduct(@RequestParam UUID productId) {
+	public List<ProductImageResponse> listByProduct(@RequestParam("productId") UUID productId) {
 		return service.listByProduct(productId).stream().map(ProductImageController::toResponse).toList();
 	}
 
@@ -31,7 +31,7 @@ public class ProductImageController {
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable UUID id) {
+	public void delete(@PathVariable("id") UUID id) {
 		service.delete(id);
 	}
 

@@ -27,7 +27,7 @@ public class CategoryController {
 	}
 
 	@GetMapping("/{id}")
-	public CategoryResponse get(@PathVariable UUID id) {
+	public CategoryResponse get(@PathVariable("id") UUID id) {
 		return toResponse(service.get(id));
 	}
 
@@ -37,12 +37,12 @@ public class CategoryController {
 	}
 
 	@PutMapping("/{id}")
-	public CategoryResponse update(@PathVariable UUID id, @Valid @RequestBody CategoryUpdateRequest req) {
+	public CategoryResponse update(@PathVariable("id") UUID id, @Valid @RequestBody CategoryUpdateRequest req) {
 		return toResponse(service.update(id, req));
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable UUID id) {
+	public void delete(@PathVariable("id") UUID id) {
 		service.delete(id);
 	}
 

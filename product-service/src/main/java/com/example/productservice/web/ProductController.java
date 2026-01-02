@@ -42,7 +42,7 @@ public class ProductController {
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable UUID id) {
+	public void delete(@PathVariable("id") UUID id) {
 		service.delete(id);
 	}
 
