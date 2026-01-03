@@ -1,16 +1,18 @@
 package com.example.userservice.service;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.userservice.domain.UserProfile;
 import com.example.userservice.dto.UserUpdateRequest;
 import com.example.userservice.errors.ConflictException;
 import com.example.userservice.errors.NotFoundException;
 import com.example.userservice.repo.UserProfileRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import com.example.userservice.security.UserPrincipal;
 
 @Service
 public class UserProfileService {
@@ -80,6 +82,26 @@ public class UserProfileService {
 		return repo.findById(id).orElseGet(() -> {
 			Instant now = Instant.now();
 			UserProfile p = new UserProfile(id, email, now, now);
+			return repo.save(p);
+		});
+	}
+
+	@Transactional
+	public UserProfile getOrCreate(UUID id, UserPrincipal principal) {
+		return repo.findById(id).orElseGet(() -> {
+			// only owner (or admin) can auto-create
+			if (!principal.isAdmin() && !principal.getUserId().equals(id)) {
+				throw new NotFoundException("User not found");
+			}
+
+			UserProfile p = new UserProfile();
+			p.setId(id);
+			p.setEmail(principal.getEmail());
+			p.setFirstName(""); // default
+			p.setPhone(null);
+			p.setCreatedAt(Instant.now());
+			p.setUpdatedAt(Instant.now());
+			p.setDeletedAt(null);
 			return repo.save(p);
 		});
 	}

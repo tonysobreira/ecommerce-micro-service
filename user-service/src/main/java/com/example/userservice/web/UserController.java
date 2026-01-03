@@ -1,17 +1,26 @@
 package com.example.userservice.web;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.userservice.domain.UserProfile;
 import com.example.userservice.dto.UserResponse;
 import com.example.userservice.dto.UserUpdateRequest;
 import com.example.userservice.errors.ForbiddenException;
 import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.security.UserPrincipal;
 import com.example.userservice.service.UserProfileService;
-import jakarta.validation.Valid;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
@@ -32,8 +41,24 @@ public class UserController {
 
 	@GetMapping("/{id}")
 	public UserResponse getById(@PathVariable("id") UUID id, Authentication auth) {
-		assertOwnerOrAdmin(id, auth);
-		return mapper.toResponse(service.getActive(id));
+//		assertOwnerOrAdmin(id, auth);
+//		return mapper.toResponse(service.getActive(id));
+
+		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
+
+		// enforce owner/admin access
+		if (!p.isAdmin() && !p.getUserId().equals(id)) {
+			throw new ForbiddenException("Not allowed");
+		}
+
+		UserProfile profile = service.getOrCreate(id, p);
+		return mapper.toResponse(profile);
+	}
+
+	@GetMapping("/me")
+	public UserResponse me(Authentication auth) {
+		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
+		return mapper.toResponse(service.getOrCreate(p.getUserId(), p));
 	}
 
 	@PutMapping("/{id}")
