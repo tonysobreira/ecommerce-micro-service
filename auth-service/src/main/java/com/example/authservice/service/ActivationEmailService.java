@@ -17,7 +17,7 @@ public class ActivationEmailService {
 
 	public ActivationEmailService(JavaMailSender mailSender,
 			@Value("${app.mail.from:no-reply@ecommerce.local}") String fromAddress,
-			@Value("${app.activation.base-url:http://localhost:8081/auth/activate}") String activationBaseUrl) {
+			@Value("${app.activation.base-url:http://localhost:8080/auth/activate}") String activationBaseUrl) {
 		this.mailSender = mailSender;
 		this.fromAddress = fromAddress;
 		this.activationBaseUrl = activationBaseUrl;
