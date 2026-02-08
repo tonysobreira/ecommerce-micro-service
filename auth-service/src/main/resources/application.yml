@@ -19,8 +19,8 @@ spring:
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:tonysobreira1@gmail.com}
-    password: ${MAIL_PASSWORD:ynwp rucb bzmx bxtg}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -39,8 +39,8 @@ eureka:
 security:
   jwt:
     secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
-    access-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:15}
-    refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
+    access-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:30}
+    refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:1}
     issuer: ${JWT_ISSUER:ecommerce-ms}
   activation:
     ttl-minutes: ${ACTIVATION_TTL_MINUTES:30}
