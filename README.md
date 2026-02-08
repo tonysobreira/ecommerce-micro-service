@@ -30,7 +30,7 @@ Compose sets:
 - `SPRING_PROFILES_ACTIVE=docker`
 - `EUREKA_URL=http://eureka-server:8761/eureka`
 - `SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/<db>`
-- Mail SMTP: `mailhog:1025` (captured emails viewable at `http://localhost:8025`)
+- Mail SMTP: `smtp.gmail.com:587` (configure `MAIL_USERNAME`, `MAIL_PASSWORD`, and optionally `MAIL_FROM`)
 
 ---
 

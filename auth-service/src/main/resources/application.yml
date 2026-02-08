@@ -17,16 +17,16 @@ spring:
   flyway:
     enabled: true
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: ${MAIL_SMTP_AUTH:false}
+          auth: ${MAIL_SMTP_AUTH:true}
           starttls:
-            enable: ${MAIL_SMTP_STARTTLS_ENABLE:false}
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
           connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT:5000}
           timeout: ${MAIL_SMTP_TIMEOUT:5000}
           writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT:5000}
@@ -43,7 +43,7 @@ security:
     refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
     issuer: ${JWT_ISSUER:ecommerce-ms}
   activation:
-    ttl-hours: ${ACTIVATION_TTL_HOURS:24}
+    ttl-minutes: ${ACTIVATION_TTL_MINUTES:30}
 
 app:
   activation:

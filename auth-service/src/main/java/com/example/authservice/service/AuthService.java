@@ -12,6 +12,8 @@ import com.example.authservice.repo.ActivationTokenRepository;
 import com.example.authservice.repo.RefreshTokenRepository;
 import com.example.authservice.repo.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
+import com.example.authservice.security.JwtVerifier;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,24 +37,27 @@ public class AuthService {
 
 	private final JwtIssuer issuer;
 
+	private final JwtVerifier verifier;
+
 	private final ActivationEmailService activationEmailService;
 
 	private final long refreshTtlDays;
 
-	private final long activationTtlHours;
+	private final long activationTtlMinutes;
 
 	public AuthService(UserAccountRepository users, RefreshTokenRepository refreshTokens,
-			ActivationTokenRepository activationTokens, PasswordEncoder passwordEncoder, JwtIssuer issuer,
+			PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
-			@Value("${security.activation.ttl-hours:24}") long activationTtlHours) {
+			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
 		this.activationTokens = activationTokens;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
+		this.verifier = verifier;
 		this.activationEmailService = activationEmailService;
 		this.refreshTtlDays = refreshTtlDays;
-		this.activationTtlHours = activationTtlHours;
+		this.activationTtlMinutes = activationTtlMinutes;
 	}
 
 	@Transactional
@@ -69,12 +74,8 @@ public class AuthService {
 				Instant.now());
 		users.save(account);
 
-		String activationRaw = generateSecureToken();
-		String activationHash = TokenHash.sha256Base64(activationRaw);
-		Instant now = Instant.now();
-		ActivationToken token = new ActivationToken(UUID.randomUUID(), account.getId(), activationHash,
-				now.plus(activationTtlHours, ChronoUnit.HOURS), now);
-		activationTokens.save(token);
+		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(),
+				activationTtlMinutes * 60L);
 
 		activationEmailService.sendActivationEmail(account.getEmail(), activationRaw);
 
@@ -103,20 +104,22 @@ public class AuthService {
 
 	@Transactional
 	public void activateAccount(String rawToken) {
-		String hash = TokenHash.sha256Base64(rawToken);
-		ActivationToken token = activationTokens.findByTokenHash(hash)
-				.orElseThrow(() -> new UnauthorizedException("Invalid activation token"));
-
-		if (token.isUsed() || token.isExpired()) {
-			throw new UnauthorizedException("Activation token expired or already used");
+		Claims claims;
+		try {
+			claims = verifier.verify(rawToken).getBody();
+		}
+		catch (Exception ex) {
+			throw new UnauthorizedException("Invalid activation token");
 		}
 
-		UserAccount account = users.findById(token.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
+		if (!"activation".equals(claims.get("typ", String.class))) {
+			throw new UnauthorizedException("Invalid activation token");
+		}
+
+		UUID userId = UUID.fromString(claims.getSubject());
+		UserAccount account = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 		account.activate();
 		users.save(account);
-
-		token.markUsed();
-		activationTokens.save(token);
 	}
 
 	@Transactional
