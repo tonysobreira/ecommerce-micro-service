@@ -40,6 +40,15 @@ services:
     networks:
       - ecommerce-net
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - ecommerce-net
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
@@ -84,6 +93,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      ACTIVATION_BASE_URL: http://localhost:8080/auth/activate
     expose:
       - "8081"
     networks:
@@ -93,6 +105,8 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      mailhog:
+        condition: service_started
 
   user-service:
     build: ./user-service

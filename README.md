@@ -6,6 +6,7 @@
 - api-gateway: http://localhost:8080
 - eureka-server: http://localhost:8761
 - postgres: localhost:5432 (optional for debugging)
+- mailhog ui: http://localhost:8025
 
 ### Internal-only (Docker network)
 - auth-service: 8081
@@ -29,6 +30,7 @@ Compose sets:
 - `SPRING_PROFILES_ACTIVE=docker`
 - `EUREKA_URL=http://eureka-server:8761/eureka`
 - `SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/<db>`
+- Mail SMTP: `mailhog:1025` (captured emails viewable at `http://localhost:8025`)
 
 ---
 

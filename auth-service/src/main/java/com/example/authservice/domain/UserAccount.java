@@ -24,6 +24,9 @@ public class UserAccount {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
+	@Column(name = "activated_at")
+	private Instant activatedAt;
+
 	@Column(name = "deleted_at")
 	private Instant deletedAt;
 
@@ -60,6 +63,20 @@ public class UserAccount {
 
 	public Instant getDeletedAt() {
 		return deletedAt;
+	}
+
+	public Instant getActivatedAt() {
+		return activatedAt;
+	}
+
+	public boolean isActivated() {
+		return activatedAt != null;
+	}
+
+	public void activate() {
+		if (activatedAt == null) {
+			activatedAt = Instant.now();
+		}
 	}
 
 	public boolean isDeleted() {
