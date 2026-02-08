@@ -1,11 +1,14 @@
 package com.example.authservice.service;
 
+import com.example.authservice.domain.ActivationToken;
 import com.example.authservice.domain.RefreshToken;
 import com.example.authservice.domain.UserAccount;
 import com.example.authservice.dto.AuthResponse;
+import com.example.authservice.dto.RegisterResponse;
 import com.example.authservice.errors.ConflictException;
 import com.example.authservice.errors.NotFoundException;
 import com.example.authservice.errors.UnauthorizedException;
+import com.example.authservice.repo.ActivationTokenRepository;
 import com.example.authservice.repo.RefreshTokenRepository;
 import com.example.authservice.repo.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
@@ -26,24 +29,34 @@ public class AuthService {
 
 	private final RefreshTokenRepository refreshTokens;
 
+	private final ActivationTokenRepository activationTokens;
+
 	private final PasswordEncoder passwordEncoder;
 
 	private final JwtIssuer issuer;
 
+	private final ActivationEmailService activationEmailService;
+
 	private final long refreshTtlDays;
 
+	private final long activationTtlHours;
+
 	public AuthService(UserAccountRepository users, RefreshTokenRepository refreshTokens,
-			PasswordEncoder passwordEncoder, JwtIssuer issuer,
-			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays) {
+			ActivationTokenRepository activationTokens, PasswordEncoder passwordEncoder, JwtIssuer issuer,
+			ActivationEmailService activationEmailService, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
+			@Value("${security.activation.ttl-hours:24}") long activationTtlHours) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
+		this.activationTokens = activationTokens;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
+		this.activationEmailService = activationEmailService;
 		this.refreshTtlDays = refreshTtlDays;
+		this.activationTtlHours = activationTtlHours;
 	}
 
 	@Transactional
-	public AuthResponse register(String email, String password) {
+	public RegisterResponse register(String email, String password) {
 		users.findByEmailIgnoreCase(email).ifPresent(u -> {
 			throw new ConflictException("Email already registered");
 		});
@@ -56,7 +69,16 @@ public class AuthService {
 				Instant.now());
 		users.save(account);
 
-		return issueTokens(account);
+		String activationRaw = generateSecureToken();
+		String activationHash = TokenHash.sha256Base64(activationRaw);
+		Instant now = Instant.now();
+		ActivationToken token = new ActivationToken(UUID.randomUUID(), account.getId(), activationHash,
+				now.plus(activationTtlHours, ChronoUnit.HOURS), now);
+		activationTokens.save(token);
+
+		activationEmailService.sendActivationEmail(account.getEmail(), activationRaw);
+
+		return new RegisterResponse("Registration successful. Check your email to activate your account.");
 	}
 
 	@Transactional
@@ -68,11 +90,33 @@ public class AuthService {
 			throw new UnauthorizedException("Account disabled");
 		}
 
+		if (!account.isActivated()) {
+			throw new UnauthorizedException("Account not activated");
+		}
+
 		if (!passwordEncoder.matches(password, account.getPasswordHash())) {
 			throw new UnauthorizedException("Invalid credentials");
 		}
 
 		return issueTokens(account);
+	}
+
+	@Transactional
+	public void activateAccount(String rawToken) {
+		String hash = TokenHash.sha256Base64(rawToken);
+		ActivationToken token = activationTokens.findByTokenHash(hash)
+				.orElseThrow(() -> new UnauthorizedException("Invalid activation token"));
+
+		if (token.isUsed() || token.isExpired()) {
+			throw new UnauthorizedException("Activation token expired or already used");
+		}
+
+		UserAccount account = users.findById(token.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
+		account.activate();
+		users.save(account);
+
+		token.markUsed();
+		activationTokens.save(token);
 	}
 
 	@Transactional

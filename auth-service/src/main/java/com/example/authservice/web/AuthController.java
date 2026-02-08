@@ -23,8 +23,14 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
+	public RegisterResponse register(@Valid @RequestBody RegisterRequest req) {
 		return authService.register(req.getEmail(), req.getPassword());
+	}
+
+	@GetMapping("/activate")
+	public RegisterResponse activate(@RequestParam("token") String token) {
+		authService.activateAccount(token);
+		return new RegisterResponse("Account activated successfully. You can now log in.");
 	}
 
 	@PostMapping("/login")
