@@ -1,0 +1,2 @@
+ALTER TABLE user_accounts
+ADD COLUMN IF NOT EXISTS activated_at TIMESTAMP NULL;
