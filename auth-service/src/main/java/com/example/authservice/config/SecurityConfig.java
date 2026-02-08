@@ -37,7 +37,8 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtVerifier verifier) throws Exception {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/register", "/auth/login", "/actuator/health")
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/auth/register", "/auth/login", "/auth/activate", "/actuator/health")
 						.permitAll().anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier),
 						org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)

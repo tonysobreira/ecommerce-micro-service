@@ -3,12 +3,15 @@ package com.example.authservice.service;
 import com.example.authservice.domain.RefreshToken;
 import com.example.authservice.domain.UserAccount;
 import com.example.authservice.dto.AuthResponse;
+import com.example.authservice.dto.RegisterResponse;
 import com.example.authservice.errors.ConflictException;
 import com.example.authservice.errors.NotFoundException;
 import com.example.authservice.errors.UnauthorizedException;
 import com.example.authservice.repo.RefreshTokenRepository;
 import com.example.authservice.repo.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
+import com.example.authservice.security.JwtVerifier;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,20 +33,30 @@ public class AuthService {
 
 	private final JwtIssuer issuer;
 
+	private final JwtVerifier verifier;
+
+	private final ActivationEmailService activationEmailService;
+
 	private final long refreshTtlDays;
 
+	private final long activationTtlMinutes;
+
 	public AuthService(UserAccountRepository users, RefreshTokenRepository refreshTokens,
-			PasswordEncoder passwordEncoder, JwtIssuer issuer,
-			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays) {
+			PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
+			ActivationEmailService activationEmailService, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
+			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
+		this.verifier = verifier;
+		this.activationEmailService = activationEmailService;
 		this.refreshTtlDays = refreshTtlDays;
+		this.activationTtlMinutes = activationTtlMinutes;
 	}
 
 	@Transactional
-	public AuthResponse register(String email, String password) {
+	public RegisterResponse register(String email, String password) {
 		users.findByEmailIgnoreCase(email).ifPresent(u -> {
 			throw new ConflictException("Email already registered");
 		});
@@ -56,7 +69,12 @@ public class AuthService {
 				Instant.now());
 		users.save(account);
 
-		return issueTokens(account);
+		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(),
+				activationTtlMinutes * 60L);
+
+		activationEmailService.sendActivationEmail(account.getEmail(), activationRaw);
+
+		return new RegisterResponse("Registration successful. Check your email to activate your account.");
 	}
 
 	@Transactional
@@ -68,11 +86,35 @@ public class AuthService {
 			throw new UnauthorizedException("Account disabled");
 		}
 
+		if (!account.isActivated()) {
+			throw new UnauthorizedException("Account not activated");
+		}
+
 		if (!passwordEncoder.matches(password, account.getPasswordHash())) {
 			throw new UnauthorizedException("Invalid credentials");
 		}
 
 		return issueTokens(account);
+	}
+
+	@Transactional
+	public void activateAccount(String rawToken) {
+		Claims claims;
+		try {
+			claims = verifier.verify(rawToken).getBody();
+		}
+		catch (Exception ex) {
+			throw new UnauthorizedException("Invalid activation token");
+		}
+
+		if (!"activation".equals(claims.get("typ", String.class))) {
+			throw new UnauthorizedException("Invalid activation token");
+		}
+
+		UUID userId = UUID.fromString(claims.getSubject());
+		UserAccount account = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+		account.activate();
+		users.save(account);
 	}
 
 	@Transactional

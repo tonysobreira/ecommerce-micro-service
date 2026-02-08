@@ -84,6 +84,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_SMTP_AUTH: "true"
+      MAIL_SMTP_STARTTLS_ENABLE: "true"
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM:${MAIL_USERNAME}}
+      ACTIVATION_BASE_URL: http://localhost:8080/auth/activate
     expose:
       - "8081"
     networks:

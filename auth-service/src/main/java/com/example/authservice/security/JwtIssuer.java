@@ -37,4 +37,13 @@ public class JwtIssuer {
 				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 
+	public String issueActivationToken(UUID userId, String email, long activationTtlSeconds) {
+		Instant now = Instant.now();
+		Instant exp = now.plusSeconds(activationTtlSeconds);
+
+		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
+				.setExpiration(Date.from(exp)).claim("email", email).claim("typ", "activation")
+				.signWith(key, SignatureAlgorithm.HS256).compact();
+	}
+
 }
