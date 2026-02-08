@@ -16,6 +16,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  mail:
+    host: ${MAIL_HOST:mailhog}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
 
 eureka:
   client:
@@ -28,6 +33,14 @@ security:
     access-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:15}
     refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
     issuer: ${JWT_ISSUER:ecommerce-ms}
+  activation:
+    ttl-hours: ${ACTIVATION_TTL_HOURS:24}
+
+app:
+  activation:
+    base-url: ${ACTIVATION_BASE_URL:http://localhost:8080/auth/activate}
+  mail:
+    from: ${MAIL_FROM:no-reply@ecommerce.local}
 
 management:
   endpoints:
