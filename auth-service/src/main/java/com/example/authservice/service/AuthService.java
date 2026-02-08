@@ -1,5 +1,6 @@
 package com.example.authservice.service;
 
+import com.example.authservice.domain.ActivationToken;
 import com.example.authservice.domain.RefreshToken;
 import com.example.authservice.domain.UserAccount;
 import com.example.authservice.dto.AuthResponse;
@@ -7,6 +8,7 @@ import com.example.authservice.dto.RegisterResponse;
 import com.example.authservice.errors.ConflictException;
 import com.example.authservice.errors.NotFoundException;
 import com.example.authservice.errors.UnauthorizedException;
+import com.example.authservice.repo.ActivationTokenRepository;
 import com.example.authservice.repo.RefreshTokenRepository;
 import com.example.authservice.repo.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
@@ -29,6 +31,8 @@ public class AuthService {
 
 	private final RefreshTokenRepository refreshTokens;
 
+	private final ActivationTokenRepository activationTokens;
+
 	private final PasswordEncoder passwordEncoder;
 
 	private final JwtIssuer issuer;
@@ -47,6 +51,7 @@ public class AuthService {
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
+		this.activationTokens = activationTokens;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
 		this.verifier = verifier;

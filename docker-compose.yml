@@ -40,6 +40,15 @@ services:
     networks:
       - ecommerce-net
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - ecommerce-net
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
@@ -101,6 +110,8 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      mailhog:
+        condition: service_started
 
   user-service:
     build: ./user-service

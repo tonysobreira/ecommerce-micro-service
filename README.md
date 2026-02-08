@@ -6,6 +6,7 @@
 - api-gateway: http://localhost:8080
 - eureka-server: http://localhost:8761
 - postgres: localhost:5432 (optional for debugging)
+- mailhog ui: http://localhost:8025
 
 ### Internal-only (Docker network)
 - auth-service: 8081
