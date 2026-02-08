@@ -1,6 +1,19 @@
 package com.example.authservice.service;
 
-import com.example.authservice.domain.ActivationToken;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.authservice.domain.RefreshToken;
 import com.example.authservice.domain.UserAccount;
 import com.example.authservice.dto.AuthResponse;
@@ -8,21 +21,12 @@ import com.example.authservice.dto.RegisterResponse;
 import com.example.authservice.errors.ConflictException;
 import com.example.authservice.errors.NotFoundException;
 import com.example.authservice.errors.UnauthorizedException;
-import com.example.authservice.repo.ActivationTokenRepository;
 import com.example.authservice.repo.RefreshTokenRepository;
 import com.example.authservice.repo.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
 import com.example.authservice.security.JwtVerifier;
-import io.jsonwebtoken.Claims;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
+import io.jsonwebtoken.Claims;
 
 @Service
 public class AuthService {
@@ -30,8 +34,6 @@ public class AuthService {
 	private final UserAccountRepository users;
 
 	private final RefreshTokenRepository refreshTokens;
-
-	private final ActivationTokenRepository activationTokens;
 
 	private final PasswordEncoder passwordEncoder;
 
@@ -47,11 +49,11 @@ public class AuthService {
 
 	public AuthService(UserAccountRepository users, RefreshTokenRepository refreshTokens,
 			PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
-			ActivationEmailService activationEmailService, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
+			ActivationEmailService activationEmailService,
+			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
-		this.activationTokens = activationTokens;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
 		this.verifier = verifier;
@@ -107,8 +109,7 @@ public class AuthService {
 		Claims claims;
 		try {
 			claims = verifier.verify(rawToken).getBody();
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			throw new UnauthorizedException("Invalid activation token");
 		}
 

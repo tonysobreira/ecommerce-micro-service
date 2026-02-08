@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS user_accounts (
   password_hash TEXT NOT NULL,
   roles TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL,
-  deleted_at TIMESTAMP NULL
+  deleted_at TIMESTAMP NULL,
+  activated_at TIMESTAMP NULL
 );
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
