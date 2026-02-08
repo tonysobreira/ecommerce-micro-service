@@ -3,6 +3,7 @@
 ## Requirements
 - Postgres database authdb
 - JWT_SECRET must be 32+ chars (HS256)
+- SMTP server for activation mail (for Docker Compose, MailHog UI is at `http://localhost:8025`)
 
 Example:
 export JWT_SECRET="dev-jwt-secret-32-bytes-long-123456"
@@ -27,6 +28,14 @@ Register:
 curl -X POST http://localhost:8081/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"user@test.com","password":"Passw0rd!"}'
+
+When running in Docker Compose, call registration through the gateway:
+
+curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@test.com","password":"Passw0rd!"}'
+
+Then open MailHog (`http://localhost:8025`) and use the activation link from the email.
 
 Activate (from email link):
 curl "http://localhost:8081/auth/activate?token=<TOKEN_FROM_EMAIL>"
