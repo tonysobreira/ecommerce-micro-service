@@ -1,10 +1,7 @@
 package com.example.authservice.service;
 
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -14,14 +11,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.authservice.domain.RefreshToken;
 import com.example.authservice.domain.UserAccount;
 import com.example.authservice.dto.AuthResponse;
 import com.example.authservice.dto.RegisterResponse;
 import com.example.authservice.errors.ConflictException;
 import com.example.authservice.errors.NotFoundException;
 import com.example.authservice.errors.UnauthorizedException;
-import com.example.authservice.repo.RefreshTokenRepository;
 import com.example.authservice.repo.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
 import com.example.authservice.security.JwtVerifier;
@@ -33,7 +28,6 @@ public class AuthService {
 
 	private final UserAccountRepository users;
 
-	private final RefreshTokenRepository refreshTokens;
 
 	private final PasswordEncoder passwordEncoder;
 
@@ -43,22 +37,18 @@ public class AuthService {
 
 	private final ActivationEmailService activationEmailService;
 
-	private final long refreshTtlDays;
 
 	private final long activationTtlMinutes;
 
-	public AuthService(UserAccountRepository users, RefreshTokenRepository refreshTokens,
+	public AuthService(UserAccountRepository users,
 			PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService,
-			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.users = users;
-		this.refreshTokens = refreshTokens;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
 		this.verifier = verifier;
 		this.activationEmailService = activationEmailService;
-		this.refreshTtlDays = refreshTtlDays;
 		this.activationTtlMinutes = activationTtlMinutes;
 	}
 
@@ -125,36 +115,30 @@ public class AuthService {
 
 	@Transactional
 	public AuthResponse refresh(String refreshTokenRaw) {
-		String hash = TokenHash.sha256Base64(refreshTokenRaw);
-		RefreshToken rt = refreshTokens.findByTokenHash(hash)
-				.orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
-
-		if (rt.isRevoked() || rt.isExpired()) {
-			throw new UnauthorizedException("Refresh token expired or revoked");
+		Claims claims;
+		try {
+			claims = verifier.verify(refreshTokenRaw).getBody();
+		} catch (Exception ex) {
+			throw new UnauthorizedException("Invalid refresh token");
 		}
 
-		UserAccount account = users.findById(rt.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
+		if (!"refresh".equals(claims.get("typ", String.class))) {
+			throw new UnauthorizedException("Invalid refresh token");
+		}
+
+		UUID userId = UUID.fromString(claims.getSubject());
+		UserAccount account = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
 		if (account.isDeleted()) {
 			throw new UnauthorizedException("Account disabled");
 		}
-
-		// Rotate refresh token: revoke old, issue new
-		rt.revoke();
-		refreshTokens.save(rt);
 
 		return issueTokens(account);
 	}
 
 	@Transactional
 	public void logout(String refreshTokenRaw) {
-		String hash = TokenHash.sha256Base64(refreshTokenRaw);
-		refreshTokens.findByTokenHash(hash).ifPresent(rt -> {
-			if (!rt.isRevoked()) {
-				rt.revoke();
-				refreshTokens.save(rt);
-			}
-		});
+		// Stateless refresh tokens do not require server-side revocation.
 	}
 
 	public UserAccount getUser(UUID userId) {
@@ -164,18 +148,10 @@ public class AuthService {
 	public AuthResponse issueTokens(UserAccount account) {
 		List<String> roles = splitRoles(account.getRoles());
 		String accessToken = issuer.issueAccessToken(account.getId(), account.getEmail(), roles);
-
-		String refreshRaw = generateSecureToken();
-		String refreshHash = TokenHash.sha256Base64(refreshRaw);
-
-		Instant now = Instant.now();
-		Instant expires = now.plus(refreshTtlDays, ChronoUnit.DAYS);
-
-		RefreshToken rt = new RefreshToken(UUID.randomUUID(), account.getId(), refreshHash, expires, now);
-		refreshTokens.save(rt);
+		String refreshToken = issuer.issueRefreshToken(account.getId());
 
 		return new AuthResponse(account.getId(), account.getEmail(), roles.toArray(new String[0]), accessToken,
-				refreshRaw);
+				refreshToken);
 	}
 
 	private static List<String> splitRoles(String rolesCsv) {
@@ -191,10 +167,5 @@ public class AuthService {
 		return out;
 	}
 
-	private static String generateSecureToken() {
-		byte[] buf = new byte[48];
-		new SecureRandom().nextBytes(buf);
-		return Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
-	}
 
 }
