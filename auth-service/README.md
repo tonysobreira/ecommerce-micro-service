@@ -16,6 +16,7 @@ export JWT_SECRET="dev-jwt-secret-32-bytes-long-123456"
 
 ## Endpoints
 - POST /auth/register
+- GET  /auth/activate?token=...
 - POST /auth/login
 - GET  /auth/me
 - POST /auth/refresh
@@ -26,6 +27,9 @@ Register:
 curl -X POST http://localhost:8081/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"user@test.com","password":"Passw0rd!"}'
+
+Activate (from email link):
+curl "http://localhost:8081/auth/activate?token=<TOKEN_FROM_EMAIL>"
 
 Login:
 curl -X POST http://localhost:8081/auth/login \
