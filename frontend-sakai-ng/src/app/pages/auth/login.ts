@@ -1,12 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { RippleModule } from 'primeng/ripple';
 import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
+import { AuthService } from 'src/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -42,10 +43,10 @@ import { AppFloatingConfigurator } from '../../layout/component/app.floatingconf
 
                         <div>
                             <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
-                            <input pInputText id="email1" type="text" placeholder="Email address" class="w-full md:w-120 mb-8" [(ngModel)]="email" />
+                            <input pInputText id="email1" type="text" placeholder="Email address" class="w-full md:w-120 mb-8" [ngModel]="username()" (ngModelChange)="username.set($event)" />
 
                             <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
-                            <p-password id="password1" [(ngModel)]="password" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false"></p-password>
+                            <p-password id="password1" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" [ngModel]="password()" (ngModelChange)="password.set($event)"></p-password>
 
                             <div class="flex items-center justify-between mt-2 mb-8 gap-8">
                                 <div class="flex items-center">
@@ -54,8 +55,28 @@ import { AppFloatingConfigurator } from '../../layout/component/app.floatingconf
                                 </div>
                                 <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                             </div>
-                            <p-button label="Sign In" styleClass="w-full" routerLink="/"></p-button>
+                            <p-button styleClass="w-full" (click)="login()" [disabled]="isLoggingIn()">
+                                {{ isLoggingIn() ? 'Logging in...' : 'Login' }}
+                            </p-button>
                         </div>
+
+                        @if (error()) {
+                            <p style="color: red; margin-top: 15px; text-align: center;">
+                                {{ error() }}
+                            </p>
+                        }
+
+                        @if (debugMessage()) {
+                            <p style="margin-top: 15px; color: #555; font-size: 0.9em; text-align: center;">
+                                {{ debugMessage() }}
+                            </p>
+                        }
+
+                        <p style="margin-top: 20px; text-align: center; color: #666;">
+                            Test accounts:<br />
+                            admin / admin123<br />
+                            user / user123
+                        </p>
                     </div>
                 </div>
             </div>
@@ -63,9 +84,80 @@ import { AppFloatingConfigurator } from '../../layout/component/app.floatingconf
     `
 })
 export class Login {
-    email: string = '';
-
-    password: string = '';
-
+    // email: string = '';
+    // password: string = '';
     checked: boolean = false;
+
+    username = signal<string>('');
+    password = signal<string>('');
+    error = signal<string | null>(null);
+    isLoggingIn = signal<boolean>(false);
+    debugMessage = signal<string>('');
+
+    private authService = inject(AuthService);
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
+
+    constructor() {
+        // Debug: watch when logged-in state changes
+        effect(() => {
+            if (this.authService.isLoggedIn()) {
+                this.debugMessage.set('AuthService reports: logged in → attempting navigation');
+            }
+        });
+    }
+
+    login() {
+        const user = this.username().trim();
+        const pass = this.password().trim();
+
+        if (!user || !pass) {
+            this.error.set('Username and password are required');
+            return;
+        }
+
+        this.isLoggingIn.set(true);
+        this.error.set(null);
+        this.debugMessage.set('Login request sent...');
+
+        this.authService.login(user, pass).subscribe({
+            next: (response) => {
+                this.debugMessage.set('Login success – token received. Navigating...');
+                console.log('Login success – token:', response.accessToken.substring(0, 20) + '...');
+
+                // Get returnUrl **right now**
+                let returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '';
+                console.log('Target URL:', returnUrl);
+
+                // Try navigation
+                this.router.navigateByUrl(returnUrl).then((success) => {
+                    if (success) {
+                        this.debugMessage.set(`Navigation to ${returnUrl} succeeded`);
+                        // Clean query params from URL bar
+                        window.history.replaceState({}, '', window.location.pathname);
+                    } else {
+                        this.debugMessage.set(`Navigation to ${returnUrl} failed (guard?)`);
+                        console.warn('Navigation returned false – probably blocked by guard');
+                    }
+                });
+            },
+            error: (err) => {
+                console.error('Login HTTP error:', err);
+                this.isLoggingIn.set(false);
+
+                if (err.status === 401 || err.status === 403) {
+                    this.error.set('Invalid username or password');
+                } else if (err.status === 0) {
+                    this.error.set('Cannot reach backend (CORS / server down?)');
+                } else {
+                    this.error.set(`Error ${err.status}: ${err.statusText || 'Unknown'}`);
+                }
+
+                this.debugMessage.set('Login failed');
+            },
+            complete: () => {
+                this.isLoggingIn.set(false);
+            }
+        });
+    }
 }

@@ -31,21 +31,21 @@ public class JwtIssuer {
 		this.refreshTtlSeconds = refreshTtlSeconds;
 	}
 
-	public String issueAccessToken(UUID userId, String email, List<String> roles) {
-		Instant now = Instant.now();
-		Instant exp = now.plusSeconds(accessTtlSeconds);
-
-		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
-				.setExpiration(Date.from(exp)).claim("email", email).claim("roles", roles)
-				.signWith(key, SignatureAlgorithm.HS256).compact();
-	}
-
 	public String issueActivationToken(UUID userId, String email, long activationTtlSeconds) {
 		Instant now = Instant.now();
 		Instant exp = now.plusSeconds(activationTtlSeconds);
 
 		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
 				.setExpiration(Date.from(exp)).claim("email", email).claim("typ", "activation")
+				.signWith(key, SignatureAlgorithm.HS256).compact();
+	}
+
+	public String issueAccessToken(UUID userId, String email, List<String> roles) {
+		Instant now = Instant.now();
+		Instant exp = now.plusSeconds(accessTtlSeconds);
+
+		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
+				.setExpiration(Date.from(exp)).claim("email", email).claim("roles", roles)
 				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 

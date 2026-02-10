@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '../service/layout.service';
+import { MenuModule } from 'primeng/menu';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator],
+    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, MenuModule],
     template: ` <div class="layout-topbar">
         <div class="layout-topbar-logo-container">
             <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
@@ -72,9 +73,16 @@ import { LayoutService } from '../service/layout.service';
                         <i class="pi pi-inbox"></i>
                         <span>Messages</span>
                     </button>
-                    <button type="button" class="layout-topbar-action">
+                    <!-- <button type="button" class="layout-topbar-action" (click)="logout()">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
+                    </button> -->
+                    <p-menu #profileMenu [model]="profileItems" [popup]="true"></p-menu>
+
+                    <button type="button" class="layout-topbar-action" (click)="profileMenu.toggle($event)">
+                        <i class="pi pi-user"></i>
+                        <span>Profile</span>
+                        <i class="pi pi-chevron-down ml-2"></i>
                     </button>
                 </div>
             </div>
@@ -82,11 +90,32 @@ import { LayoutService } from '../service/layout.service';
     </div>`
 })
 export class AppTopbar {
-    items!: MenuItem[];
+    // items!: MenuItem[];
+
+    profileItems: MenuItem[] = [
+        {
+            label: 'Settings',
+            icon: 'pi pi-cog',
+            routerLink: '/documentation' // change to your route
+        },
+        {
+            separator: true
+        },
+        {
+            label: 'Logout',
+            icon: 'pi pi-sign-out',
+            command: () => this.logout()
+        }
+    ];
 
     constructor(public layoutService: LayoutService) {}
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
+    }
+
+    logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
     }
 }
