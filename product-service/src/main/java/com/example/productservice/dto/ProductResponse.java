@@ -3,11 +3,15 @@ package com.example.productservice.dto;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.example.productservice.domain.Category;
+
 public class ProductResponse {
 
 	private UUID id;
 
 	private UUID categoryId;
+
+	private CategoryResponse category;
 
 	private String name;
 
@@ -28,10 +32,13 @@ public class ProductResponse {
 	public ProductResponse() {
 	}
 
-	public ProductResponse(UUID id, UUID categoryId, String name, String description, long priceCents, String currency,
+	public ProductResponse(UUID id, UUID categoryId, Category category, String name, String description,
+			long priceCents, String currency,
 			int stock, boolean active, Instant createdAt, Instant updatedAt) {
 		this.id = id;
 		this.categoryId = categoryId;
+		this.category = new CategoryResponse(category.getId(), category.getName(), category.getCreatedAt(),
+				category.getUpdatedAt());
 		this.name = name;
 		this.description = description;
 		this.priceCents = priceCents;
@@ -48,6 +55,14 @@ public class ProductResponse {
 
 	public UUID getCategoryId() {
 		return categoryId;
+	}
+
+	public CategoryResponse getCategory() {
+		return category;
+	}
+
+	public void setCategory(CategoryResponse category) {
+		this.category = category;
 	}
 
 	public String getName() {

@@ -12,8 +12,12 @@ public class Product {
 	@Id
 	private UUID id;
 
-	@Column(name = "category_id")
+	@Column(name = "category_id", insertable = false, updatable = false)
 	private UUID categoryId;
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "category_id")
+	private Category category;
 
 	@Column(nullable = false)
 	private String name;
@@ -41,10 +45,11 @@ public class Product {
 	protected Product() {
 	}
 
-	public Product(UUID id, UUID categoryId, String name, String description, long priceCents, String currency,
-			int stock, boolean active, Instant createdAt, Instant updatedAt) {
+	public Product(UUID id, UUID categoryId, Category category, String name, String description, long priceCents,
+			String currency, int stock, boolean active, Instant createdAt, Instant updatedAt) {
 		this.id = id;
 		this.categoryId = categoryId;
+		this.category = category;
 		this.name = name;
 		this.description = description;
 		this.priceCents = priceCents;
@@ -61,6 +66,14 @@ public class Product {
 
 	public UUID getCategoryId() {
 		return categoryId;
+	}
+
+	public Category getCategory() {
+		return category;
+	}
+
+	public void setCategory(Category category) {
+		this.category = category;
 	}
 
 	public String getName() {

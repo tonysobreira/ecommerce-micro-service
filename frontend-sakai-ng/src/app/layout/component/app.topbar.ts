@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -6,6 +6,8 @@ import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '../service/layout.service';
 import { MenuModule } from 'primeng/menu';
+
+import { AuthService } from 'src/auth.service';
 
 @Component({
     selector: 'app-topbar',
@@ -92,7 +94,25 @@ import { MenuModule } from 'primeng/menu';
 export class AppTopbar {
     // items!: MenuItem[];
 
+    authService = inject(AuthService);
+
     profileItems: MenuItem[] = [
+        {
+            label: this.authService.currentUser()?.email,
+            icon: 'pi pi-user',
+            disabled: true
+        },
+        {
+            separator: true
+        },
+        {
+            label: this.authService.currentUser()?.roles?.join(', '),
+            icon: 'pi pi-verified',
+            disabled: true
+        },
+        {
+            separator: true
+        },
         {
             label: 'Settings',
             icon: 'pi pi-cog',
@@ -108,7 +128,7 @@ export class AppTopbar {
         }
     ];
 
-    constructor(public layoutService: LayoutService) {}
+    constructor(public layoutService: LayoutService) { }
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));

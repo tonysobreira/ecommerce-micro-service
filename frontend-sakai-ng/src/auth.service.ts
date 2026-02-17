@@ -14,6 +14,7 @@ export interface JwtPayload {
     iat?: number;
     exp?: number;
     // add other claims if needed
+    email: string;
 }
 
 @Injectable({

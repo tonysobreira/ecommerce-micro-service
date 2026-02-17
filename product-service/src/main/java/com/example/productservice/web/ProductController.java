@@ -47,7 +47,8 @@ public class ProductController {
 	}
 
 	private static ProductResponse toResponse(Product p) {
-		return new ProductResponse(p.getId(), p.getCategoryId(), p.getName(), p.getDescription(), p.getPriceCents(),
+		return new ProductResponse(p.getId(), p.getCategoryId(), p.getCategory(), p.getName(), p.getDescription(),
+				p.getPriceCents(),
 				p.getCurrency(), p.getStock(), p.isActive(), p.getCreatedAt(), p.getUpdatedAt());
 	}
 

@@ -1,16 +1,18 @@
 package com.example.productservice.service;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.productservice.domain.Category;
 import com.example.productservice.domain.Product;
 import com.example.productservice.dto.ProductCreateRequest;
 import com.example.productservice.dto.ProductUpdateRequest;
 import com.example.productservice.errors.NotFoundException;
 import com.example.productservice.repo.ProductRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ProductService {
@@ -35,10 +37,12 @@ public class ProductService {
 
 	@Transactional
 	public Product create(ProductCreateRequest req) {
-		if (req.getCategoryId() != null)
-			categoryService.get(req.getCategoryId()); // validate
+		Category category = null;
+		if (req.getCategoryId() != null) {
+			category = categoryService.get(req.getCategoryId());
+		}
 		Instant now = Instant.now();
-		Product p = new Product(UUID.randomUUID(), req.getCategoryId(), req.getName().trim(), req.getDescription(),
+		Product p = new Product(UUID.randomUUID(), req.getCategoryId(), category, req.getName().trim(), req.getDescription(),
 				req.getPriceCents(), req.getCurrency().trim(), req.getStock(),
 				req.getActive() != null ? req.getActive() : true, now, now);
 		return repo.save(p);
