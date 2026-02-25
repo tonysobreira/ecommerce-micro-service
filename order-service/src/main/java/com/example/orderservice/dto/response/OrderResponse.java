@@ -59,52 +59,104 @@ public class OrderResponse {
 		return id;
 	}
 
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
 	public UUID getUserId() {
 		return userId;
+	}
+
+	public void setUserId(UUID userId) {
+		this.userId = userId;
 	}
 
 	public String getStatus() {
 		return status;
 	}
 
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
 	public String getPaymentMethod() {
 		return paymentMethod;
+	}
+
+	public void setPaymentMethod(String paymentMethod) {
+		this.paymentMethod = paymentMethod;
 	}
 
 	public AddressDto getShippingAddress() {
 		return shippingAddress;
 	}
 
+	public void setShippingAddress(AddressDto shippingAddress) {
+		this.shippingAddress = shippingAddress;
+	}
+
 	public String getCurrency() {
 		return currency;
+	}
+
+	public void setCurrency(String currency) {
+		this.currency = currency;
 	}
 
 	public long getSubtotalCents() {
 		return subtotalCents;
 	}
 
+	public void setSubtotalCents(long subtotalCents) {
+		this.subtotalCents = subtotalCents;
+	}
+
 	public long getShippingCents() {
 		return shippingCents;
+	}
+
+	public void setShippingCents(long shippingCents) {
+		this.shippingCents = shippingCents;
 	}
 
 	public long getTotalCents() {
 		return totalCents;
 	}
 
+	public void setTotalCents(long totalCents) {
+		this.totalCents = totalCents;
+	}
+
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	public Instant getUpdatedAt() {
 		return updatedAt;
 	}
 
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
 	public List<OrderItemResponse> getItems() {
 		return items;
 	}
 
+	public void setItems(List<OrderItemResponse> items) {
+		this.items = items;
+	}
+
 	public List<OrderStatusHistoryResponse> getStatusHistory() {
 		return statusHistory;
+	}
+
+	public void setStatusHistory(List<OrderStatusHistoryResponse> statusHistory) {
+		this.statusHistory = statusHistory;
 	}
 
 }

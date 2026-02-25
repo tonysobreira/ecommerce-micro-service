@@ -14,17 +14,17 @@ import java.util.UUID;
 @Service
 public class ProductImageService {
 
-	private final ProductImageRepository repo;
+	private final ProductImageRepository productImageRepository;
 	private final ProductService productService;
 
-	public ProductImageService(ProductImageRepository repo, ProductService productService) {
-		this.repository = repo;
+	public ProductImageService(ProductImageRepository productImageRepository, ProductService productService) {
+		this.productImageRepository = productImageRepository;
 		this.productService = productService;
 	}
 
 	@Transactional(readOnly = true)
 	public List<ProductImage> listByProduct(UUID productId) {
-		return repo.findByProductIdOrderBySortOrderAsc(productId);
+		return productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
 	}
 
 	@Transactional
@@ -33,13 +33,13 @@ public class ProductImageService {
 		int sortOrder = req.getSortOrder() != null ? req.getSortOrder() : 0;
 		ProductImage img = new ProductImage(UUID.randomUUID(), req.getProductId(), req.getUrl().trim(),
 				req.getAltText(), sortOrder, Instant.now());
-		return repo.save(img);
+		return productImageRepository.save(img);
 	}
 
 	@Transactional
 	public void delete(UUID id) {
-		ProductImage img = repo.findById(id).orElseThrow(() -> new NotFoundException("Image not found"));
-		repo.delete(img);
+		ProductImage img = productImageRepository.findById(id).orElseThrow(() -> new NotFoundException("Image not found"));
+		productImageRepository.delete(img);
 	}
 
 }

@@ -31,9 +31,9 @@ import io.jsonwebtoken.Claims;
 @Service
 public class AuthService {
 
-	private final UserAccountRepository users;
+	private final UserAccountRepository userAccountRepository;
 
-	private final RefreshTokenRepository refreshTokens;
+	private final RefreshTokenRepository refreshTokenRepository;
 
 	private final PasswordEncoder passwordEncoder;
 
@@ -47,13 +47,13 @@ public class AuthService {
 
 	private final long activationTtlMinutes;
 
-	public AuthService(UserAccountRepository users, RefreshTokenRepository refreshTokens,
+	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
 			PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService,
 			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
-		this.users = users;
-		this.refreshTokens = refreshTokens;
+		this.userAccountRepository = userAccountRepository;
+		this.refreshTokenRepository = refreshTokenRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
 		this.verifier = verifier;
@@ -64,7 +64,7 @@ public class AuthService {
 
 	@Transactional
 	public RegisterResponse register(String email, String password) {
-		users.findByEmailIgnoreCase(email).ifPresent(u -> {
+		userAccountRepository.findByEmailIgnoreCase(email).ifPresent(u -> {
 			throw new ConflictException("Email already registered");
 		});
 
@@ -74,7 +74,7 @@ public class AuthService {
 		// default role USER
 		UserAccount account = new UserAccount(userId, email.trim().toLowerCase(Locale.ROOT), passwordHash, "USER",
 				Instant.now());
-		users.save(account);
+		userAccountRepository.save(account);
 
 		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(),
 				activationTtlMinutes * 60L);
@@ -86,7 +86,7 @@ public class AuthService {
 
 	@Transactional
 	public AuthResponse login(String email, String password) {
-		UserAccount account = users.findByEmailIgnoreCase(email)
+		UserAccount account = userAccountRepository.findByEmailIgnoreCase(email)
 				.orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
 		if (account.isDeleted()) {
@@ -118,22 +118,22 @@ public class AuthService {
 		}
 
 		UUID userId = UUID.fromString(claims.getSubject());
-		UserAccount account = users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+		UserAccount account = userAccountRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 		account.activate();
-		users.save(account);
+		userAccountRepository.save(account);
 	}
 
 	@Transactional
 	public AuthResponse refresh(String refreshTokenRaw) {
 		String hash = TokenHash.sha256Base64(refreshTokenRaw);
-		RefreshToken rt = refreshTokens.findByTokenHash(hash)
+		RefreshToken rt = refreshTokenRepository.findByTokenHash(hash)
 				.orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
 
 		if (rt.isRevoked() || rt.isExpired()) {
 			throw new UnauthorizedException("Refresh token expired or revoked");
 		}
 
-		UserAccount account = users.findById(rt.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
+		UserAccount account = userAccountRepository.findById(rt.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
 
 		if (account.isDeleted()) {
 			throw new UnauthorizedException("Account disabled");
@@ -141,7 +141,7 @@ public class AuthService {
 
 		// Rotate refresh token: revoke old, issue new
 		rt.revoke();
-		refreshTokens.save(rt);
+		refreshTokenRepository.save(rt);
 
 		return issueTokens(account);
 	}
@@ -149,16 +149,16 @@ public class AuthService {
 	@Transactional
 	public void logout(String refreshTokenRaw) {
 		String hash = TokenHash.sha256Base64(refreshTokenRaw);
-		refreshTokens.findByTokenHash(hash).ifPresent(rt -> {
+		refreshTokenRepository.findByTokenHash(hash).ifPresent(rt -> {
 			if (!rt.isRevoked()) {
 				rt.revoke();
-				refreshTokens.save(rt);
+				refreshTokenRepository.save(rt);
 			}
 		});
 	}
 
 	public UserAccount getUser(UUID userId) {
-		return users.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+		return userAccountRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 	public AuthResponse issueTokens(UserAccount account) {
@@ -172,7 +172,7 @@ public class AuthService {
 		Instant expires = now.plus(refreshTtlDays, ChronoUnit.DAYS);
 
 		RefreshToken rt = new RefreshToken(UUID.randomUUID(), account.getId(), refreshHash, expires, now);
-		refreshTokens.save(rt);
+		refreshTokenRepository.save(rt);
 
 		return new AuthResponse(account.getId(), account.getEmail(), roles.toArray(new String[0]), accessToken,
 				refreshRaw);

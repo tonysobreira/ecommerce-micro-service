@@ -17,20 +17,20 @@ import com.example.userservice.security.UserPrincipal;
 @Service
 public class UserProfileService {
 
-	private final UserProfileRepository repo;
+	private final UserProfileRepository userProfileRepository;
 
-	public UserProfileService(UserProfileRepository repo) {
-		this.repository = repo;
+	public UserProfileService(UserProfileRepository userProfileRepository) {
+		this.userProfileRepository = userProfileRepository;
 	}
 
 	@Transactional(readOnly = true)
 	public List<UserProfile> listAllActive() {
-		return repo.findAll().stream().filter(p -> !p.isDeleted()).toList();
+		return userProfileRepository.findAll().stream().filter(p -> !p.isDeleted()).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public UserProfile getActive(UUID id) {
-		UserProfile p = repo.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+		UserProfile p = userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 		if (p.isDeleted()) {
 			throw new NotFoundException("User not found");
 		}
@@ -42,7 +42,7 @@ public class UserProfileService {
 		UserProfile p = getActive(id);
 
 		if (req.getEmail() != null && !req.getEmail().isBlank()) {
-			repo.findByEmailIgnoreCase(req.getEmail()).ifPresent(other -> {
+			userProfileRepository.findByEmailIgnoreCase(req.getEmail()).ifPresent(other -> {
 				if (!other.getId().equals(id)) {
 					throw new ConflictException("Email already in use");
 				}
@@ -63,14 +63,14 @@ public class UserProfileService {
 		}
 
 		p.touchUpdated();
-		return repo.save(p);
+		return userProfileRepository.save(p);
 	}
 
 	@Transactional
 	public void softDelete(UUID id) {
 		UserProfile p = getActive(id);
 		p.softDelete();
-		repo.save(p);
+		userProfileRepository.save(p);
 	}
 
 	/**
@@ -79,16 +79,16 @@ public class UserProfileService {
 	 */
 	@Transactional
 	public UserProfile createIfMissing(UUID id, String email) {
-		return repo.findById(id).orElseGet(() -> {
+		return userProfileRepository.findById(id).orElseGet(() -> {
 			Instant now = Instant.now();
 			UserProfile p = new UserProfile(id, email, now, now);
-			return repo.save(p);
+			return userProfileRepository.save(p);
 		});
 	}
 
 	@Transactional
 	public UserProfile getOrCreate(UUID id, UserPrincipal principal) {
-		return repo.findById(id).orElseGet(() -> {
+		return userProfileRepository.findById(id).orElseGet(() -> {
 			// only owner (or admin) can auto-create
 			if (!principal.isAdmin() && !principal.getUserId().equals(id)) {
 				throw new NotFoundException("User not found");
@@ -102,7 +102,7 @@ public class UserProfileService {
 			p.setCreatedAt(Instant.now());
 			p.setUpdatedAt(Instant.now());
 			p.setDeletedAt(null);
-			return repo.save(p);
+			return userProfileRepository.save(p);
 		});
 	}
 

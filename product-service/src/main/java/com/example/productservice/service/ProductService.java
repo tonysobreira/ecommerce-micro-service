@@ -17,22 +17,22 @@ import com.example.productservice.repository.ProductRepository;
 @Service
 public class ProductService {
 
-	private final ProductRepository repo;
+	private final ProductRepository productRepository;
 	private final CategoryService categoryService;
 
-	public ProductService(ProductRepository repo, CategoryService categoryService) {
-		this.repository = repo;
+	public ProductService(ProductRepository productRepository, CategoryService categoryService) {
+		this.productRepository = productRepository;
 		this.categoryService = categoryService;
 	}
 
 	@Transactional(readOnly = true)
 	public List<Product> listPublic() {
-		return repo.findByActiveTrue();
+		return productRepository.findByActiveTrue();
 	}
 
 	@Transactional(readOnly = true)
 	public Product get(UUID id) {
-		return repo.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
+		return productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
 	}
 
 	@Transactional
@@ -45,7 +45,7 @@ public class ProductService {
 		Product p = new Product(UUID.randomUUID(), req.getCategoryId(), category, req.getName().trim(), req.getDescription(),
 				req.getPriceCents(), req.getCurrency().trim(), req.getStock(),
 				req.getActive() != null ? req.getActive() : true, now, now);
-		return repo.save(p);
+		return productRepository.save(p);
 	}
 
 	@Transactional
@@ -82,13 +82,13 @@ public class ProductService {
 		}
 
 		p.touchUpdated();
-		return repo.save(p);
+		return productRepository.save(p);
 	}
 
 	@Transactional
 	public void delete(UUID id) {
 		Product p = get(id);
-		repo.delete(p);
+		productRepository.delete(p);
 	}
 
 }

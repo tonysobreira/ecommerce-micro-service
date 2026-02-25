@@ -16,38 +16,38 @@ import java.util.UUID;
 @Service
 public class CategoryService {
 
-	private final CategoryRepository repo;
+	private final CategoryRepository categoryRepository;
 
-	public CategoryService(CategoryRepository repo) {
-		this.repository = repo;
+	public CategoryService(CategoryRepository categoryRepository) {
+		this.categoryRepository = categoryRepository;
 	}
 
 	@Transactional(readOnly = true)
 	public List<Category> list() {
-		return repo.findAll();
+		return categoryRepository.findAll();
 	}
 
 	@Transactional(readOnly = true)
 	public Category get(UUID id) {
-		return repo.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
+		return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
 	}
 
 	@Transactional
 	public Category create(CategoryCreateRequest req) {
-		repo.findByNameIgnoreCase(req.getName()).ifPresent(c -> {
+		categoryRepository.findByNameIgnoreCase(req.getName()).ifPresent(c -> {
 			throw new ConflictException("Category name already exists");
 		});
 
 		Instant now = Instant.now();
 		Category c = new Category(UUID.randomUUID(), req.getName().trim(), now, now);
-		return repo.save(c);
+		return categoryRepository.save(c);
 	}
 
 	@Transactional
 	public Category update(UUID id, CategoryUpdateRequest req) {
 		Category c = get(id);
 
-		repo.findByNameIgnoreCase(req.getName()).ifPresent(other -> {
+		categoryRepository.findByNameIgnoreCase(req.getName()).ifPresent(other -> {
 			if (!other.getId().equals(id)) {
 				throw new ConflictException("Category name already exists");
 			}
@@ -55,13 +55,13 @@ public class CategoryService {
 
 		c.setName(req.getName().trim());
 		c.touchUpdated();
-		return repo.save(c);
+		return categoryRepository.save(c);
 	}
 
 	@Transactional
 	public void delete(UUID id) {
 		Category c = get(id);
-		repo.delete(c);
+		categoryRepository.delete(c);
 	}
 
 }
