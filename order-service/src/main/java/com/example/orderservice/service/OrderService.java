@@ -1,14 +1,18 @@
 package com.example.orderservice.service;
 
 import com.example.orderservice.client.ProductClient;
+import com.example.orderservice.client.email.EmailClient;
 import com.example.orderservice.domain.*;
 import com.example.orderservice.dto.*;
+import com.example.orderservice.dto.email.OrderStatusEmailRequest;
 import com.example.orderservice.errors.BadRequestException;
 import com.example.orderservice.errors.ForbiddenException;
 import com.example.orderservice.errors.NotFoundException;
 import com.example.orderservice.repo.OrderItemRepository;
 import com.example.orderservice.repo.OrderRepository;
 import com.example.orderservice.repo.OrderStatusHistoryRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +24,20 @@ import java.util.stream.Collectors;
 @Service
 public class OrderService {
 
+	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 	private final ProductClient productClient;
 	private final OrderRepository orders;
 	private final OrderItemRepository items;
 	private final OrderStatusHistoryRepository history;
+	private final EmailClient emailClient;
 
 	public OrderService(ProductClient productClient, OrderRepository orders, OrderItemRepository items,
-			OrderStatusHistoryRepository history) {
+			OrderStatusHistoryRepository history, EmailClient emailClient) {
 		this.productClient = productClient;
 		this.orders = orders;
 		this.items = items;
 		this.history = history;
+		this.emailClient = emailClient;
 	}
 
 	/**
@@ -38,7 +45,7 @@ public class OrderService {
 	 * (atomic on product-service side) 3) Persist order/items/history (local DB tx)
 	 * 4) If DB tx fails after reserve, best-effort release.
 	 */
-	public OrderResponse create(UUID userId, CreateOrderRequest req) {
+	public OrderResponse create(UUID userId, String email, CreateOrderRequest req) {
 		if (req.getItems() == null || req.getItems().isEmpty()) {
 			throw new BadRequestException("Order must contain items");
 		}
@@ -92,7 +99,7 @@ public class OrderService {
 		productClient.reserve(reserveReq);
 
 		try {
-			return persistOrder(userId, req, quoteMap, currency, subtotal);
+			return persistOrder(userId, email, req, quoteMap, currency, subtotal);
 		} catch (RuntimeException ex) {
 			// Best-effort compensation: release
 			try {
@@ -105,7 +112,7 @@ public class OrderService {
 	}
 
 	@Transactional
-	protected OrderResponse persistOrder(UUID userId, CreateOrderRequest req, Map<UUID, QuoteItemResponse> quoteMap,
+	protected OrderResponse persistOrder(UUID userId, String email, CreateOrderRequest req, Map<UUID, QuoteItemResponse> quoteMap,
 			String currency, long subtotal) {
 
 		long shipping = PricingCalculator.shippingCents(subtotal);
@@ -123,7 +130,7 @@ public class OrderService {
 
 		AddressDto a = req.getShippingAddress();
 
-		Order order = new Order(orderId, userId, OrderStatus.CREATED, pm, a.getLine1(), a.getLine2(), a.getCity(),
+		Order order = new Order(orderId, userId, email, OrderStatus.CREATED, pm, a.getLine1(), a.getLine2(), a.getCity(),
 				a.getState(), a.getZip(), a.getCountry(), currency, subtotal, shipping, total, now, now);
 
 		orders.save(order);
@@ -138,6 +145,7 @@ public class OrderService {
 		items.saveAll(itemEntities);
 
 		history.save(new OrderStatusHistory(UUID.randomUUID(), orderId, OrderStatus.CREATED, userId, now));
+		notifyOrderStatus(order);
 
 		return toResponse(order, itemEntities, history.findByOrderIdOrderByChangedAtAsc(orderId));
 	}
@@ -180,10 +188,20 @@ public class OrderService {
 		orders.save(o);
 
 		history.save(new OrderStatusHistory(UUID.randomUUID(), orderId, ns, adminId, Instant.now()));
+		notifyOrderStatus(o);
 
 		List<OrderItem> its = items.findByOrderId(orderId);
 		List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(orderId);
 		return toResponse(o, its, hist);
+	}
+
+	private void notifyOrderStatus(Order order) {
+		try {
+			emailClient.sendOrderStatus(new OrderStatusEmailRequest(order.getCustomerEmail(), order.getId(),
+					order.getStatus(), order.getCurrency(), order.getTotalCents()));
+		} catch (Exception ex) {
+			log.warn("Unable to send order status email for order {}", order.getId(), ex);
+		}
 	}
 
 	private static OrderResponse toResponse(Order o, List<OrderItem> items, List<OrderStatusHistory> hist) {

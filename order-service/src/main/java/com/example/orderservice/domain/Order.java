@@ -1,6 +1,9 @@
 package com.example.orderservice.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,6 +20,9 @@ public class Order {
 
 	@Column(nullable = false)
 	private String status;
+
+	@Column(name = "customer_email", nullable = false)
+	private String customerEmail;
 
 	@Column(name = "payment_method", nullable = false)
 	private String paymentMethod;
@@ -60,12 +66,14 @@ public class Order {
 	protected Order() {
 	}
 
-	public Order(UUID id, UUID userId, OrderStatus status, PaymentMethod paymentMethod, String shipLine1,
-			String shipLine2, String shipCity, String shipState, String shipZip, String shipCountry, String currency,
-			long subtotalCents, long shippingCents, long totalCents, Instant createdAt, Instant updatedAt) {
+	public Order(UUID id, UUID userId, String customerEmail, OrderStatus status, PaymentMethod paymentMethod,
+			String shipLine1, String shipLine2, String shipCity, String shipState, String shipZip, String shipCountry,
+			String currency, long subtotalCents, long shippingCents, long totalCents, Instant createdAt,
+			Instant updatedAt) {
 		this.id = id;
 		this.userId = userId;
 		this.status = status.name();
+		this.customerEmail = customerEmail;
 		this.paymentMethod = paymentMethod.name();
 		this.shipLine1 = shipLine1;
 		this.shipLine2 = shipLine2;
@@ -81,69 +89,23 @@ public class Order {
 		this.updatedAt = updatedAt;
 	}
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getUserId() {
-		return userId;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public String getPaymentMethod() {
-		return paymentMethod;
-	}
-
-	public String getShipLine1() {
-		return shipLine1;
-	}
-
-	public String getShipLine2() {
-		return shipLine2;
-	}
-
-	public String getShipCity() {
-		return shipCity;
-	}
-
-	public String getShipState() {
-		return shipState;
-	}
-
-	public String getShipZip() {
-		return shipZip;
-	}
-
-	public String getShipCountry() {
-		return shipCountry;
-	}
-
-	public String getCurrency() {
-		return currency;
-	}
-
-	public long getSubtotalCents() {
-		return subtotalCents;
-	}
-
-	public long getShippingCents() {
-		return shippingCents;
-	}
-
-	public long getTotalCents() {
-		return totalCents;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
+	public UUID getId() { return id; }
+	public UUID getUserId() { return userId; }
+	public String getStatus() { return status; }
+	public String getCustomerEmail() { return customerEmail; }
+	public String getPaymentMethod() { return paymentMethod; }
+	public String getShipLine1() { return shipLine1; }
+	public String getShipLine2() { return shipLine2; }
+	public String getShipCity() { return shipCity; }
+	public String getShipState() { return shipState; }
+	public String getShipZip() { return shipZip; }
+	public String getShipCountry() { return shipCountry; }
+	public String getCurrency() { return currency; }
+	public long getSubtotalCents() { return subtotalCents; }
+	public long getShippingCents() { return shippingCents; }
+	public long getTotalCents() { return totalCents; }
+	public Instant getCreatedAt() { return createdAt; }
+	public Instant getUpdatedAt() { return updatedAt; }
 
 	public OrderStatus statusEnum() {
 		return OrderStatus.valueOf(status);
@@ -157,5 +119,4 @@ public class Order {
 	public void touch() {
 		this.updatedAt = Instant.now();
 	}
-
 }
