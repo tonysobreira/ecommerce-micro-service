@@ -19,25 +19,13 @@ public class JwtIssuer {
 
 	private final long accessTtlSeconds;
 
-	private final long refreshTtlSeconds;
-
-	public JwtIssuer(String secret, String issuer, long accessTtlSeconds, long refreshTtlSeconds) {
+	public JwtIssuer(String secret, String issuer, long accessTtlSeconds) {
 		if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
 			throw new IllegalStateException("JWT_SECRET must be at least 32 bytes for HS256");
 		}
 		this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 		this.issuer = issuer;
 		this.accessTtlSeconds = accessTtlSeconds;
-		this.refreshTtlSeconds = refreshTtlSeconds;
-	}
-
-	public String issueActivationToken(UUID userId, String email, long activationTtlSeconds) {
-		Instant now = Instant.now();
-		Instant exp = now.plusSeconds(activationTtlSeconds);
-
-		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
-				.setExpiration(Date.from(exp)).claim("email", email).claim("typ", "activation")
-				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 
 	public String issueAccessToken(UUID userId, String email, List<String> roles) {
@@ -49,13 +37,13 @@ public class JwtIssuer {
 				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 
-	public String issueRefreshToken(UUID userId) {
+	public String issueActivationToken(UUID userId, String email, long activationTtlSeconds) {
 		Instant now = Instant.now();
-		Instant exp = now.plusSeconds(refreshTtlSeconds);
+		Instant exp = now.plusSeconds(activationTtlSeconds);
 
 		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
-				.setExpiration(Date.from(exp)).claim("typ", "refresh").signWith(key, SignatureAlgorithm.HS256)
-				.compact();
+				.setExpiration(Date.from(exp)).claim("email", email).claim("typ", "activation")
+				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 
 }
