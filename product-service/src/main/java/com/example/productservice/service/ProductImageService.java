@@ -1,9 +1,9 @@
 package com.example.productservice.service;
 
-import com.example.productservice.domain.ProductImage;
+import com.example.productservice.model.ProductImage;
 import com.example.productservice.dto.request.ProductImageCreateRequest;
-import com.example.productservice.errors.NotFoundException;
-import com.example.productservice.repo.ProductImageRepository;
+import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.repository.ProductImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +18,7 @@ public class ProductImageService {
 	private final ProductService productService;
 
 	public ProductImageService(ProductImageRepository repo, ProductService productService) {
-		this.repo = repo;
+		this.repository = repo;
 		this.productService = productService;
 	}
 

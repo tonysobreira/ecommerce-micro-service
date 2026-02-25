@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.userservice.domain.UserProfile;
+import com.example.userservice.model.UserProfile;
 import com.example.userservice.dto.response.UserResponse;
 import com.example.userservice.dto.request.UserUpdateRequest;
-import com.example.userservice.errors.ForbiddenException;
+import com.example.userservice.exception.ForbiddenException;
 import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.security.UserPrincipal;
 import com.example.userservice.service.UserProfileService;

@@ -1,10 +1,10 @@
 package com.example.productservice.service;
 
-import com.example.productservice.domain.Product;
+import com.example.productservice.model.Product;
 import com.example.productservice.dto.request.StockReserveItem;
-import com.example.productservice.errors.BadRequestException;
-import com.example.productservice.errors.NotFoundException;
-import com.example.productservice.repo.ProductRepository;
+import com.example.productservice.exception.BadRequestException;
+import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

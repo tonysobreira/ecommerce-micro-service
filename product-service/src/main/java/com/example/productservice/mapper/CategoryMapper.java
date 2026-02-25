@@ -1,12 +1,12 @@
 package com.example.productservice.mapper;
 
-import com.example.productservice.domain.Category;
+import com.example.productservice.model.Category;
 import com.example.productservice.dto.response.CategoryResponse;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class CategoryMapper {
-	public CategoryResponse toResponse(Category category) {
-		return new CategoryResponse(category.getId(), category.getName(), category.getCreatedAt(), category.getUpdatedAt());
-	}
+@Mapper(componentModel = "spring")
+public interface CategoryMapper {
+
+	CategoryResponse toResponse(Category category);
+
 }

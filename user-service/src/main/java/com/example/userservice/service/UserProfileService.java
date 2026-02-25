@@ -7,11 +7,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.userservice.domain.UserProfile;
+import com.example.userservice.model.UserProfile;
 import com.example.userservice.dto.request.UserUpdateRequest;
-import com.example.userservice.errors.ConflictException;
-import com.example.userservice.errors.NotFoundException;
-import com.example.userservice.repo.UserProfileRepository;
+import com.example.userservice.exception.ConflictException;
+import com.example.userservice.exception.NotFoundException;
+import com.example.userservice.repository.UserProfileRepository;
 import com.example.userservice.security.UserPrincipal;
 
 @Service
@@ -20,7 +20,7 @@ public class UserProfileService {
 	private final UserProfileRepository repo;
 
 	public UserProfileService(UserProfileRepository repo) {
-		this.repo = repo;
+		this.repository = repo;
 	}
 
 	@Transactional(readOnly = true)

@@ -1,6 +1,6 @@
 package com.example.userservice.mapper;
 
-import com.example.userservice.domain.UserProfile;
+import com.example.userservice.model.UserProfile;
 import com.example.userservice.dto.response.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
