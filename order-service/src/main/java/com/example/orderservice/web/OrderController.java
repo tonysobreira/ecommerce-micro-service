@@ -25,7 +25,7 @@ public class OrderController {
 	@PostMapping
 	public OrderResponse create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return service.create(p.getUserId(), req);
+		return service.create(p.getUserId(), p.getUsername(), req);
 	}
 
 	@GetMapping("/my")

@@ -53,6 +53,11 @@ spring:
           predicates:
             - Path=/orders/**
 
+        - id: email-service
+          uri: lb://email-service
+          predicates:
+            - Path=/emails/**
+
 eureka:
   client:
     service-url:
