@@ -2,69 +2,50 @@ package com.example.orderservice.dto.response;
 
 import java.util.UUID;
 
-public class QuoteItemResponse {
+public record QuoteItemResponse(
+	UUID productId,
 
-	private UUID productId;
+	boolean exists,
 
-	private boolean exists;
+	boolean active,
 
-	private boolean active;
+	long priceCents,
 
-	private long priceCents;
+	String currency,
 
-	private String currency;
-
-	private int stock;
-
-	public QuoteItemResponse() {
-	}
+	int stock
+) {
 
 	public UUID getProductId() {
 		return productId;
 	}
 
-	public void setProductId(UUID productId) {
-		this.productId = productId;
+	public boolean getExists() {
+		return exists;
 	}
 
 	public boolean isExists() {
 		return exists;
 	}
 
-	public void setExists(boolean exists) {
-		this.exists = exists;
+	public boolean getActive() {
+		return active;
 	}
 
 	public boolean isActive() {
 		return active;
 	}
 
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
 	public long getPriceCents() {
 		return priceCents;
-	}
-
-	public void setPriceCents(long priceCents) {
-		this.priceCents = priceCents;
 	}
 
 	public String getCurrency() {
 		return currency;
 	}
 
-	public void setCurrency(String currency) {
-		this.currency = currency;
-	}
-
 	public int getStock() {
 		return stock;
-	}
-
-	public void setStock(int stock) {
-		this.stock = stock;
 	}
 
 }

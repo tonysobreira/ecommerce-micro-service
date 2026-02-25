@@ -1,18 +1,15 @@
 package com.example.orderservice.dto.response;
 
-public class StockReserveResponse {
+public record StockReserveResponse(
+	boolean reserved
+) {
 
-	private boolean reserved;
-
-	public StockReserveResponse() {
+	public boolean getReserved() {
+		return reserved;
 	}
 
 	public boolean isReserved() {
 		return reserved;
-	}
-
-	public void setReserved(boolean reserved) {
-		this.reserved = reserved;
 	}
 
 }

@@ -2,20 +2,13 @@ package com.example.orderservice.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class OrderStatusPatchRequest {
-
+public record OrderStatusPatchRequest(
 	@NotBlank
-	private String status;
-
-	public OrderStatusPatchRequest() {
-	}
+	String status
+) {
 
 	public String getStatus() {
 		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
 	}
 
 }

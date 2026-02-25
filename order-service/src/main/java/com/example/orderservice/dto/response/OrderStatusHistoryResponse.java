@@ -3,22 +3,13 @@ package com.example.orderservice.dto.response;
 import java.time.Instant;
 import java.util.UUID;
 
-public class OrderStatusHistoryResponse {
+public record OrderStatusHistoryResponse(
+	String status,
 
-	private String status;
+	UUID changedBy,
 
-	private UUID changedBy;
-
-	private Instant changedAt;
-
-	public OrderStatusHistoryResponse() {
-	}
-
-	public OrderStatusHistoryResponse(String status, UUID changedBy, Instant changedAt) {
-		this.status = status;
-		this.changedBy = changedBy;
-		this.changedAt = changedAt;
-	}
+	Instant changedAt
+) {
 
 	public String getStatus() {
 		return status;

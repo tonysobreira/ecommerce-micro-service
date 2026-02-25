@@ -3,31 +3,19 @@ package com.example.productservice.dto.response;
 import java.time.Instant;
 import java.util.UUID;
 
-public class ProductImageResponse {
+public record ProductImageResponse(
+	UUID id,
 
-	private UUID id;
+	UUID productId,
 
-	private UUID productId;
+	String url,
 
-	private String url;
+	String altText,
 
-	private String altText;
+	int sortOrder,
 
-	private int sortOrder;
-
-	private Instant createdAt;
-
-	public ProductImageResponse() {
-	}
-
-	public ProductImageResponse(UUID id, UUID productId, String url, String altText, int sortOrder, Instant createdAt) {
-		this.id = id;
-		this.productId = productId;
-		this.url = url;
-		this.altText = altText;
-		this.sortOrder = sortOrder;
-		this.createdAt = createdAt;
-	}
+	Instant createdAt
+) {
 
 	public UUID getId() {
 		return id;

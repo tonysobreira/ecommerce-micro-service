@@ -2,25 +2,15 @@ package com.example.orderservice.dto.response;
 
 import java.util.UUID;
 
-public class OrderItemResponse {
+public record OrderItemResponse(
+	UUID productId,
 
-	private UUID productId;
+	int quantity,
 
-	private int quantity;
+	long unitPriceCents,
 
-	private long unitPriceCents;
-
-	private String currency;
-
-	public OrderItemResponse() {
-	}
-
-	public OrderItemResponse(UUID productId, int quantity, long unitPriceCents, String currency) {
-		this.productId = productId;
-		this.quantity = quantity;
-		this.unitPriceCents = unitPriceCents;
-		this.currency = currency;
-	}
+	String currency
+) {
 
 	public UUID getProductId() {
 		return productId;
