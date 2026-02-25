@@ -1,6 +1,6 @@
 package com.example.orderservice.security;
 
-import com.example.orderservice.errors.UnauthorizedException;
+import com.example.orderservice.exception.UnauthorizedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

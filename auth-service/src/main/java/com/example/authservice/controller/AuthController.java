@@ -1,6 +1,6 @@
 package com.example.authservice.controller;
 
-import com.example.authservice.domain.UserAccount;
+import com.example.authservice.model.UserAccount;
 import com.example.authservice.dto.request.*;
 import com.example.authservice.dto.response.*;
 import com.example.authservice.mapper.AuthMapper;

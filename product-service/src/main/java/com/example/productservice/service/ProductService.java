@@ -7,12 +7,12 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.productservice.domain.Category;
-import com.example.productservice.domain.Product;
+import com.example.productservice.model.Category;
+import com.example.productservice.model.Product;
 import com.example.productservice.dto.request.ProductCreateRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
-import com.example.productservice.errors.NotFoundException;
-import com.example.productservice.repo.ProductRepository;
+import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.repository.ProductRepository;
 
 @Service
 public class ProductService {
@@ -21,7 +21,7 @@ public class ProductService {
 	private final CategoryService categoryService;
 
 	public ProductService(ProductRepository repo, CategoryService categoryService) {
-		this.repo = repo;
+		this.repository = repo;
 		this.categoryService = categoryService;
 	}
 

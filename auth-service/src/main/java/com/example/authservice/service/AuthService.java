@@ -14,15 +14,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.authservice.domain.RefreshToken;
-import com.example.authservice.domain.UserAccount;
+import com.example.authservice.model.RefreshToken;
+import com.example.authservice.model.UserAccount;
 import com.example.authservice.dto.response.AuthResponse;
 import com.example.authservice.dto.response.RegisterResponse;
-import com.example.authservice.errors.ConflictException;
-import com.example.authservice.errors.NotFoundException;
-import com.example.authservice.errors.UnauthorizedException;
-import com.example.authservice.repo.RefreshTokenRepository;
-import com.example.authservice.repo.UserAccountRepository;
+import com.example.authservice.exception.ConflictException;
+import com.example.authservice.exception.NotFoundException;
+import com.example.authservice.exception.UnauthorizedException;
+import com.example.authservice.repository.RefreshTokenRepository;
+import com.example.authservice.repository.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
 import com.example.authservice.security.JwtVerifier;
 

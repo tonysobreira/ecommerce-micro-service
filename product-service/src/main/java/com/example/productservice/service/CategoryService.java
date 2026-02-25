@@ -1,11 +1,11 @@
 package com.example.productservice.service;
 
-import com.example.productservice.domain.Category;
+import com.example.productservice.model.Category;
 import com.example.productservice.dto.request.CategoryCreateRequest;
 import com.example.productservice.dto.request.CategoryUpdateRequest;
-import com.example.productservice.errors.ConflictException;
-import com.example.productservice.errors.NotFoundException;
-import com.example.productservice.repo.CategoryRepository;
+import com.example.productservice.exception.ConflictException;
+import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +19,7 @@ public class CategoryService {
 	private final CategoryRepository repo;
 
 	public CategoryService(CategoryRepository repo) {
-		this.repo = repo;
+		this.repository = repo;
 	}
 
 	@Transactional(readOnly = true)

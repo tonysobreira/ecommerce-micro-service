@@ -3,7 +3,7 @@ package com.example.productservice.dto.response;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.example.productservice.domain.Category;
+import com.example.productservice.model.Category;
 
 public class ProductResponse {
 

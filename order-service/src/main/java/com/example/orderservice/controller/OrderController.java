@@ -46,7 +46,7 @@ public class OrderController {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		// SecurityConfig already requires ADMIN for this route, but double-check is OK:
 		if (!p.isAdmin()) {
-			throw new com.example.orderservice.errors.ForbiddenException("Admin only");
+			throw new com.example.orderservice.exception.ForbiddenException("Admin only");
 		}
 		return service.updateStatus(p.getUserId(), orderId, req.getStatus());
 	}

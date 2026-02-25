@@ -1,9 +1,9 @@
 package com.example.productservice.controller;
 
-import com.example.productservice.domain.Product;
+import com.example.productservice.model.Product;
 import com.example.productservice.dto.request.*;
 import com.example.productservice.dto.response.*;
-import com.example.productservice.repo.ProductRepository;
+import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.StockService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
