@@ -3,88 +3,56 @@ package com.example.productservice.dto.request;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.UUID;
 
-public class ProductCreateRequest {
-
-	private UUID categoryId;
+public record ProductCreateRequest(
+	UUID categoryId,
 
 	@NotBlank
-	private String name;
+	String name,
 
-	private String description;
+	String description,
 
 	@NotNull
 	@Min(0)
-	private Long priceCents;
+	Long priceCents,
 
 	@NotBlank
-	private String currency;
+	String currency,
 
 	@NotNull
 	@Min(0)
-	private Integer stock;
+	Integer stock,
 
-	private Boolean active;
-
-	public ProductCreateRequest() {
-	}
+	Boolean active
+) {
 
 	public UUID getCategoryId() {
 		return categoryId;
-	}
-
-	public void setCategoryId(UUID categoryId) {
-		this.categoryId = categoryId;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getDescription() {
 		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	public Long getPriceCents() {
 		return priceCents;
 	}
 
-	public void setPriceCents(Long priceCents) {
-		this.priceCents = priceCents;
-	}
-
 	public String getCurrency() {
 		return currency;
-	}
-
-	public void setCurrency(String currency) {
-		this.currency = currency;
 	}
 
 	public Integer getStock() {
 		return stock;
 	}
 
-	public void setStock(Integer stock) {
-		this.stock = stock;
-	}
-
 	public Boolean getActive() {
 		return active;
-	}
-
-	public void setActive(Boolean active) {
-		this.active = active;
 	}
 
 }

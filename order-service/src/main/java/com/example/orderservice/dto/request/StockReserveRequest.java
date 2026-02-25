@@ -3,24 +3,13 @@ package com.example.orderservice.dto.request;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
-public class StockReserveRequest {
-
+public record StockReserveRequest(
 	@NotEmpty
-	private List<StockReserveItem> items;
-
-	public StockReserveRequest() {
-	}
-
-	public StockReserveRequest(List<StockReserveItem> items) {
-		this.items = items;
-	}
+	List<StockReserveItem> items
+) {
 
 	public List<StockReserveItem> getItems() {
 		return items;
-	}
-
-	public void setItems(List<StockReserveItem> items) {
-		this.items = items;
 	}
 
 }

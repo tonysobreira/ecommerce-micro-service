@@ -2,28 +2,17 @@ package com.example.authservice.dto.response;
 
 import java.util.UUID;
 
-public class AuthResponse {
+public record AuthResponse(
+	UUID userId,
 
-	private UUID userId;
+	String email,
 
-	private String email;
+	String[] roles,
 
-	private String[] roles;
+	String accessToken,
 
-	private String accessToken;
-
-	private String refreshToken;
-
-	public AuthResponse() {
-	}
-
-	public AuthResponse(UUID userId, String email, String[] roles, String accessToken, String refreshToken) {
-		this.userId = userId;
-		this.email = email;
-		this.roles = roles;
-		this.accessToken = accessToken;
-		this.refreshToken = refreshToken;
-	}
+	String refreshToken
+) {
 
 	public UUID getUserId() {
 		return userId;

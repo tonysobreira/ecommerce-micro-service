@@ -2,24 +2,18 @@ package com.example.authservice.dto.response;
 
 import java.util.UUID;
 
-public class ValidateResponse {
+public record ValidateResponse(
+	boolean valid,
 
-	private boolean valid;
+	UUID userId,
 
-	private UUID userId;
+	String email,
 
-	private String email;
+	String[] roles
+) {
 
-	private String[] roles;
-
-	public ValidateResponse() {
-	}
-
-	public ValidateResponse(boolean valid, UUID userId, String email, String[] roles) {
-		this.valid = valid;
-		this.userId = userId;
-		this.email = email;
-		this.roles = roles;
+	public boolean getValid() {
+		return valid;
 	}
 
 	public boolean isValid() {

@@ -3,34 +3,43 @@ package com.example.emailservice.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.UUID;
 
-public class OrderStatusEmailRequest {
-
+public record OrderStatusEmailRequest(
 	@Email
 	@NotBlank
-	private String email;
+	String email,
 
 	@NotNull
-	private UUID orderId;
+	UUID orderId,
 
 	@NotBlank
-	private String status;
+	String status,
 
 	@NotBlank
-	private String currency;
+	String currency,
 
-	private long totalCents;
+	long totalCents
+) {
 
-	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
-	public UUID getOrderId() { return orderId; }
-	public void setOrderId(UUID orderId) { this.orderId = orderId; }
-	public String getStatus() { return status; }
-	public void setStatus(String status) { this.status = status; }
-	public String getCurrency() { return currency; }
-	public void setCurrency(String currency) { this.currency = currency; }
-	public long getTotalCents() { return totalCents; }
-	public void setTotalCents(long totalCents) { this.totalCents = totalCents; }
+	public String getEmail() {
+		return email;
+	}
+
+	public UUID getOrderId() {
+		return orderId;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public String getCurrency() {
+		return currency;
+	}
+
+	public long getTotalCents() {
+		return totalCents;
+	}
+
 }

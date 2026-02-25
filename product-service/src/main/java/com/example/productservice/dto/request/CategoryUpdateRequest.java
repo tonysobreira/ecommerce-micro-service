@@ -3,21 +3,14 @@ package com.example.productservice.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class CategoryUpdateRequest {
-
+public record CategoryUpdateRequest(
 	@NotBlank
 	@Size(max = 120)
-	private String name;
-
-	public CategoryUpdateRequest() {
-	}
+	String name
+) {
 
 	public String getName() {
 		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 }
