@@ -1,7 +1,7 @@
 package com.example.emailservice.service;
 
-import com.example.emailservice.dto.ActivationEmailRequest;
-import com.example.emailservice.dto.OrderStatusEmailRequest;
+import com.example.emailservice.dto.request.ActivationEmailRequest;
+import com.example.emailservice.dto.request.OrderStatusEmailRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;

@@ -1,8 +1,8 @@
 package com.example.productservice.service;
 
 import com.example.productservice.domain.Category;
-import com.example.productservice.dto.CategoryCreateRequest;
-import com.example.productservice.dto.CategoryUpdateRequest;
+import com.example.productservice.dto.request.CategoryCreateRequest;
+import com.example.productservice.dto.request.CategoryUpdateRequest;
 import com.example.productservice.errors.ConflictException;
 import com.example.productservice.errors.NotFoundException;
 import com.example.productservice.repo.CategoryRepository;

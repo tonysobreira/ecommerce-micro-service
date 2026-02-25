@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.productservice.domain.Category;
 import com.example.productservice.domain.Product;
-import com.example.productservice.dto.ProductCreateRequest;
-import com.example.productservice.dto.ProductUpdateRequest;
+import com.example.productservice.dto.request.ProductCreateRequest;
+import com.example.productservice.dto.request.ProductUpdateRequest;
 import com.example.productservice.errors.NotFoundException;
 import com.example.productservice.repo.ProductRepository;
 

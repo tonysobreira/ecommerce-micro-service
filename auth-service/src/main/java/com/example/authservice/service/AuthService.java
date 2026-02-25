@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.authservice.domain.RefreshToken;
 import com.example.authservice.domain.UserAccount;
-import com.example.authservice.dto.AuthResponse;
-import com.example.authservice.dto.RegisterResponse;
+import com.example.authservice.dto.response.AuthResponse;
+import com.example.authservice.dto.response.RegisterResponse;
 import com.example.authservice.errors.ConflictException;
 import com.example.authservice.errors.NotFoundException;
 import com.example.authservice.errors.UnauthorizedException;

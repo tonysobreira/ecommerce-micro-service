@@ -1,7 +1,7 @@
 package com.example.productservice.service;
 
 import com.example.productservice.domain.ProductImage;
-import com.example.productservice.dto.ProductImageCreateRequest;
+import com.example.productservice.dto.request.ProductImageCreateRequest;
 import com.example.productservice.errors.NotFoundException;
 import com.example.productservice.repo.ProductImageRepository;
 import org.springframework.stereotype.Service;
