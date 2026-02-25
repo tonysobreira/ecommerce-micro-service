@@ -3,7 +3,9 @@ package com.example.orderservice.service;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.client.email.EmailClient;
 import com.example.orderservice.domain.*;
-import com.example.orderservice.dto.*;
+import com.example.orderservice.dto.request.*;
+import com.example.orderservice.dto.response.*;
+import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.dto.email.OrderStatusEmailRequest;
 import com.example.orderservice.errors.BadRequestException;
 import com.example.orderservice.errors.ForbiddenException;
@@ -30,14 +32,16 @@ public class OrderService {
 	private final OrderItemRepository items;
 	private final OrderStatusHistoryRepository history;
 	private final EmailClient emailClient;
+	private final OrderMapper orderMapper;
 
 	public OrderService(ProductClient productClient, OrderRepository orders, OrderItemRepository items,
-			OrderStatusHistoryRepository history, EmailClient emailClient) {
+			OrderStatusHistoryRepository history, EmailClient emailClient, OrderMapper orderMapper) {
 		this.productClient = productClient;
 		this.orders = orders;
 		this.items = items;
 		this.history = history;
 		this.emailClient = emailClient;
+		this.orderMapper = orderMapper;
 	}
 
 	/**
@@ -147,7 +151,7 @@ public class OrderService {
 		history.save(new OrderStatusHistory(UUID.randomUUID(), orderId, OrderStatus.CREATED, userId, now));
 		notifyOrderStatus(order);
 
-		return toResponse(order, itemEntities, history.findByOrderIdOrderByChangedAtAsc(orderId));
+		return orderMapper.toResponse(order, itemEntities, history.findByOrderIdOrderByChangedAtAsc(orderId));
 	}
 
 	@Transactional(readOnly = true)
@@ -156,7 +160,7 @@ public class OrderService {
 		return my.stream().map(o -> {
 			List<OrderItem> its = items.findByOrderId(o.getId());
 			List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(o.getId());
-			return toResponse(o, its, hist);
+			return orderMapper.toResponse(o, its, hist);
 		}).toList();
 	}
 
@@ -170,7 +174,7 @@ public class OrderService {
 
 		List<OrderItem> its = items.findByOrderId(orderId);
 		List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(orderId);
-		return toResponse(o, its, hist);
+		return orderMapper.toResponse(o, its, hist);
 	}
 
 	@Transactional
@@ -192,7 +196,7 @@ public class OrderService {
 
 		List<OrderItem> its = items.findByOrderId(orderId);
 		List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(orderId);
-		return toResponse(o, its, hist);
+		return orderMapper.toResponse(o, its, hist);
 	}
 
 	private void notifyOrderStatus(Order order) {
@@ -204,25 +208,5 @@ public class OrderService {
 		}
 	}
 
-	private static OrderResponse toResponse(Order o, List<OrderItem> items, List<OrderStatusHistory> hist) {
-		AddressDto addr = new AddressDto();
-		addr.setLine1(o.getShipLine1());
-		addr.setLine2(o.getShipLine2());
-		addr.setCity(o.getShipCity());
-		addr.setState(o.getShipState());
-		addr.setZip(o.getShipZip());
-		addr.setCountry(o.getShipCountry());
-
-		List<OrderItemResponse> itemDtos = items.stream().map(
-				i -> new OrderItemResponse(i.getProductId(), i.getQuantity(), i.getUnitPriceCents(), i.getCurrency()))
-				.toList();
-
-		List<OrderStatusHistoryResponse> histDtos = hist.stream()
-				.map(h -> new OrderStatusHistoryResponse(h.getStatus(), h.getChangedBy(), h.getChangedAt())).toList();
-
-		return new OrderResponse(o.getId(), o.getUserId(), o.getStatus(), o.getPaymentMethod(), addr, o.getCurrency(),
-				o.getSubtotalCents(), o.getShippingCents(), o.getTotalCents(), o.getCreatedAt(), o.getUpdatedAt(),
-				itemDtos, histDtos);
-	}
 
 }

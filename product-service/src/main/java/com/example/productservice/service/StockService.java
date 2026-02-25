@@ -1,7 +1,7 @@
 package com.example.productservice.service;
 
 import com.example.productservice.domain.Product;
-import com.example.productservice.dto.StockReserveItem;
+import com.example.productservice.dto.request.StockReserveItem;
 import com.example.productservice.errors.BadRequestException;
 import com.example.productservice.errors.NotFoundException;
 import com.example.productservice.repo.ProductRepository;

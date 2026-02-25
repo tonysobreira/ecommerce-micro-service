@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.userservice.domain.UserProfile;
-import com.example.userservice.dto.UserUpdateRequest;
+import com.example.userservice.dto.request.UserUpdateRequest;
 import com.example.userservice.errors.ConflictException;
 import com.example.userservice.errors.NotFoundException;
 import com.example.userservice.repo.UserProfileRepository;
