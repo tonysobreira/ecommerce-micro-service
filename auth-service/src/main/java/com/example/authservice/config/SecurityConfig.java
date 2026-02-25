@@ -39,9 +39,8 @@ public class SecurityConfig {
 	@Bean
 	public JwtIssuer jwtIssuer(@Value("${security.jwt.secret}") String secret,
 			@Value("${security.jwt.issuer}") String issuer,
-			@Value("${security.jwt.access-ttl-minutes}") long accessTtlMinutes,
-			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays) {
-		return new JwtIssuer(secret, issuer, accessTtlMinutes * 60, refreshTtlDays * 24 * 60 * 60);
+			@Value("${security.jwt.access-ttl-minutes}") long accessTtlMinutes) {
+		return new JwtIssuer(secret, issuer, accessTtlMinutes * 60);
 	}
 
 	@Bean
