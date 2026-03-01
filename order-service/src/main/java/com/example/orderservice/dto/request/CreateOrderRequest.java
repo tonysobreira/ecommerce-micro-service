@@ -8,26 +8,14 @@ import java.util.List;
 public record CreateOrderRequest(
 	@NotEmpty
 	@Valid
-	List<CreateOrderItem> items,
+	List<CreateOrderItemRequest> items,
 
 	@NotNull
 	@Valid
-	AddressDto shippingAddress,
+	AddressRequest shippingAddress,
 
 	@NotNull
 	String paymentMethod
 ) {
-
-	public List<CreateOrderItem> getItems() {
-		return items;
-	}
-
-	public AddressDto getShippingAddress() {
-		return shippingAddress;
-	}
-
-	public String getPaymentMethod() {
-		return paymentMethod;
-	}
 
 }

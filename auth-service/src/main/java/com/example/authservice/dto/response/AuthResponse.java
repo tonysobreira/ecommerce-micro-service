@@ -14,24 +14,4 @@ public record AuthResponse(
 	String refreshToken
 ) {
 
-	public UUID getUserId() {
-		return userId;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public String[] getRoles() {
-		return roles;
-	}
-
-	public String getAccessToken() {
-		return accessToken;
-	}
-
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
 }

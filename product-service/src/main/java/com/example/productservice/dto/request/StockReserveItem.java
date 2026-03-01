@@ -13,12 +13,4 @@ public record StockReserveItem(
 	Integer quantity
 ) {
 
-	public UUID getProductId() {
-		return productId;
-	}
-
-	public Integer getQuantity() {
-		return quantity;
-	}
-
 }

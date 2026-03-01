@@ -11,16 +11,4 @@ public record OrderStatusHistoryResponse(
 	Instant changedAt
 ) {
 
-	public String getStatus() {
-		return status;
-	}
-
-	public UUID getChangedBy() {
-		return changedBy;
-	}
-
-	public Instant getChangedAt() {
-		return changedAt;
-	}
-
 }

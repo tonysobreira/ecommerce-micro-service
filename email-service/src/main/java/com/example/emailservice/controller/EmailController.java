@@ -32,4 +32,5 @@ public class EmailController {
 	public void sendOrderStatus(@Valid @RequestBody OrderStatusEmailRequest request) {
 		emailSenderService.sendOrderStatus(request);
 	}
+
 }

@@ -6,8 +6,4 @@ public record QuoteResponse(
 	List<QuoteItemResponse> items
 ) {
 
-	public List<QuoteItemResponse> getItems() {
-		return items;
-	}
-
 }

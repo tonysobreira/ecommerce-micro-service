@@ -27,6 +27,7 @@ import jakarta.validation.Valid;
 public class UserController {
 
 	private final UserProfileService service;
+
 	private final UserMapper mapper;
 
 	public UserController(UserProfileService service, UserMapper mapper) {
@@ -41,9 +42,6 @@ public class UserController {
 
 	@GetMapping("/{id}")
 	public UserResponse getById(@PathVariable("id") UUID id, Authentication auth) {
-//		assertOwnerOrAdmin(id, auth);
-//		return mapper.toResponse(service.getActive(id));
-
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 
 		// enforce owner/admin access
@@ -72,6 +70,11 @@ public class UserController {
 	public void delete(@PathVariable("id") UUID id, Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
 		service.softDelete(id);
+	}
+
+	@GetMapping("/user/{id}")
+	public UserResponse findById(@PathVariable("id") UUID id) {
+		return mapper.toResponse(service.findById(id));
 	}
 
 	private void assertOwnerOrAdmin(UUID targetUserId, Authentication auth) {

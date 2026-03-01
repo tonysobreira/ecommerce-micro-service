@@ -15,6 +15,7 @@ import java.util.UUID;
 public class ProductImageService {
 
 	private final ProductImageRepository productImageRepository;
+
 	private final ProductService productService;
 
 	public ProductImageService(ProductImageRepository productImageRepository, ProductService productService) {
@@ -29,16 +30,17 @@ public class ProductImageService {
 
 	@Transactional
 	public ProductImage create(ProductImageCreateRequest req) {
-		productService.get(req.getProductId()); // validate exists
-		int sortOrder = req.getSortOrder() != null ? req.getSortOrder() : 0;
-		ProductImage img = new ProductImage(UUID.randomUUID(), req.getProductId(), req.getUrl().trim(),
-				req.getAltText(), sortOrder, Instant.now());
+		productService.get(req.productId()); // validate exists
+		int sortOrder = req.sortOrder() != null ? req.sortOrder() : 0;
+		ProductImage img = new ProductImage(UUID.randomUUID(), req.productId(), req.url().trim(), req.altText(),
+				sortOrder, Instant.now());
 		return productImageRepository.save(img);
 	}
 
 	@Transactional
 	public void delete(UUID id) {
-		ProductImage img = productImageRepository.findById(id).orElseThrow(() -> new NotFoundException("Image not found"));
+		ProductImage img = productImageRepository.findById(id)
+				.orElseThrow(() -> new NotFoundException("Image not found"));
 		productImageRepository.delete(img);
 	}
 

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
 	private final AuthService authService;
+
 	private final AuthMapper authMapper;
 
 	public AuthController(AuthService authService, AuthMapper authMapper) {
@@ -25,7 +26,7 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public RegisterResponse register(@Valid @RequestBody RegisterRequest req) {
-		return authService.register(req.getEmail(), req.getPassword());
+		return authService.register(req.email(), req.password());
 	}
 
 	@GetMapping("/activate")
@@ -36,7 +37,7 @@ public class AuthController {
 
 	@PostMapping("/login")
 	public AuthResponse login(@Valid @RequestBody LoginRequest req) {
-		return authService.login(req.getEmail(), req.getPassword());
+		return authService.login(req.email(), req.password());
 	}
 
 	@GetMapping("/me")
@@ -48,12 +49,12 @@ public class AuthController {
 
 	@PostMapping("/refresh")
 	public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
-		return authService.refresh(req.getRefreshToken());
+		return authService.refresh(req.refreshToken());
 	}
 
 	@PostMapping("/logout")
 	public void logout(@Valid @RequestBody LogoutRequest req) {
-		authService.logout(req.getRefreshToken());
+		authService.logout(req.refreshToken());
 	}
 
 	@PostMapping("/validate")

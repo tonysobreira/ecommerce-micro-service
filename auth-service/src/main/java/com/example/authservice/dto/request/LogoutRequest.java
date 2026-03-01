@@ -7,8 +7,4 @@ public record LogoutRequest(
 	String refreshToken
 ) {
 
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
 }

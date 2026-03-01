@@ -13,7 +13,9 @@ public class ActivationEmailService {
 	private static final Logger log = LoggerFactory.getLogger(ActivationEmailService.class);
 
 	private final EmailClient emailClient;
+
 	private final String activationBaseUrl;
+
 	private final long activationTtlMinutes;
 
 	public ActivationEmailService(EmailClient emailClient,
@@ -34,4 +36,5 @@ public class ActivationEmailService {
 			throw new IllegalStateException("Failed to send activation email.", ex);
 		}
 	}
+
 }

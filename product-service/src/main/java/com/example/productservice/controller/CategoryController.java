@@ -16,6 +16,7 @@ import java.util.UUID;
 public class CategoryController {
 
 	private final CategoryService service;
+
 	private final CategoryMapper mapper;
 
 	public CategoryController(CategoryService service, CategoryMapper mapper) {

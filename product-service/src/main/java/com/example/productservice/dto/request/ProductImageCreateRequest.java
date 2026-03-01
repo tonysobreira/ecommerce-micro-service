@@ -18,20 +18,4 @@ public record ProductImageCreateRequest(
 	Integer sortOrder
 ) {
 
-	public UUID getProductId() {
-		return productId;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public String getAltText() {
-		return altText;
-	}
-
-	public Integer getSortOrder() {
-		return sortOrder;
-	}
-
 }

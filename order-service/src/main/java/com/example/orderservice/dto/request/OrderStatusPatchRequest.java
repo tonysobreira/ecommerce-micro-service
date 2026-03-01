@@ -7,8 +7,4 @@ public record OrderStatusPatchRequest(
 	String status
 ) {
 
-	public String getStatus() {
-		return status;
-	}
-
 }

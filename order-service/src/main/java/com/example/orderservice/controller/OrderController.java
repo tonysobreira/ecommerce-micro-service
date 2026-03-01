@@ -41,14 +41,14 @@ public class OrderController {
 	}
 
 	@PatchMapping("/{orderId}/status")
-	public OrderResponse updateStatus(@PathVariable("orderId") UUID orderId, @Valid @RequestBody OrderStatusPatchRequest req,
-			Authentication auth) {
+	public OrderResponse updateStatus(@PathVariable("orderId") UUID orderId,
+			@Valid @RequestBody OrderStatusPatchRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		// SecurityConfig already requires ADMIN for this route, but double-check is OK:
 		if (!p.isAdmin()) {
 			throw new com.example.orderservice.exception.ForbiddenException("Admin only");
 		}
-		return service.updateStatus(p.getUserId(), orderId, req.getStatus());
+		return service.updateStatus(p.getUserId(), orderId, req.status());
 	}
 
 }

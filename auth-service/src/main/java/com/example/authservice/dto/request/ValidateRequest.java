@@ -7,8 +7,4 @@ public record ValidateRequest(
 	String token
 ) {
 
-	public String getToken() {
-		return token;
-	}
-
 }

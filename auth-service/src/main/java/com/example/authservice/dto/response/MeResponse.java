@@ -10,16 +10,4 @@ public record MeResponse(
 	String[] roles
 ) {
 
-	public UUID getUserId() {
-		return userId;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public String[] getRoles() {
-		return roles;
-	}
-
 }

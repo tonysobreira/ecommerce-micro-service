@@ -1,0 +1,201 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # creates only one DB by default; services will create their own schemas via Flyway,
+      # but they still need DBs. We’ll use multiple DBs via init script below.
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin2
+    restart: always
+    ports:
+      - 8090:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@localhost.com
+      PGADMIN_DEFAULT_PASSWORD: 1234
+    volumes:
+      - ./data/pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-net
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - ecommerce-net
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8761:8761"
+    depends_on:
+      - postgres
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+    ports:
+      - "8080:8080"
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      ACTIVATION_BASE_URL: http://localhost:8080/auth/activate
+    expose:
+      - "8081"
+    networks:
+      - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      email-service:
+        condition: service_started
+
+  email-service:
+    build: ./email-service
+    container_name: email-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_SMTP_AUTH: "false"
+      MAIL_SMTP_STARTTLS_ENABLE: "false"
+      MAIL_FROM: no-reply@ecommerce.local
+    expose:
+      - "8085"
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8082"
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - ecommerce-net
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/productdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8083"
+    networks:
+      - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orderdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Feign uses Eureka name "product-service" already
+      PRODUCT_SERVICE_NAME: product-service
+    expose:
+      - "8084"
+    networks:
+      - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+      email-service:
+        condition: service_started
+
+networks:
+  ecommerce-net:
+
+volumes:
+  pgdata:

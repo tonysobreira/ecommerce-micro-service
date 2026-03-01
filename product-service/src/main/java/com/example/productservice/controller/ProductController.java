@@ -16,6 +16,7 @@ import java.util.UUID;
 public class ProductController {
 
 	private final ProductService service;
+
 	private final ProductMapper mapper;
 
 	public ProductController(ProductService service, ProductMapper mapper) {

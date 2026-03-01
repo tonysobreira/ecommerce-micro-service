@@ -14,16 +14,4 @@ public record ActivationEmailRequest(
 	long expiresInMinutes
 ) {
 
-	public String getEmail() {
-		return email;
-	}
-
-	public String getActivationLink() {
-		return activationLink;
-	}
-
-	public long getExpiresInMinutes() {
-		return expiresInMinutes;
-	}
-
 }

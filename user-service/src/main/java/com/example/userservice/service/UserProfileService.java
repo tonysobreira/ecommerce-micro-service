@@ -41,25 +41,25 @@ public class UserProfileService {
 	public UserProfile update(UUID id, UserUpdateRequest req) {
 		UserProfile p = getActive(id);
 
-		if (req.getEmail() != null && !req.getEmail().isBlank()) {
-			userProfileRepository.findByEmailIgnoreCase(req.getEmail()).ifPresent(other -> {
+		if (req.email() != null && !req.email().isBlank()) {
+			userProfileRepository.findByEmailIgnoreCase(req.email()).ifPresent(other -> {
 				if (!other.getId().equals(id)) {
 					throw new ConflictException("Email already in use");
 				}
 			});
-			p.setEmail(req.getEmail().trim().toLowerCase());
+			p.setEmail(req.email().trim().toLowerCase());
 		}
 
-		if (req.getFirstName() != null) {
-			p.setFirstName(req.getFirstName());
+		if (req.firstName() != null) {
+			p.setFirstName(req.firstName());
 		}
 
-		if (req.getLastName() != null) {
-			p.setLastName(req.getLastName());
+		if (req.lastName() != null) {
+			p.setLastName(req.lastName());
 		}
 
-		if (req.getPhone() != null) {
-			p.setPhone(req.getPhone());
+		if (req.phone() != null) {
+			p.setPhone(req.phone());
 		}
 
 		p.touchUpdated();
@@ -104,6 +104,10 @@ public class UserProfileService {
 			p.setDeletedAt(null);
 			return userProfileRepository.save(p);
 		});
+	}
+
+	public UserProfile findById(UUID id) {
+		return userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 }

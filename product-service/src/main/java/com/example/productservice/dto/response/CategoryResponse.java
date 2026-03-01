@@ -13,20 +13,4 @@ public record CategoryResponse(
 	Instant updatedAt
 ) {
 
-	public UUID getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
-
 }

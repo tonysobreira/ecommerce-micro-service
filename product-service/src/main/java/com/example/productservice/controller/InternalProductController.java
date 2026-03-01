@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class InternalProductController {
 
 	private final ProductRepository products;
+
 	private final StockService stockService;
 
 	public InternalProductController(ProductRepository products, StockService stockService) {
@@ -51,13 +52,13 @@ public class InternalProductController {
 
 	@PostMapping("/stock/reserve")
 	public StockReserveResponse reserve(@Valid @RequestBody StockReserveRequest req) {
-		stockService.reserve(req.getItems());
+		stockService.reserve(req.items());
 		return new StockReserveResponse(true);
 	}
 
 	@PostMapping("/stock/release")
 	public void release(@Valid @RequestBody StockReleaseRequest req) {
-		stockService.release(req.getItems());
+		stockService.release(req.items());
 	}
 
 }

@@ -22,24 +22,4 @@ public record OrderStatusEmailRequest(
 	long totalCents
 ) {
 
-	public String getEmail() {
-		return email;
-	}
-
-	public UUID getOrderId() {
-		return orderId;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public String getCurrency() {
-		return currency;
-	}
-
-	public long getTotalCents() {
-		return totalCents;
-	}
-
 }

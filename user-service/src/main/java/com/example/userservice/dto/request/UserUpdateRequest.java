@@ -17,20 +17,4 @@ public record UserUpdateRequest(
 	String phone
 ) {
 
-	public String getEmail() {
-		return email;
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public String getPhone() {
-		return phone;
-	}
-
 }

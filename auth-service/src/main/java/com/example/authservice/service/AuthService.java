@@ -118,7 +118,8 @@ public class AuthService {
 		}
 
 		UUID userId = UUID.fromString(claims.getSubject());
-		UserAccount account = userAccountRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+		UserAccount account = userAccountRepository.findById(userId)
+				.orElseThrow(() -> new NotFoundException("User not found"));
 		account.activate();
 		userAccountRepository.save(account);
 	}
@@ -133,7 +134,8 @@ public class AuthService {
 			throw new UnauthorizedException("Refresh token expired or revoked");
 		}
 
-		UserAccount account = userAccountRepository.findById(rt.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
+		UserAccount account = userAccountRepository.findById(rt.getUserId())
+				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		if (account.isDeleted()) {
 			throw new UnauthorizedException("Account disabled");

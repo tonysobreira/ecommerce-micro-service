@@ -26,18 +26,18 @@ public class StockService {
 	@Transactional
 	public void reserve(List<StockReserveItem> items) {
 		for (StockReserveItem i : items) {
-			Product p = products.findById(i.getProductId())
-					.orElseThrow(() -> new NotFoundException("Product not found: " + i.getProductId()));
+			Product p = products.findById(i.productId())
+					.orElseThrow(() -> new NotFoundException("Product not found: " + i.productId()));
 
 			if (!p.isActive()) {
 				throw new BadRequestException("Product inactive: " + p.getId());
 			}
 
-			if (p.getStock() < i.getQuantity()) {
+			if (p.getStock() < i.quantity()) {
 				throw new BadRequestException("Insufficient stock: " + p.getId());
 			}
 
-			p.setStock(p.getStock() - i.getQuantity());
+			p.setStock(p.getStock() - i.quantity());
 			p.touchUpdated();
 			products.save(p);
 		}
@@ -49,10 +49,10 @@ public class StockService {
 	@Transactional
 	public void release(List<StockReserveItem> items) {
 		for (StockReserveItem i : items) {
-			Product p = products.findById(i.getProductId())
-					.orElseThrow(() -> new NotFoundException("Product not found: " + i.getProductId()));
+			Product p = products.findById(i.productId())
+					.orElseThrow(() -> new NotFoundException("Product not found: " + i.productId()));
 
-			p.setStock(p.getStock() + i.getQuantity());
+			p.setStock(p.getStock() + i.quantity());
 			p.touchUpdated();
 			products.save(p);
 		}

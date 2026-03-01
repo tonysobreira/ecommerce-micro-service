@@ -24,32 +24,4 @@ public record ProductUpdateRequest(
 	Boolean active
 ) {
 
-	public UUID getCategoryId() {
-		return categoryId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public Long getPriceCents() {
-		return priceCents;
-	}
-
-	public String getCurrency() {
-		return currency;
-	}
-
-	public Integer getStock() {
-		return stock;
-	}
-
-	public Boolean getActive() {
-		return active;
-	}
-
 }

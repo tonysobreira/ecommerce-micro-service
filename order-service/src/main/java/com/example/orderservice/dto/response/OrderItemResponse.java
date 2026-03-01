@@ -12,20 +12,4 @@ public record OrderItemResponse(
 	String currency
 ) {
 
-	public UUID getProductId() {
-		return productId;
-	}
-
-	public int getQuantity() {
-		return quantity;
-	}
-
-	public long getUnitPriceCents() {
-		return unitPriceCents;
-	}
-
-	public String getCurrency() {
-		return currency;
-	}
-
 }

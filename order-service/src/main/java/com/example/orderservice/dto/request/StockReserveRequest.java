@@ -8,8 +8,4 @@ public record StockReserveRequest(
 	List<StockReserveItem> items
 ) {
 
-	public List<StockReserveItem> getItems() {
-		return items;
-	}
-
 }

@@ -15,6 +15,7 @@ import java.util.UUID;
 public class ProductImageController {
 
 	private final ProductImageService service;
+
 	private final ProductImageMapper mapper;
 
 	public ProductImageController(ProductImageService service, ProductImageMapper mapper) {

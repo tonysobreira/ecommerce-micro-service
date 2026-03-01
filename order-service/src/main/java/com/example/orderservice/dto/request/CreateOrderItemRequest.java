@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
-public record CreateOrderItem(
+public record CreateOrderItemRequest(
 	@NotNull
 	UUID productId,
 
@@ -12,13 +12,5 @@ public record CreateOrderItem(
 	@Min(1)
 	Integer quantity
 ) {
-
-	public UUID getProductId() {
-		return productId;
-	}
-
-	public Integer getQuantity() {
-		return quantity;
-	}
 
 }

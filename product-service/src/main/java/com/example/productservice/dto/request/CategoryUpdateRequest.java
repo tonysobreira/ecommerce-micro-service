@@ -9,8 +9,4 @@ public record CategoryUpdateRequest(
 	String name
 ) {
 
-	public String getName() {
-		return name;
-	}
-
 }

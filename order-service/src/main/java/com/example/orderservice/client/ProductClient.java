@@ -1,11 +1,18 @@
 package com.example.orderservice.client;
 
-import com.example.orderservice.dto.request.*;
-import com.example.orderservice.dto.response.*;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "${product-service.name:product-service}", configuration = com.example.orderservice.config.FeignConfig.class)
+import com.example.orderservice.config.FeignConfig;
+import com.example.orderservice.dto.request.StockReleaseRequest;
+import com.example.orderservice.dto.request.StockReserveRequest;
+import com.example.orderservice.dto.response.QuoteResponse;
+import com.example.orderservice.dto.response.StockReserveResponse;
+
+@FeignClient(name = "${product-service.name:product-service}", configuration = FeignConfig.class)
 public interface ProductClient {
 
 	@GetMapping("/internal/products/quote")

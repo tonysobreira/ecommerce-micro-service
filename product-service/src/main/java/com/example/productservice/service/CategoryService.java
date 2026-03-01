@@ -34,12 +34,12 @@ public class CategoryService {
 
 	@Transactional
 	public Category create(CategoryCreateRequest req) {
-		categoryRepository.findByNameIgnoreCase(req.getName()).ifPresent(c -> {
+		categoryRepository.findByNameIgnoreCase(req.name()).ifPresent(c -> {
 			throw new ConflictException("Category name already exists");
 		});
 
 		Instant now = Instant.now();
-		Category c = new Category(UUID.randomUUID(), req.getName().trim(), now, now);
+		Category c = new Category(UUID.randomUUID(), req.name().trim(), now, now);
 		return categoryRepository.save(c);
 	}
 
@@ -47,13 +47,13 @@ public class CategoryService {
 	public Category update(UUID id, CategoryUpdateRequest req) {
 		Category c = get(id);
 
-		categoryRepository.findByNameIgnoreCase(req.getName()).ifPresent(other -> {
+		categoryRepository.findByNameIgnoreCase(req.name()).ifPresent(other -> {
 			if (!other.getId().equals(id)) {
 				throw new ConflictException("Category name already exists");
 			}
 		});
 
-		c.setName(req.getName().trim());
+		c.setName(req.name().trim());
 		c.touchUpdated();
 		return categoryRepository.save(c);
 	}

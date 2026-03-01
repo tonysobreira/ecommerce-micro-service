@@ -27,19 +27,26 @@ import java.util.stream.Collectors;
 public class OrderService {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
 	private final ProductClient productClient;
-	private final OrderRepository orders;
-	private final OrderItemRepository items;
-	private final OrderStatusHistoryRepository history;
+
+	private final OrderRepository orderRepository;
+
+	private final OrderItemRepository orderItemRepository;
+
+	private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+
 	private final EmailClient emailClient;
+
 	private final OrderMapper orderMapper;
 
-	public OrderService(ProductClient productClient, OrderRepository orders, OrderItemRepository items,
-			OrderStatusHistoryRepository history, EmailClient emailClient, OrderMapper orderMapper) {
+	public OrderService(ProductClient productClient, OrderRepository orderRepository,
+			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
+			EmailClient emailClient, OrderMapper orderMapper) {
 		this.productClient = productClient;
-		this.orders = orders;
-		this.items = items;
-		this.history = history;
+		this.orderRepository = orderRepository;
+		this.orderItemRepository = orderItemRepository;
+		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
 		this.emailClient = emailClient;
 		this.orderMapper = orderMapper;
 	}
@@ -50,46 +57,46 @@ public class OrderService {
 	 * 4) If DB tx fails after reserve, best-effort release.
 	 */
 	public OrderResponse create(UUID userId, String email, CreateOrderRequest req) {
-		if (req.getItems() == null || req.getItems().isEmpty()) {
+		if (req.items() == null || req.items().isEmpty()) {
 			throw new BadRequestException("Order must contain items");
 		}
 
 		// Build unique product list
-		List<UUID> productIds = req.getItems().stream().map(CreateOrderItem::getProductId).distinct().toList();
+		List<UUID> productIds = req.items().stream().map(CreateOrderItemRequest::productId).distinct().toList();
 		String idsCsv = productIds.stream().map(UUID::toString).collect(Collectors.joining(","));
 
 		QuoteResponse quote = productClient.quote(idsCsv);
-		Map<UUID, QuoteItemResponse> quoteMap = quote.getItems().stream()
-				.collect(Collectors.toMap(QuoteItemResponse::getProductId, Function.identity(), (a, b) -> a));
+		Map<UUID, QuoteItemResponse> quoteMap = quote.items().stream()
+				.collect(Collectors.toMap(QuoteItemResponse::productId, Function.identity(), (a, b) -> a));
 
 		// Validate and compute totals with authoritative prices
 		String currency = null;
 		long subtotal = 0;
 
-		for (CreateOrderItem i : req.getItems()) {
-			QuoteItemResponse qi = quoteMap.get(i.getProductId());
+		for (CreateOrderItemRequest i : req.items()) {
+			QuoteItemResponse qi = quoteMap.get(i.productId());
 
-			if (qi == null || !qi.isExists()) {
-				throw new BadRequestException("Product not found: " + i.getProductId());
+			if (qi == null || !qi.exists()) {
+				throw new BadRequestException("Product not found: " + i.productId());
 			}
 
-			if (!qi.isActive()) {
-				throw new BadRequestException("Product inactive: " + i.getProductId());
+			if (!qi.active()) {
+				throw new BadRequestException("Product inactive: " + i.productId());
 			}
 
-			if (qi.getStock() < i.getQuantity()) {
-				throw new BadRequestException("Insufficient stock: " + i.getProductId());
+			if (qi.stock() < i.quantity()) {
+				throw new BadRequestException("Insufficient stock: " + i.productId());
 			}
 
 			if (currency == null) {
-				currency = qi.getCurrency();
+				currency = qi.currency();
 			}
 
-			if (!Objects.equals(currency, qi.getCurrency())) {
+			if (!Objects.equals(currency, qi.currency())) {
 				throw new BadRequestException("Mixed currencies not supported");
 			}
 
-			subtotal += qi.getPriceCents() * (long) i.getQuantity();
+			subtotal += qi.priceCents() * (long) i.quantity();
 		}
 
 		if (currency == null) {
@@ -98,7 +105,7 @@ public class OrderService {
 
 		// Reserve stock before local DB write
 		StockReserveRequest reserveReq = new StockReserveRequest(
-				req.getItems().stream().map(i -> new StockReserveItem(i.getProductId(), i.getQuantity())).toList());
+				req.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
 
 		productClient.reserve(reserveReq);
 
@@ -107,7 +114,7 @@ public class OrderService {
 		} catch (RuntimeException ex) {
 			// Best-effort compensation: release
 			try {
-				productClient.release(new StockReleaseRequest(reserveReq.getItems()));
+				productClient.release(new StockReleaseRequest(reserveReq.items()));
 			} catch (Exception ignore) {
 				// log in real-world
 			}
@@ -116,72 +123,75 @@ public class OrderService {
 	}
 
 	@Transactional
-	protected OrderResponse persistOrder(UUID userId, String email, CreateOrderRequest req, Map<UUID, QuoteItemResponse> quoteMap,
-			String currency, long subtotal) {
+	protected OrderResponse persistOrder(UUID userId, String email, CreateOrderRequest req,
+			Map<UUID, QuoteItemResponse> quoteMap, String currency, long subtotal) {
 
 		long shipping = PricingCalculator.shippingCents(subtotal);
 		long total = subtotal + shipping;
 
 		PaymentMethod pm;
 		try {
-			pm = PaymentMethod.valueOf(req.getPaymentMethod().trim().toUpperCase(Locale.ROOT));
+			pm = PaymentMethod.valueOf(req.paymentMethod().trim().toUpperCase(Locale.ROOT));
 		} catch (Exception e) {
-			throw new BadRequestException("Unsupported paymentMethod: " + req.getPaymentMethod());
+			throw new BadRequestException("Unsupported paymentMethod: " + req.paymentMethod());
 		}
 
 		Instant now = Instant.now();
 		UUID orderId = UUID.randomUUID();
 
-		AddressDto a = req.getShippingAddress();
+		AddressRequest a = req.shippingAddress();
 
-		Order order = new Order(orderId, userId, email, OrderStatus.CREATED, pm, a.getLine1(), a.getLine2(), a.getCity(),
-				a.getState(), a.getZip(), a.getCountry(), currency, subtotal, shipping, total, now, now);
+		Order order = new Order(orderId, userId, email, OrderStatus.CREATED, pm, a.line1(), a.line2(), a.city(),
+				a.state(), a.zip(), a.country(), currency, subtotal, shipping, total, now, now);
 
-		orders.save(order);
+		orderRepository.save(order);
 
 		List<OrderItem> itemEntities = new ArrayList<>();
-		for (CreateOrderItem i : req.getItems()) {
-			QuoteItemResponse qi = quoteMap.get(i.getProductId());
-			OrderItem oi = new OrderItem(UUID.randomUUID(), orderId, i.getProductId(), i.getQuantity(),
-					qi.getPriceCents(), currency, now);
+		for (CreateOrderItemRequest i : req.items()) {
+			QuoteItemResponse qi = quoteMap.get(i.productId());
+			OrderItem oi = new OrderItem(UUID.randomUUID(), orderId, i.productId(), i.quantity(), qi.priceCents(),
+					currency, now);
 			itemEntities.add(oi);
 		}
-		items.saveAll(itemEntities);
+		orderItemRepository.saveAll(itemEntities);
 
-		history.save(new OrderStatusHistory(UUID.randomUUID(), orderId, OrderStatus.CREATED, userId, now));
+		orderStatusHistoryRepository
+				.save(new OrderStatusHistory(UUID.randomUUID(), orderId, OrderStatus.CREATED, userId, now));
 		notifyOrderStatus(order);
 
-		return orderMapper.toResponse(order, itemEntities, history.findByOrderIdOrderByChangedAtAsc(orderId));
+		return orderMapper.toResponse(order, itemEntities,
+				orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId));
 	}
 
 	@Transactional(readOnly = true)
 	public List<OrderResponse> listMy(UUID userId) {
-		List<Order> my = orders.findByUserIdOrderByCreatedAtDesc(userId);
+		List<Order> my = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
 		return my.stream().map(o -> {
-			List<OrderItem> its = items.findByOrderId(o.getId());
-			List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(o.getId());
-			return orderMapper.toResponse(o, its, hist);
+			List<OrderItem> items = orderItemRepository.findByOrderId(o.getId());
+			List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(o.getId());
+			return orderMapper.toResponse(o, items, history);
 		}).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public OrderResponse get(UUID requester, boolean isAdmin, UUID orderId) {
-		Order o = orders.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 
 		if (!isAdmin && !o.getUserId().equals(requester)) {
 			throw new ForbiddenException("Not allowed");
 		}
 
-		List<OrderItem> its = items.findByOrderId(orderId);
-		List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(orderId);
-		return orderMapper.toResponse(o, its, hist);
+		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
+		return orderMapper.toResponse(o, items, history);
 	}
 
 	@Transactional
 	public OrderResponse updateStatus(UUID adminId, UUID orderId, String newStatusRaw) {
-		Order o = orders.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 
 		OrderStatus ns;
+
 		try {
 			ns = OrderStatus.valueOf(newStatusRaw.trim().toUpperCase(Locale.ROOT));
 		} catch (Exception e) {
@@ -189,14 +199,15 @@ public class OrderService {
 		}
 
 		o.setStatus(ns);
-		orders.save(o);
+		orderRepository.save(o);
 
-		history.save(new OrderStatusHistory(UUID.randomUUID(), orderId, ns, adminId, Instant.now()));
+		orderStatusHistoryRepository
+				.save(new OrderStatusHistory(UUID.randomUUID(), orderId, ns, adminId, Instant.now()));
 		notifyOrderStatus(o);
 
-		List<OrderItem> its = items.findByOrderId(orderId);
-		List<OrderStatusHistory> hist = history.findByOrderIdOrderByChangedAtAsc(orderId);
-		return orderMapper.toResponse(o, its, hist);
+		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
+		return orderMapper.toResponse(o, items, history);
 	}
 
 	private void notifyOrderStatus(Order order) {
@@ -207,6 +218,5 @@ public class OrderService {
 			log.warn("Unable to send order status email for order {}", order.getId(), ex);
 		}
 	}
-
 
 }

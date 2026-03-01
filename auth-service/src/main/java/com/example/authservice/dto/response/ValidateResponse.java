@@ -12,24 +12,4 @@ public record ValidateResponse(
 	String[] roles
 ) {
 
-	public boolean getValid() {
-		return valid;
-	}
-
-	public boolean isValid() {
-		return valid;
-	}
-
-	public UUID getUserId() {
-		return userId;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public String[] getRoles() {
-		return roles;
-	}
-
 }

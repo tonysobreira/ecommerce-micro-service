@@ -38,22 +38,23 @@ public class EmailSenderService {
 				</a>
 				<p>This link expires in %d minutes.</p>
 				<p style=\"color:#666; font-size:0.9em;\">If you didn't register, please ignore this email.</p>
-				""".formatted(request.getEmail(), request.getActivationLink(), request.getExpiresInMinutes());
+				"""
+				.formatted(request.email(), request.activationLink(), request.expiresInMinutes());
 
-		send(request.getEmail(), "Activate Your Account", body);
+		send(request.email(), "Activate Your Account", body);
 	}
 
 	public void sendOrderStatus(OrderStatusEmailRequest request) {
-		String status = request.getStatus().trim().toUpperCase();
+		String status = request.status().trim().toUpperCase();
 		String body = """
 				<h2>Your order status was updated</h2>
 				<p>Order: <b>%s</b></p>
 				<p>New status: <b>%s</b></p>
 				<p>Total: <b>%s %.2f</b></p>
 				<p>Thank you for shopping with us.</p>
-				""".formatted(request.getOrderId(), status, request.getCurrency(), request.getTotalCents() / 100.0);
+				""".formatted(request.orderId(), status, request.currency(), request.totalCents() / 100.0);
 
-		send(request.getEmail(), "Order " + request.getOrderId() + " is " + status, body);
+		send(request.email(), "Order " + request.orderId() + " is " + status, body);
 	}
 
 	private void send(String to, String subject, String body) {
@@ -81,4 +82,5 @@ public class EmailSenderService {
 		}
 		return "no-reply@ecommerce.local";
 	}
+
 }
