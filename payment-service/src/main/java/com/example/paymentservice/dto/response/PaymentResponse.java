@@ -2,16 +2,17 @@ package com.example.paymentservice.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.example.paymentservice.model.PaymentMethod;
 import com.example.paymentservice.model.PaymentStatus;
 
 public record PaymentResponse(
-        String id,
+		UUID id,
 
-        String orderId,
+		UUID orderId,
 
-        String userId,
+		UUID userId,
 
         BigDecimal amount,
 

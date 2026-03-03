@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS payments (
-    id VARCHAR(36) PRIMARY KEY,
-    order_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    id UUID PRIMARY KEY,
+    order_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     amount NUMERIC(19,2) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     payment_method VARCHAR(30) NOT NULL,

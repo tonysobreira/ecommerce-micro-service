@@ -13,10 +13,10 @@ import java.util.List;
 @Service
 public class StockService {
 
-	private final ProductRepository products;
+	private final ProductRepository productRepository;
 
-	public StockService(ProductRepository products) {
-		this.products = products;
+	public StockService(ProductRepository productRepository) {
+		this.productRepository = productRepository;
 	}
 
 	/**
@@ -26,7 +26,7 @@ public class StockService {
 	@Transactional
 	public void reserve(List<StockReserveItem> items) {
 		for (StockReserveItem i : items) {
-			Product p = products.findById(i.productId())
+			Product p = productRepository.findById(i.productId())
 					.orElseThrow(() -> new NotFoundException("Product not found: " + i.productId()));
 
 			if (!p.isActive()) {
@@ -39,7 +39,7 @@ public class StockService {
 
 			p.setStock(p.getStock() - i.quantity());
 			p.touchUpdated();
-			products.save(p);
+			productRepository.save(p);
 		}
 	}
 
@@ -49,12 +49,12 @@ public class StockService {
 	@Transactional
 	public void release(List<StockReserveItem> items) {
 		for (StockReserveItem i : items) {
-			Product p = products.findById(i.productId())
+			Product p = productRepository.findById(i.productId())
 					.orElseThrow(() -> new NotFoundException("Product not found: " + i.productId()));
 
 			p.setStock(p.getStock() + i.quantity());
 			p.touchUpdated();
-			products.save(p);
+			productRepository.save(p);
 		}
 	}
 

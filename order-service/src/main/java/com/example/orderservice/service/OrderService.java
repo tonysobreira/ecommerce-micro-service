@@ -187,22 +187,24 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderResponse updateStatus(UUID adminId, UUID orderId, String newStatusRaw) {
+	public OrderResponse update(UUID adminId, UUID orderId, UpdateOrderRequest req) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 
 		OrderStatus ns;
 
 		try {
-			ns = OrderStatus.valueOf(newStatusRaw.trim().toUpperCase(Locale.ROOT));
+			ns = OrderStatus.valueOf(req.status().trim().toUpperCase(Locale.ROOT));
 		} catch (Exception e) {
-			throw new BadRequestException("Invalid status: " + newStatusRaw);
+			throw new BadRequestException("Invalid status: " + req.status());
 		}
 
 		o.setStatus(ns);
+
 		orderRepository.save(o);
 
 		orderStatusHistoryRepository
 				.save(new OrderStatusHistory(UUID.randomUUID(), orderId, ns, adminId, Instant.now()));
+
 		notifyOrderStatus(o);
 
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);

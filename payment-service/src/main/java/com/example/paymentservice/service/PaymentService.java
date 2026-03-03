@@ -10,8 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.paymentservice.client.OrderClient;
+import com.example.paymentservice.client.ProductClient;
 import com.example.paymentservice.client.UserClient;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
+import com.example.paymentservice.dto.request.UpdateOrderRequest;
+import com.example.paymentservice.dto.request.StockReleaseRequest;
+import com.example.paymentservice.dto.request.StockReserveItem;
 import com.example.paymentservice.dto.response.OrderResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
 import com.example.paymentservice.dto.response.UserResponse;
@@ -36,78 +40,97 @@ public class PaymentService {
 
 	private final OrderClient orderClient;
 
+	private final ProductClient productClient;
+
 	public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, UserClient userClient,
-			OrderClient orderClient) {
+			OrderClient orderClient, ProductClient productClient) {
 		this.paymentRepository = paymentRepository;
 		this.paymentMapper = paymentMapper;
 		this.userClient = userClient;
 		this.orderClient = orderClient;
+		this.productClient = productClient;
 	}
 
 	@Transactional
 	public PaymentResponse processPayment(String email, CreatePaymentRequest request) {
 
 		try {
-			UserResponse user = userClient.findById(UUID.fromString(request.userId()));
+			UserResponse user = userClient.findById(request.userId());
 			if (Objects.isNull(user)) {
 				throw new NotFoundException("User not found.");
 			}
 
-			OrderResponse order = orderClient.getById(UUID.fromString(request.orderId()));
+			OrderResponse order = orderClient.getById(request.orderId());
 			if (Objects.isNull(order)) {
 				throw new NotFoundException("Order not found.");
 			}
+
+			paymentRepository.findByOrderId(request.orderId()).ifPresent(p -> {
+				throw new BadRequestException("Payment already processed.");
+			});
+
+			Payment payment = Payment.builder().orderId(request.orderId()).userId(request.userId())
+					.amount(request.amount()).paymentMethod(request.paymentMethod()).build();
+
+			payment = paymentRepository.save(payment);
+
+			// Order Paid
+			orderClient.update(order.id(), new UpdateOrderRequest("PAID"));
+
+			try {
+				payment.setStatus(PaymentStatus.COMPLETED);
+				payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+
+				log.info("Payment processed successfully: {}", payment.getId());
+			} catch (Exception e) {
+				payment.setStatus(PaymentStatus.FAILED);
+				payment.setFailureReason(e.getMessage());
+				log.error("Payment processing failed: {}", e.getMessage());
+			}
+
+			return paymentMapper.toResponse(paymentRepository.save(payment));
 		} catch (Exception ex) {
 			throw new BadRequestException(ex.getMessage());
 		}
 
-		paymentRepository.findByOrderId(request.orderId()).ifPresent(p -> {
-			throw new BadRequestException("Payment already processed.");
-		});
-
-		Payment payment = Payment.builder().orderId(request.orderId()).userId(request.userId()).amount(request.amount())
-				.paymentMethod(request.paymentMethod()).build();
-
-		payment = paymentRepository.save(payment);
-
-		try {
-			payment.setStatus(PaymentStatus.COMPLETED);
-			payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-			log.info("Payment processed successfully: {}", payment.getId());
-		} catch (Exception e) {
-			payment.setStatus(PaymentStatus.FAILED);
-			payment.setFailureReason(e.getMessage());
-			log.error("Payment processing failed: {}", e.getMessage());
-		}
-
-		return paymentMapper.toResponse(paymentRepository.save(payment));
 	}
 
 	@Transactional(readOnly = true)
-	public PaymentResponse getPaymentById(String id) {
+	public PaymentResponse getPaymentById(UUID id) {
 		return paymentRepository.findById(id).map(paymentMapper::toResponse)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + id));
 	}
 
 	@Transactional(readOnly = true)
-	public PaymentResponse getPaymentByOrderId(String orderId) {
+	public PaymentResponse getPaymentByOrderId(UUID orderId) {
 		return paymentRepository.findByOrderId(orderId).map(paymentMapper::toResponse)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found for order: " + orderId));
 	}
 
 	@Transactional(readOnly = true)
-	public List<PaymentResponse> getPaymentsByUserId(String userId) {
+	public List<PaymentResponse> getPaymentsByUserId(UUID userId) {
 		return paymentRepository.findByUserId(userId).stream().map(paymentMapper::toResponse).toList();
 	}
 
 	@Transactional
-	public PaymentResponse refundPayment(String id) {
+	public PaymentResponse refundPayment(UUID id) {
 		Payment payment = paymentRepository.findById(id)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + id));
 
 		if (payment.getStatus() != PaymentStatus.COMPLETED) {
 			throw new IllegalStateException("Can only refund completed payments");
 		}
+
+		// Release items
+		OrderResponse order = orderClient.getById(payment.getOrderId());
+
+		StockReleaseRequest releaseReq = new StockReleaseRequest(
+				order.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
+
+		productClient.release(releaseReq);
+
+		// Order Cancelled
+		orderClient.update(order.id(), new UpdateOrderRequest("CANCELLED"));
 
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);

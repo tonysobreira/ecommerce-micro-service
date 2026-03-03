@@ -27,7 +27,7 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/v1/payments/*/refund").hasRole("ADMIN").anyRequest()
+						.requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN").anyRequest()
 						.authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 

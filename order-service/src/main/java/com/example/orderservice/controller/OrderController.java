@@ -5,15 +5,15 @@ import java.util.UUID;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.orderservice.dto.request.CreateOrderRequest;
-import com.example.orderservice.dto.request.OrderStatusPatchRequest;
+import com.example.orderservice.dto.request.UpdateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.security.UserPrincipal;
@@ -49,15 +49,15 @@ public class OrderController {
 		return service.get(p.getUserId(), p.isAdmin(), orderId);
 	}
 
-	@PatchMapping("/{orderId}/status")
-	public OrderResponse updateStatus(@PathVariable("orderId") UUID orderId,
-			@Valid @RequestBody OrderStatusPatchRequest req, Authentication auth) {
+	@PutMapping("/{orderId}")
+	public OrderResponse update(@PathVariable("orderId") UUID orderId,
+			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		// SecurityConfig already requires ADMIN for this route, but double-check is OK:
 		if (!p.isAdmin()) {
 			throw new ForbiddenException("Admin only");
 		}
-		return service.updateStatus(p.getUserId(), orderId, req.status());
+		return service.update(p.getUserId(), orderId, req);
 	}
 
 }

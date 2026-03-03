@@ -194,6 +194,33 @@ services:
       email-service:
         condition: service_started
 
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paymentdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Feign uses Eureka name "product-service" already
+      PRODUCT_SERVICE_NAME: product-service
+    expose:
+      - "8085"
+    networks:
+      - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+      email-service:
+        condition: service_started
+
 networks:
   ecommerce-net:
 

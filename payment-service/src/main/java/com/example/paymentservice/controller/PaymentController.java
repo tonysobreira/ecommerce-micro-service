@@ -1,6 +1,7 @@
 package com.example.paymentservice.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
 import com.example.paymentservice.dto.response.PaymentResponse;
+import com.example.paymentservice.security.UserPrincipal;
 import com.example.paymentservice.service.PaymentService;
 
 import jakarta.validation.Valid;
@@ -37,23 +39,24 @@ public class PaymentController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable String id) {
+	public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable UUID id) {
 		return ResponseEntity.ok(paymentService.getPaymentById(id));
 	}
 
 	@GetMapping("/order/{orderId}")
-	public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable String orderId) {
+	public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable UUID orderId) {
 		return ResponseEntity.ok(paymentService.getPaymentByOrderId(orderId));
 	}
 
 	@GetMapping("/my-payments")
 	public ResponseEntity<List<PaymentResponse>> getMyPayments(Authentication authentication) {
-		return ResponseEntity.ok(paymentService.getPaymentsByUserId(authentication.getName()));
+		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+		return ResponseEntity.ok(paymentService.getPaymentsByUserId(principal.getUserId()));
 	}
 
 	@PostMapping("/{id}/refund")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<PaymentResponse> refundPayment(@PathVariable String id) {
+	public ResponseEntity<PaymentResponse> refundPayment(@PathVariable UUID id) {
 		return ResponseEntity.ok(paymentService.refundPayment(id));
 	}
 

@@ -2,6 +2,7 @@ package com.example.paymentservice.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,13 +21,13 @@ public class Payment {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	private String id;
+	private UUID id;
 
 	@Column(name = "order_id", nullable = false)
-	private String orderId;
+	private UUID orderId;
 
 	@Column(name = "user_id", nullable = false)
-	private String userId;
+	private UUID userId;
 
 	@Column(nullable = false, precision = 19, scale = 2)
 	private BigDecimal amount;
@@ -66,27 +67,27 @@ public class Payment {
 		updatedAt = LocalDateTime.now();
 	}
 
-	public String getId() {
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 
-	public String getOrderId() {
+	public UUID getOrderId() {
 		return orderId;
 	}
 
-	public void setOrderId(String orderId) {
+	public void setOrderId(UUID orderId) {
 		this.orderId = orderId;
 	}
 
-	public String getUserId() {
+	public UUID getUserId() {
 		return userId;
 	}
 
-	public void setUserId(String userId) {
+	public void setUserId(UUID userId) {
 		this.userId = userId;
 	}
 
@@ -143,17 +144,17 @@ public class Payment {
 	}
 
 	public static class Builder {
-		private String orderId;
-		private String userId;
+		private UUID orderId;
+		private UUID userId;
 		private BigDecimal amount;
 		private PaymentMethod paymentMethod;
 
-		public Builder orderId(String orderId) {
+		public Builder orderId(UUID orderId) {
 			this.orderId = orderId;
 			return this;
 		}
 
-		public Builder userId(String userId) {
+		public Builder userId(UUID userId) {
 			this.userId = userId;
 			return this;
 		}
