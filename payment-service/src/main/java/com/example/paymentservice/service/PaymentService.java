@@ -1,7 +1,8 @@
 package com.example.paymentservice.service;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -13,9 +14,9 @@ import com.example.paymentservice.client.OrderClient;
 import com.example.paymentservice.client.ProductClient;
 import com.example.paymentservice.client.UserClient;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
-import com.example.paymentservice.dto.request.UpdateOrderRequest;
 import com.example.paymentservice.dto.request.StockReleaseRequest;
 import com.example.paymentservice.dto.request.StockReserveItem;
+import com.example.paymentservice.dto.request.UpdateOrderRequest;
 import com.example.paymentservice.dto.response.OrderResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
 import com.example.paymentservice.dto.response.UserResponse;
@@ -26,6 +27,8 @@ import com.example.paymentservice.mapper.PaymentMapper;
 import com.example.paymentservice.model.Payment;
 import com.example.paymentservice.model.PaymentStatus;
 import com.example.paymentservice.repository.PaymentRepository;
+
+import feign.FeignException;
 
 @Service
 public class PaymentService {
@@ -52,47 +55,44 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public PaymentResponse processPayment(String email, CreatePaymentRequest request) {
-
-		try {
-			UserResponse user = userClient.findById(request.userId());
-			if (Objects.isNull(user)) {
-				throw new NotFoundException("User not found.");
-			}
-
-			OrderResponse order = orderClient.getById(request.orderId());
-			if (Objects.isNull(order)) {
-				throw new NotFoundException("Order not found.");
-			}
-
-			paymentRepository.findByOrderId(request.orderId()).ifPresent(p -> {
-				throw new BadRequestException("Payment already processed.");
-			});
-
-			Payment payment = Payment.builder().orderId(request.orderId()).userId(request.userId())
-					.amount(request.amount()).paymentMethod(request.paymentMethod()).build();
-
-			payment = paymentRepository.save(payment);
-
-			// Order Paid
-			orderClient.update(order.id(), new UpdateOrderRequest("PAID"));
-
-			try {
-				payment.setStatus(PaymentStatus.COMPLETED);
-				payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-
-				log.info("Payment processed successfully: {}", payment.getId());
-			} catch (Exception e) {
-				payment.setStatus(PaymentStatus.FAILED);
-				payment.setFailureReason(e.getMessage());
-				log.error("Payment processing failed: {}", e.getMessage());
-			}
-
-			return paymentMapper.toResponse(paymentRepository.save(payment));
-		} catch (Exception ex) {
-			throw new BadRequestException(ex.getMessage());
+	public PaymentResponse processPayment(UUID authenticatedUserId, CreatePaymentRequest request) {
+		UserResponse user = fetchUser(authenticatedUserId);
+		if (user == null) {
+			throw new NotFoundException("User not found.");
 		}
 
+		OrderResponse order = fetchOrder(request.orderId());
+		validatePaymentRequest(authenticatedUserId, order, request);
+
+		paymentRepository.findByOrderId(request.orderId()).ifPresent(p -> {
+			throw new BadRequestException("Payment already processed.");
+		});
+
+		Payment payment = Payment.builder().orderId(request.orderId()).userId(authenticatedUserId).amount(request.amount())
+				.paymentMethod(request.paymentMethod()).build();
+
+		payment = paymentRepository.save(payment);
+
+		try {
+			orderClient.update(order.id(), new UpdateOrderRequest("PAID"));
+			payment.setStatus(PaymentStatus.COMPLETED);
+			payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
+			log.info("Payment processed successfully: {}", payment.getId());
+		} catch (FeignException ex) {
+			payment.setStatus(PaymentStatus.FAILED);
+			payment.setFailureReason("Unable to update order status");
+			log.error("Unable to update order status for order {}", order.id(), ex);
+			throw new BadRequestException("Unable to complete payment due to order update failure.");
+		} catch (RuntimeException ex) {
+			payment.setStatus(PaymentStatus.FAILED);
+			payment.setFailureReason(ex.getMessage());
+			log.error("Payment processing failed: {}", ex.getMessage(), ex);
+			throw ex;
+		} finally {
+			paymentRepository.save(payment);
+		}
+
+		return paymentMapper.toResponse(payment);
 	}
 
 	@Transactional(readOnly = true)
@@ -121,20 +121,56 @@ public class PaymentService {
 			throw new IllegalStateException("Can only refund completed payments");
 		}
 
-		// Release items
-		OrderResponse order = orderClient.getById(payment.getOrderId());
+		OrderResponse order = fetchOrder(payment.getOrderId());
 
 		StockReleaseRequest releaseReq = new StockReleaseRequest(
 				order.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
 
 		productClient.release(releaseReq);
-
-		// Order Cancelled
 		orderClient.update(order.id(), new UpdateOrderRequest("CANCELLED"));
 
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);
 		return paymentMapper.toResponse(paymentRepository.save(payment));
+	}
+
+	private UserResponse fetchUser(UUID userId) {
+		try {
+			return userClient.findById(userId);
+		} catch (FeignException.NotFound ex) {
+			throw new NotFoundException("User not found.");
+		} catch (FeignException.Forbidden ex) {
+			throw new BadRequestException("Unable to validate user for payment.");
+		}
+	}
+
+	private OrderResponse fetchOrder(UUID orderId) {
+		try {
+			return orderClient.getById(orderId);
+		} catch (FeignException.NotFound ex) {
+			throw new NotFoundException("Order not found.");
+		} catch (FeignException.Forbidden ex) {
+			throw new BadRequestException("You are not allowed to pay this order.");
+		}
+	}
+
+	private void validatePaymentRequest(UUID authenticatedUserId, OrderResponse order, CreatePaymentRequest request) {
+		if (!authenticatedUserId.equals(order.userId())) {
+			throw new BadRequestException("Authenticated user does not match the order owner.");
+		}
+
+		if ("PAID".equalsIgnoreCase(order.status()) || "CANCELLED".equalsIgnoreCase(order.status())) {
+			throw new BadRequestException("Order status does not allow payment: " + order.status());
+		}
+
+		BigDecimal expectedAmount = BigDecimal.valueOf(order.totalCents(), 2);
+		if (request.amount().compareTo(expectedAmount) != 0) {
+			throw new BadRequestException("Payment amount must match order total.");
+		}
+
+		if (!request.paymentMethod().name().equalsIgnoreCase(order.paymentMethod())) {
+			throw new BadRequestException("Payment method must match order payment method.");
+		}
 	}
 
 }

@@ -33,8 +33,8 @@ public class SecurityConfig {
 
 						// Explicitly permit these endpoints
 						.requestMatchers(HttpMethod.GET, "/products/quote").permitAll()
-						.requestMatchers(HttpMethod.POST, "/products/stock/reserve").permitAll()
-						.requestMatchers(HttpMethod.POST, "/products/stock/release").permitAll()
+						.requestMatchers(HttpMethod.POST, "/products/stock/reserve").authenticated()
+						.requestMatchers(HttpMethod.POST, "/products/stock/release").authenticated()
 
 						.requestMatchers("/actuator/health").permitAll()
 
