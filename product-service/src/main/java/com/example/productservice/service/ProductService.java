@@ -1,8 +1,12 @@
 package com.example.productservice.service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +15,8 @@ import com.example.productservice.model.Category;
 import com.example.productservice.model.Product;
 import com.example.productservice.dto.request.ProductCreateRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
+import com.example.productservice.dto.response.QuoteItemResponse;
+import com.example.productservice.dto.response.QuoteResponse;
 import com.example.productservice.exception.NotFoundException;
 import com.example.productservice.repository.ProductRepository;
 
@@ -90,6 +96,28 @@ public class ProductService {
 	public void delete(UUID id) {
 		Product p = get(id);
 		productRepository.delete(p);
+	}
+
+	public QuoteResponse quote(String ids) {
+		List<UUID> productIds = Arrays.stream(ids.split(",")).filter(s -> !s.isBlank()).map(String::trim)
+				.map(UUID::fromString).toList();
+
+		Map<UUID, Product> found = productRepository.findAllById(productIds).stream()
+				.collect(Collectors.toMap(Product::getId, p -> p));
+
+		List<QuoteItemResponse> items = new ArrayList<>();
+
+		for (UUID id : productIds) {
+			Product p = found.get(id);
+			if (p == null) {
+				items.add(new QuoteItemResponse(id, false, false, 0, null, 0));
+			} else {
+				items.add(new QuoteItemResponse(id, true, p.isActive(), p.getPriceCents(), p.getCurrency(),
+						p.getStock()));
+			}
+		}
+
+		return new QuoteResponse(items);
 	}
 
 }

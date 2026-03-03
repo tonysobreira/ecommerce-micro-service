@@ -10,4 +10,5 @@ public interface EmailClient {
 
 	@PostMapping("/emails/activation")
 	void sendActivation(@RequestBody ActivationEmailRequest request);
+
 }

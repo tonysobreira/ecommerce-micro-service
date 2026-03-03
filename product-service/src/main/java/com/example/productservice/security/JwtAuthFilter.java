@@ -39,7 +39,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		// Internal endpoints should be protected too
 		if (path.startsWith("/actuator/health")) {
 			filterChain.doFilter(request, response);
 			return;
@@ -48,7 +47,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
 
 		if (auth == null || !auth.startsWith("Bearer ")) {
-			filterChain.doFilter(request, response); // 401 by security config
+			// 401 by security config
+			filterChain.doFilter(request, response);
 			return;
 		}
 
@@ -82,11 +82,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 		// actuator
 		if (path.startsWith("/actuator")) {
-			return true;
-		}
-
-		// internal calls are protected by network + gateway not routing them
-		if (path.startsWith("/internal")) {
 			return true;
 		}
 

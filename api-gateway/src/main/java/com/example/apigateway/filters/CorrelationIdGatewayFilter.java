@@ -18,6 +18,7 @@ public class CorrelationIdGatewayFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		String cid = exchange.getRequest().getHeaders().getFirst(HEADER);
+
 		if (cid == null || cid.isBlank()) {
 			cid = UUID.randomUUID().toString();
 		}

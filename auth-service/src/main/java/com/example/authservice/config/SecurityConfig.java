@@ -3,6 +3,7 @@ package com.example.authservice.config;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -14,10 +15,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.example.authservice.infra.CorrelationIdFilter;
 import com.example.authservice.security.JwtAuthFilter;
 import com.example.authservice.security.JwtIssuer;
 import com.example.authservice.security.JwtVerifier;
@@ -50,8 +53,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/auth/register", "/auth/login", "/auth/activate", "/actuator/health")
 						.permitAll().anyRequest().authenticated())
-				.addFilterBefore(new JwtAuthFilter(verifier),
-						org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class)
 				.httpBasic(Customizer.withDefaults());
 
 		http.exceptionHandling(eh -> eh.authenticationEntryPoint(authenticationEntryPoint()));
@@ -60,9 +62,9 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public org.springframework.boot.web.servlet.FilterRegistrationBean<com.example.authservice.infra.CorrelationIdFilter> correlationIdFilter() {
-		org.springframework.boot.web.servlet.FilterRegistrationBean<com.example.authservice.infra.CorrelationIdFilter> bean = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
-		bean.setFilter(new com.example.authservice.infra.CorrelationIdFilter());
+	public FilterRegistrationBean<CorrelationIdFilter> correlationIdFilter() {
+		FilterRegistrationBean<CorrelationIdFilter> bean = new FilterRegistrationBean<>();
+		bean.setFilter(new CorrelationIdFilter());
 		bean.setOrder(-200);
 		return bean;
 	}
@@ -80,8 +82,9 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(List.of("http://localhost:4200")); // ← your Angular dev URL
-		// Or for testing: configuration.setAllowedOrigins(List.of("*")); // but tighten
-		// later
+		// Or for testing:
+		// but tighten later
+//		configuration.setAllowedOrigins(List.of("*")); 
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));

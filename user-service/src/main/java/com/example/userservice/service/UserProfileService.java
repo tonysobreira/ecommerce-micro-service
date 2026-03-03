@@ -7,10 +7,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.userservice.model.UserProfile;
 import com.example.userservice.dto.request.UserUpdateRequest;
 import com.example.userservice.exception.ConflictException;
 import com.example.userservice.exception.NotFoundException;
+import com.example.userservice.model.UserProfile;
 import com.example.userservice.repository.UserProfileRepository;
 import com.example.userservice.security.UserPrincipal;
 
@@ -78,30 +78,14 @@ public class UserProfileService {
 	 * registration.
 	 */
 	@Transactional
-	public UserProfile createIfMissing(UUID id, String email) {
-		return userProfileRepository.findById(id).orElseGet(() -> {
-			Instant now = Instant.now();
-			UserProfile p = new UserProfile(id, email, now, now);
-			return userProfileRepository.save(p);
-		});
-	}
-
-	@Transactional
-	public UserProfile getOrCreate(UUID id, UserPrincipal principal) {
+	public UserProfile createIfMissing(UUID id, UserPrincipal principal) {
 		return userProfileRepository.findById(id).orElseGet(() -> {
 			// only owner (or admin) can auto-create
 			if (!principal.isAdmin() && !principal.getUserId().equals(id)) {
 				throw new NotFoundException("User not found");
 			}
-
-			UserProfile p = new UserProfile();
-			p.setId(id);
-			p.setEmail(principal.getEmail());
-			p.setFirstName(""); // default
-			p.setPhone(null);
-			p.setCreatedAt(Instant.now());
-			p.setUpdatedAt(Instant.now());
-			p.setDeletedAt(null);
+			Instant now = Instant.now();
+			UserProfile p = new UserProfile(id, principal.getEmail(), now, now);
 			return userProfileRepository.save(p);
 		});
 	}

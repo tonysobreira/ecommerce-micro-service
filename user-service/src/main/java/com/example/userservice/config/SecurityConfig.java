@@ -1,13 +1,17 @@
 package com.example.userservice.config;
 
-import com.example.userservice.security.JwtAuthFilter;
-import com.example.userservice.security.JwtVerifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.example.userservice.infra.CorrelationIdFilter;
+import com.example.userservice.security.JwtAuthFilter;
+import com.example.userservice.security.JwtVerifier;
 
 @Configuration
 public class SecurityConfig {
@@ -23,16 +27,15 @@ public class SecurityConfig {
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health").permitAll()
 						.requestMatchers("/users").hasRole("ADMIN").anyRequest().authenticated())
-				.addFilterBefore(new JwtAuthFilter(verifier),
-						org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
 
 	@Bean
-	public org.springframework.boot.web.servlet.FilterRegistrationBean<com.example.userservice.infra.CorrelationIdFilter> correlationIdFilter() {
-		org.springframework.boot.web.servlet.FilterRegistrationBean<com.example.userservice.infra.CorrelationIdFilter> bean = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
-		bean.setFilter(new com.example.userservice.infra.CorrelationIdFilter());
+	public FilterRegistrationBean<CorrelationIdFilter> correlationIdFilter() {
+		FilterRegistrationBean<CorrelationIdFilter> bean = new FilterRegistrationBean<>();
+		bean.setFilter(new CorrelationIdFilter());
 		bean.setOrder(-200);
 		return bean;
 	}

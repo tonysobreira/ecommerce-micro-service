@@ -29,6 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		this.verifier = verifier;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
@@ -44,7 +45,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
 
 		if (auth == null || !auth.startsWith("Bearer ")) {
-			filterChain.doFilter(request, response); // let security decide (401)
+			// let security decide (401)
+			filterChain.doFilter(request, response);
 			return;
 		}
 
@@ -53,7 +55,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			UUID userId = UUID.fromString(claims.getSubject());
 			String email = claims.get("email", String.class);
 
-			@SuppressWarnings("unchecked")
 			List<String> roles = claims.get("roles", List.class);
 
 			if (roles == null) {

@@ -24,6 +24,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 		this.verifier = new JwtVerifier(secret);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		String path = exchange.getRequest().getURI().getPath();
@@ -45,7 +46,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
 			String userId = claims.getSubject();
 			String email = claims.get("email", String.class);
-			@SuppressWarnings("unchecked")
+
 			List<String> roles = claims.get("roles", List.class);
 
 			ServerHttpRequest mutated = exchange.getRequest().mutate().header("X-User-Id", userId)

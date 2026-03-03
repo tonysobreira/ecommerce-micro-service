@@ -1,13 +1,18 @@
 package com.example.orderservice.config;
 
-import com.example.orderservice.security.JwtAuthFilter;
-import com.example.orderservice.security.JwtVerifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.example.orderservice.infra.CorrelationIdFilter;
+import com.example.orderservice.security.JwtAuthFilter;
+import com.example.orderservice.security.JwtVerifier;
 
 @Configuration
 public class SecurityConfig {
@@ -22,18 +27,17 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health").permitAll()
-						.requestMatchers(org.springframework.http.HttpMethod.PATCH, "/orders/*/status").hasRole("ADMIN")
-						.anyRequest().authenticated())
-				.addFilterBefore(new JwtAuthFilter(verifier),
-						org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+						.requestMatchers(HttpMethod.PATCH, "/orders/*/status").hasRole("ADMIN").anyRequest()
+						.authenticated())
+				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
 
 	@Bean
-	public org.springframework.boot.web.servlet.FilterRegistrationBean<com.example.orderservice.infra.CorrelationIdFilter> correlationIdFilter() {
-		org.springframework.boot.web.servlet.FilterRegistrationBean<com.example.orderservice.infra.CorrelationIdFilter> bean = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
-		bean.setFilter(new com.example.orderservice.infra.CorrelationIdFilter());
+	public FilterRegistrationBean<CorrelationIdFilter> correlationIdFilter() {
+		FilterRegistrationBean<CorrelationIdFilter> bean = new FilterRegistrationBean<>();
+		bean.setFilter(new CorrelationIdFilter());
 		bean.setOrder(-200);
 		return bean;
 	}
