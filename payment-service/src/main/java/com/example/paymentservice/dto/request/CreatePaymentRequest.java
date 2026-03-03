@@ -10,9 +10,6 @@ import jakarta.validation.constraints.NotNull;
 
 public record CreatePaymentRequest(
 		@NotNull
-		UUID userId,
-
-		@NotNull
 		UUID orderId,
 
         @NotNull(message = "Amount is required")

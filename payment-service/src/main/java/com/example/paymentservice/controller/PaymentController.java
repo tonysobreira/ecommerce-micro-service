@@ -34,8 +34,9 @@ public class PaymentController {
 	@PostMapping
 	public ResponseEntity<PaymentResponse> processPayment(@Valid @RequestBody CreatePaymentRequest request,
 			Authentication authentication) {
+		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(paymentService.processPayment(authentication.getName(), request));
+				.body(paymentService.processPayment(principal.getUserId(), request));
 	}
 
 	@GetMapping("/{id}")
