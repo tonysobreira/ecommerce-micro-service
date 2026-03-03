@@ -27,16 +27,26 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
-						// public GETs
+						// Public GETs
 						.requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/product-images/**")
-						.permitAll().requestMatchers("/actuator/health").permitAll()
-						// product/category/image writes require ADMIN
+						.permitAll()
+
+						// Explicitly permit these endpoints
+						.requestMatchers(HttpMethod.GET, "/products/quote").permitAll()
+						.requestMatchers(HttpMethod.POST, "/products/stock/reserve").permitAll()
+						.requestMatchers(HttpMethod.POST, "/products/stock/release").permitAll()
+
+						.requestMatchers("/actuator/health").permitAll()
+
+						// ADMIN writes
 						.requestMatchers(HttpMethod.POST, "/products/**", "/categories/**", "/product-images/**")
 						.hasRole("ADMIN").requestMatchers(HttpMethod.PUT, "/products/**", "/categories/**")
 						.hasRole("ADMIN").requestMatchers(HttpMethod.PATCH, "/products/**", "/categories/**")
 						.hasRole("ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/products/**", "/categories/**", "/product-images/**")
-						.hasRole("ADMIN").anyRequest().authenticated())
+						.hasRole("ADMIN")
+
+						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}

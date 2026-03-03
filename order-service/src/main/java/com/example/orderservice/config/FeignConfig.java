@@ -1,9 +1,13 @@
 package com.example.orderservice.config;
 
 import feign.RequestInterceptor;
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.slf4j.MDC;
 
 @Configuration
@@ -26,6 +30,24 @@ public class FeignConfig {
 			// gateway/service auth. If you want strict forward, we can implement a custom
 			// interceptor reading RequestContextHolder.
 			// For now, we keep only correlation-id.
+		};
+	}
+
+	@Bean
+	public RequestInterceptor authHeaderForwardInterceptor() {
+		return template -> {
+			ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+			if (attrs == null) {
+				return;
+			}
+
+			HttpServletRequest request = attrs.getRequest();
+			String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+			if (auth != null && !auth.isBlank()) {
+				template.header(HttpHeaders.AUTHORIZATION, auth);
+			}
 		};
 	}
 
