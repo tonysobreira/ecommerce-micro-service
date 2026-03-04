@@ -40,3 +40,9 @@ From repo root:
 
 ```bash
 docker compose up --build
+
+```
+
+## Architecture Diagram
+
+![Services architecture](docs/services-architecture.svg)
