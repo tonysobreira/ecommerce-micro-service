@@ -40,3 +40,27 @@ From repo root:
 
 ```bash
 docker compose up --build
+
+```
+
+## Architecture Diagram
+
+![Services architecture](docs/services-architecture.svg)
+
+
+## Swagger / OpenAPI
+
+Swagger is now centralized in the API Gateway, aggregating docs from all backend services in one UI.
+
+- Unified UI: `http://localhost:8080/swagger-ui.html`
+- Aggregated docs endpoints exposed by gateway:
+  - `/v3/api-docs/auth`
+  - `/v3/api-docs/user`
+  - `/v3/api-docs/product`
+  - `/v3/api-docs/order`
+  - `/v3/api-docs/payment`
+  - `/v3/api-docs/email`
+
+Notes:
+- Product internal endpoints (`/internal/products/quote`, `/internal/products/stock/reserve`, `/internal/products/stock/release`) stay internal and are excluded from OpenAPI.
+- Services may still expose local `/swagger-ui.html`, but the recommended entry point is the gateway UI.

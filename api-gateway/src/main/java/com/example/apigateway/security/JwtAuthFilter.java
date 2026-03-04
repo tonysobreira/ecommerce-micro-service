@@ -70,6 +70,10 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 			return true;
 		}
 
+		if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.equals("/swagger-ui.html")) {
+			return true;
+		}
+
 		return path.startsWith("/actuator/health");
 	}
 
