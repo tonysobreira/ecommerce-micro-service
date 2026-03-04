@@ -8,7 +8,7 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false   # keep explicit routes only (match local profile)
       routes:
         - id: auth-service
           uri: lb://auth-service

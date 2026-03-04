@@ -15,13 +15,13 @@ import com.example.orderservice.dto.response.StockReserveResponse;
 @FeignClient(name = "${product-service.name:product-service}", configuration = FeignConfig.class)
 public interface ProductClient {
 
-	@GetMapping("/products/quote")
+	@GetMapping("/internal/products/quote")
 	QuoteResponse quote(@RequestParam("ids") String idsCsv);
 
-	@PostMapping("/products/stock/reserve")
+	@PostMapping("/internal/products/stock/reserve")
 	StockReserveResponse reserve(@RequestBody StockReserveRequest req);
 
-	@PostMapping("/products/stock/release")
+	@PostMapping("/internal/products/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
 
 }

@@ -10,19 +10,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.productservice.dto.request.ProductCreateRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
-import com.example.productservice.dto.request.StockReleaseRequest;
-import com.example.productservice.dto.request.StockReserveRequest;
 import com.example.productservice.dto.response.ProductResponse;
-import com.example.productservice.dto.response.QuoteResponse;
-import com.example.productservice.dto.response.StockReserveResponse;
 import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.service.ProductService;
-import com.example.productservice.service.StockService;
 
 import jakarta.validation.Valid;
 
@@ -32,13 +26,11 @@ public class ProductController {
 
 	private final ProductService productService;
 
-	private final StockService stockService;
 
 	private final ProductMapper mapper;
 
-	public ProductController(ProductService productService, StockService stockService, ProductMapper mapper) {
+	public ProductController(ProductService productService, ProductMapper mapper) {
 		this.productService = productService;
-		this.stockService = stockService;
 		this.mapper = mapper;
 	}
 
@@ -67,25 +59,5 @@ public class ProductController {
 		productService.delete(id);
 	}
 
-	/**
-	 * Quote authoritative price/stock for a list of product IDs. Example:
-	 * /products/quote?ids=uuid1,uuid2
-	 */
-	@GetMapping("/quote")
-	public QuoteResponse quote(@RequestParam("ids") String ids) {
-		QuoteResponse response = productService.quote(ids);
-		return response;
-	}
-
-	@PostMapping("/stock/reserve")
-	public StockReserveResponse reserve(@Valid @RequestBody StockReserveRequest req) {
-		stockService.reserve(req.items());
-		return new StockReserveResponse(true);
-	}
-
-	@PostMapping("/stock/release")
-	public void release(@Valid @RequestBody StockReleaseRequest req) {
-		stockService.release(req.items());
-	}
 
 }

@@ -31,10 +31,13 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/product-images/**")
 						.permitAll()
 
-						// Explicitly permit these endpoints
-						.requestMatchers(HttpMethod.GET, "/products/quote").permitAll()
-						.requestMatchers(HttpMethod.POST, "/products/stock/reserve").authenticated()
-						.requestMatchers(HttpMethod.POST, "/products/stock/release").authenticated()
+						// Internal product endpoints (service-to-service only)
+						.requestMatchers(HttpMethod.GET, "/internal/products/quote").authenticated()
+						.requestMatchers(HttpMethod.POST, "/internal/products/stock/reserve").authenticated()
+						.requestMatchers(HttpMethod.POST, "/internal/products/stock/release").authenticated()
+
+						// Swagger/OpenAPI
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
 						.requestMatchers("/actuator/health").permitAll()
 
