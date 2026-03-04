@@ -10,7 +10,7 @@ import com.example.paymentservice.dto.request.StockReleaseRequest;
 @FeignClient(name = "${product-service.name:product-service}", configuration = FeignConfig.class)
 public interface ProductClient {
 
-	@PostMapping("/products/stock/release")
+	@PostMapping("/internal/products/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
 
 }

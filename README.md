@@ -46,3 +46,14 @@ docker compose up --build
 ## Architecture Diagram
 
 ![Services architecture](docs/services-architecture.svg)
+
+
+## Swagger / OpenAPI
+
+After starting services, Swagger UI is available at `/swagger-ui.html` on each service port.
+
+Examples:
+- api-gateway: `http://localhost:8080/swagger-ui.html`
+- eureka-server: `http://localhost:8761/swagger-ui.html`
+- For internal-only services (auth/user/product/order/payment/email), access via their service port in local runs.
+- Product internal endpoints (`/internal/products/quote`, `/internal/products/stock/reserve`, `/internal/products/stock/release`) are hidden from OpenAPI.
