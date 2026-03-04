@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .title { font: 700 42px Arial, sans-serif; fill: #1b1f23; }
+      .subtitle { font: 24px Arial, sans-serif; fill: #546e7a; }
+      .label { font: 700 20px Arial, sans-serif; fill: #1b1f23; }
+      .small { font: 16px Arial, sans-serif; fill: #37474f; }
+      .box { stroke: #37474f; stroke-width: 2; rx: 14; ry: 14; }
+      .line { stroke: #455a64; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#455a64" />
+    </marker>
+  </defs>
+
+  <text x="800" y="70" text-anchor="middle" class="title">E-commerce Microservices Architecture</text>
+  <text x="800" y="110" text-anchor="middle" class="subtitle">Gateway + Eureka + Domain Services + Infrastructure</text>
+
+  <!-- Boxes -->
+  <rect class="box" fill="#e3f2fd" x="80" y="380" width="240" height="90" />
+  <text class="label" x="200" y="420" text-anchor="middle">Frontend (Angular)</text>
+
+  <rect class="box" fill="#bbdefb" x="380" y="380" width="240" height="90" />
+  <text class="label" x="500" y="412" text-anchor="middle">API Gateway</text>
+  <text class="small" x="500" y="440" text-anchor="middle">:8080</text>
+
+  <rect class="box" fill="#e8f5e9" x="680" y="180" width="240" height="90" />
+  <text class="label" x="800" y="212" text-anchor="middle">Eureka Server</text>
+  <text class="small" x="800" y="240" text-anchor="middle">:8761</text>
+
+  <rect class="box" fill="#fff3e0" x="680" y="320" width="240" height="90" />
+  <text class="label" x="800" y="352" text-anchor="middle">Auth Service</text>
+  <text class="small" x="800" y="380" text-anchor="middle">:8081</text>
+
+  <rect class="box" fill="#fff3e0" x="980" y="320" width="240" height="90" />
+  <text class="label" x="1100" y="352" text-anchor="middle">User Service</text>
+  <text class="small" x="1100" y="380" text-anchor="middle">:8082</text>
+
+  <rect class="box" fill="#fff3e0" x="1280" y="320" width="240" height="90" />
+  <text class="label" x="1400" y="352" text-anchor="middle">Product Service</text>
+  <text class="small" x="1400" y="380" text-anchor="middle">:8083</text>
+
+  <rect class="box" fill="#fff3e0" x="980" y="500" width="240" height="90" />
+  <text class="label" x="1100" y="532" text-anchor="middle">Order Service</text>
+  <text class="small" x="1100" y="560" text-anchor="middle">:8084</text>
+
+  <rect class="box" fill="#fff3e0" x="1280" y="500" width="240" height="90" />
+  <text class="label" x="1400" y="532" text-anchor="middle">Payment Service</text>
+  <text class="small" x="1400" y="560" text-anchor="middle">:8085</text>
+
+  <rect class="box" fill="#fff3e0" x="680" y="500" width="240" height="90" />
+  <text class="label" x="800" y="532" text-anchor="middle">Email Service</text>
+  <text class="small" x="800" y="560" text-anchor="middle">:8085</text>
+
+  <rect class="box" fill="#f3e5f5" x="980" y="690" width="240" height="90" />
+  <text class="label" x="1100" y="722" text-anchor="middle">PostgreSQL</text>
+  <text class="small" x="1100" y="750" text-anchor="middle">:5432</text>
+
+  <rect class="box" fill="#f3e5f5" x="1280" y="690" width="240" height="90" />
+  <text class="label" x="1400" y="722" text-anchor="middle">MailHog</text>
+  <text class="small" x="1400" y="750" text-anchor="middle">SMTP:1025 | UI:8025</text>
+
+  <!-- Main links -->
+  <path class="line" d="M320 425 L380 425"/>
+  <text class="small" x="350" y="410" text-anchor="middle">HTTP</text>
+
+  <path class="line" d="M620 395 L680 360"/>
+  <text class="small" x="650" y="360" text-anchor="middle">/auth/**</text>
+
+  <path class="line" d="M620 415 L980 360"/>
+  <text class="small" x="790" y="380" text-anchor="middle">/users/**</text>
+
+  <path class="line" d="M620 435 L1280 360"/>
+  <text class="small" x="960" y="400" text-anchor="middle">/products/**</text>
+
+  <path class="line" d="M620 445 L980 545"/>
+  <text class="small" x="790" y="520" text-anchor="middle">/orders/**</text>
+
+  <path class="line" d="M620 455 L1280 545"/>
+  <text class="small" x="960" y="555" text-anchor="middle">/payments/**</text>
+
+  <path class="line" d="M620 435 L680 545"/>
+  <text class="small" x="650" y="510" text-anchor="middle">/emails/**</text>
+
+  <!-- Eureka discovery -->
+  <path class="line" d="M800 320 L800 270"/>
+  <path class="line" d="M1100 320 L850 240"/>
+  <path class="line" d="M1400 320 L910 240"/>
+  <path class="line" d="M1100 500 L860 260"/>
+  <path class="line" d="M1400 500 L920 260"/>
+  <path class="line" d="M800 500 L800 270"/>
+  <path class="line" d="M500 380 L760 250"/>
+  <text class="small" x="990" y="225" text-anchor="middle">Service registration/discovery</text>
+
+  <!-- Infra links -->
+  <path class="line" d="M800 590 L1040 690"/>
+  <path class="line" d="M1100 590 L1100 690"/>
+  <path class="line" d="M1400 410 L1140 690"/>
+  <path class="line" d="M1100 590 L1080 690"/>
+  <path class="line" d="M1400 590 L1160 690"/>
+  <text class="small" x="980" y="640" text-anchor="middle">JPA/Flyway connections</text>
+
+  <path class="line" d="M800 590 L1360 690"/>
+  <text class="small" x="1180" y="655" text-anchor="middle">SMTP</text>
+
+  <!-- Feign links -->
+  <path class="line" d="M860 545 L1040 545"/>
+  <text class="small" x="950" y="530" text-anchor="middle">order → product (Feign)</text>
+
+  <path class="line" d="M1280 545 L1160 545"/>
+  <text class="small" x="1220" y="530" text-anchor="middle">payment → order (Feign)</text>
+
+  <path class="line" d="M860 360 L740 500"/>
+  <text class="small" x="700" y="450" text-anchor="middle">auth → email (Feign)</text>
+</svg>
