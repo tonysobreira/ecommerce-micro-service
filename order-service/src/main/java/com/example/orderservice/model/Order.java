@@ -55,13 +55,13 @@ public class Order {
 	@Column(nullable = false)
 	private String currency;
 
-	@Column(name = "subtotal_cents", nullable = false)
+	@Column(name = "subtotal_cents", nullable = false, precision = 19, scale = 0)
 	private BigDecimal subtotalCents;
 
-	@Column(name = "shipping_cents", nullable = false)
+	@Column(name = "shipping_cents", nullable = false, precision = 19, scale = 0)
 	private BigDecimal shippingCents;
 
-	@Column(name = "total_cents", nullable = false)
+	@Column(name = "total_cents", nullable = false, precision = 19, scale = 0)
 	private BigDecimal totalCents;
 
 	@CreationTimestamp

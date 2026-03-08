@@ -27,6 +27,7 @@ import com.example.paymentservice.mapper.PaymentMapper;
 import com.example.paymentservice.model.Payment;
 import com.example.paymentservice.model.PaymentStatus;
 import com.example.paymentservice.repository.PaymentRepository;
+import com.example.paymentservice.util.MoneyUtils;
 
 import feign.FeignException;
 
@@ -163,7 +164,7 @@ public class PaymentService {
 			throw new BadRequestException("Order status does not allow payment: " + order.status());
 		}
 
-		BigDecimal expectedAmount = order.totalCents().divide(BigDecimal.valueOf(100));
+		BigDecimal expectedAmount = MoneyUtils.centsToAmount(order.totalCents());
 
 		if (request.amount().compareTo(expectedAmount) != 0) {
 			throw new BadRequestException("Payment amount must match order total.");

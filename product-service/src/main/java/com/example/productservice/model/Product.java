@@ -37,7 +37,7 @@ public class Product {
 
 	private String description;
 
-	@Column(name = "price_cents", nullable = false)
+	@Column(name = "price_cents", nullable = false, precision = 19, scale = 0)
 	private BigDecimal priceCents;
 
 	@Column(nullable = false)
