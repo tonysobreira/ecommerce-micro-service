@@ -19,11 +19,14 @@ public class UserPrincipal implements UserDetails {
 
 	private final String email;
 
+	private final String passwordHash;
+
 	private final List<SimpleGrantedAuthority> authorities;
 
 	public UserPrincipal(UUID userId, String email, List<String> roles) {
 		this.userId = userId;
 		this.email = email;
+		this.passwordHash = "";
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
 		for (String r : roles) {
 			if (r != null && !r.isBlank()) {
@@ -36,8 +39,9 @@ public class UserPrincipal implements UserDetails {
 	public UserPrincipal(UserAccount user) {
 		this.userId = user.getId();
 		this.email = user.getEmail();
+		this.passwordHash = user.getPasswordHash();
 
-		if (user.getRoles() != null || !user.getRoles().isBlank()) {
+		if (user.getRoles() != null && !user.getRoles().isBlank()) {
 			List<SimpleGrantedAuthority> list = new ArrayList<>();
 			String[] parts = user.getRoles().split(",");
 			List<String> out = new ArrayList<>();
@@ -56,7 +60,7 @@ public class UserPrincipal implements UserDetails {
 
 			this.authorities = Collections.unmodifiableList(list);
 		} else {
-			this.authorities = null;
+			this.authorities = Collections.emptyList();
 		}
 	}
 
@@ -75,7 +79,7 @@ public class UserPrincipal implements UserDetails {
 
 	@Override
 	public String getPassword() {
-		return "";
+		return passwordHash;
 	}
 
 	@Override
