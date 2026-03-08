@@ -1,14 +1,23 @@
 package com.example.authservice.model;
 
-import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshToken {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
 
 	@Column(name = "user_id", nullable = false)
@@ -23,42 +32,65 @@ public class RefreshToken {
 	@Column(name = "revoked_at")
 	private Instant revokedAt;
 
-	@Column(name = "created_at", nullable = false)
+	@CreationTimestamp
+	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
 	protected RefreshToken() {
 	}
 
-	public RefreshToken(UUID id, UUID userId, String tokenHash, Instant expiresAt, Instant createdAt) {
-		this.id = id;
+	public RefreshToken(UUID userId, String tokenHash, Instant expiresAt) {
 		this.userId = userId;
 		this.tokenHash = tokenHash;
 		this.expiresAt = expiresAt;
-		this.createdAt = createdAt;
 	}
 
 	public UUID getId() {
 		return id;
 	}
 
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
 	public UUID getUserId() {
 		return userId;
+	}
+
+	public void setUserId(UUID userId) {
+		this.userId = userId;
 	}
 
 	public String getTokenHash() {
 		return tokenHash;
 	}
 
+	public void setTokenHash(String tokenHash) {
+		this.tokenHash = tokenHash;
+	}
+
 	public Instant getExpiresAt() {
 		return expiresAt;
+	}
+
+	public void setExpiresAt(Instant expiresAt) {
+		this.expiresAt = expiresAt;
 	}
 
 	public Instant getRevokedAt() {
 		return revokedAt;
 	}
 
+	public void setRevokedAt(Instant revokedAt) {
+		this.revokedAt = revokedAt;
+	}
+
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	public boolean isExpired() {

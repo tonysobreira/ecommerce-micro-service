@@ -5,11 +5,15 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 @Entity
 @Table(name = "products")
 public class Product {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
 
 	@Column(name = "category_id", insertable = false, updatable = false)
@@ -36,17 +40,19 @@ public class Product {
 	@Column(nullable = false)
 	private boolean active;
 
-	@Column(name = "created_at", nullable = false)
+	@CreationTimestamp
+	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
-	@Column(name = "updated_at", nullable = false)
+	@UpdateTimestamp
+	@Column(name = "updated_at")
 	private Instant updatedAt;
 
 	protected Product() {
 	}
 
 	public Product(UUID id, UUID categoryId, Category category, String name, String description, long priceCents,
-			String currency, int stock, boolean active, Instant createdAt, Instant updatedAt) {
+			String currency, int stock, boolean active) {
 		this.id = id;
 		this.categoryId = categoryId;
 		this.category = category;
@@ -56,16 +62,22 @@ public class Product {
 		this.currency = currency;
 		this.stock = stock;
 		this.active = active;
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
 	}
 
 	public UUID getId() {
 		return id;
 	}
 
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
 	public UUID getCategoryId() {
 		return categoryId;
+	}
+
+	public void setCategoryId(UUID categoryId) {
+		this.categoryId = categoryId;
 	}
 
 	public Category getCategory() {
@@ -80,64 +92,64 @@ public class Product {
 		return name;
 	}
 
-	public String getDescription() {
-		return description;
-	}
-
-	public long getPriceCents() {
-		return priceCents;
-	}
-
-	public String getCurrency() {
-		return currency;
-	}
-
-	public int getStock() {
-		return stock;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setCategoryId(UUID categoryId) {
-		this.categoryId = categoryId;
-	}
-
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
+	public long getPriceCents() {
+		return priceCents;
+	}
+
 	public void setPriceCents(long priceCents) {
 		this.priceCents = priceCents;
+	}
+
+	public String getCurrency() {
+		return currency;
 	}
 
 	public void setCurrency(String currency) {
 		this.currency = currency;
 	}
 
+	public int getStock() {
+		return stock;
+	}
+
 	public void setStock(int stock) {
 		this.stock = stock;
+	}
+
+	public boolean isActive() {
+		return active;
 	}
 
 	public void setActive(boolean active) {
 		this.active = active;
 	}
 
-	public void touchUpdated() {
-		this.updatedAt = Instant.now();
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
 }

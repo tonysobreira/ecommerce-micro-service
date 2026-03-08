@@ -10,4 +10,5 @@ public interface EmailClient {
 
 	@PostMapping("/emails/orders/status")
 	void sendOrderStatus(@RequestBody OrderStatusEmailRequest request);
+
 }

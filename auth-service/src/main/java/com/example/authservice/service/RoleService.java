@@ -40,7 +40,6 @@ public class RoleService {
 		if (roleRepository.findByName(normalizedName).isPresent()) {
 			throw new ConflictException("Role name already exists");
 		}
-
 		Role role = new Role(normalizedName);
 		roleRepository.save(role);
 		return toResponse(role);
@@ -66,9 +65,11 @@ public class RoleService {
 	public void delete(UUID id) {
 		Role role = roleRepository.findById(id).orElseThrow(() -> new NotFoundException("Role not found"));
 		long activeAssociations = roleRepository.countActiveUserAssociations(id);
+
 		if (activeAssociations > 0) {
 			throw new ConflictException("Cannot delete role with active user associations");
 		}
+
 		roleRepository.delete(role);
 	}
 

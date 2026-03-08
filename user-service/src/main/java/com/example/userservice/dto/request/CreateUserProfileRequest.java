@@ -7,6 +7,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateUserProfileRequest(
-		@NotNull UUID id,
-		@NotBlank @Email String email) {
+	@NotNull
+	UUID id,
+
+	@NotBlank @Email
+	String email
+) {
+
 }

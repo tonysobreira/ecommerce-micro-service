@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
   created_at TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP NOT NULL
+  updated_at TIMESTAMP NULL
 );
 
 CREATE TABLE IF NOT EXISTS products (
@@ -15,11 +15,8 @@ CREATE TABLE IF NOT EXISTS products (
   stock INT NOT NULL,
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP NOT NULL
+  updated_at TIMESTAMP NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
-CREATE INDEX IF NOT EXISTS idx_products_active ON products(active);
 
 CREATE TABLE IF NOT EXISTS product_images (
   id UUID PRIMARY KEY,
@@ -30,4 +27,6 @@ CREATE TABLE IF NOT EXISTS product_images (
   created_at TIMESTAMP NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_active ON products(active);
 CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id);

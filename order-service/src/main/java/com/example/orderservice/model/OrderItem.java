@@ -5,11 +5,14 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
 
 	@Column(name = "order_id", nullable = false)
@@ -27,49 +30,75 @@ public class OrderItem {
 	@Column(nullable = false)
 	private String currency;
 
-	@Column(name = "created_at", nullable = false)
+	@CreationTimestamp
+	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
 	protected OrderItem() {
 	}
 
-	public OrderItem(UUID id, UUID orderId, UUID productId, int quantity, long unitPriceCents, String currency,
-			Instant createdAt) {
-		this.id = id;
+	public OrderItem(UUID orderId, UUID productId, int quantity, long unitPriceCents, String currency) {
 		this.orderId = orderId;
 		this.productId = productId;
 		this.quantity = quantity;
 		this.unitPriceCents = unitPriceCents;
 		this.currency = currency;
-		this.createdAt = createdAt;
 	}
 
 	public UUID getId() {
 		return id;
 	}
 
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
 	public UUID getOrderId() {
 		return orderId;
+	}
+
+	public void setOrderId(UUID orderId) {
+		this.orderId = orderId;
 	}
 
 	public UUID getProductId() {
 		return productId;
 	}
 
+	public void setProductId(UUID productId) {
+		this.productId = productId;
+	}
+
 	public int getQuantity() {
 		return quantity;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
 	}
 
 	public long getUnitPriceCents() {
 		return unitPriceCents;
 	}
 
+	public void setUnitPriceCents(long unitPriceCents) {
+		this.unitPriceCents = unitPriceCents;
+	}
+
 	public String getCurrency() {
 		return currency;
 	}
 
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
 	}
 
 }

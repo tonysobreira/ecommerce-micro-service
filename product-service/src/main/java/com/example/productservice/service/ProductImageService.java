@@ -1,15 +1,15 @@
 package com.example.productservice.service;
 
-import com.example.productservice.model.ProductImage;
-import com.example.productservice.dto.request.ProductImageCreateRequest;
-import com.example.productservice.exception.NotFoundException;
-import com.example.productservice.repository.ProductImageRepository;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import com.example.productservice.dto.request.ProductImageCreateRequest;
+import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.model.ProductImage;
+import com.example.productservice.repository.ProductImageRepository;
 
 @Service
 public class ProductImageService {
@@ -33,7 +33,7 @@ public class ProductImageService {
 		productService.get(req.productId()); // validate exists
 		int sortOrder = req.sortOrder() != null ? req.sortOrder() : 0;
 		ProductImage img = new ProductImage(UUID.randomUUID(), req.productId(), req.url().trim(), req.altText(),
-				sortOrder, Instant.now());
+				sortOrder);
 		return productImageRepository.save(img);
 	}
 

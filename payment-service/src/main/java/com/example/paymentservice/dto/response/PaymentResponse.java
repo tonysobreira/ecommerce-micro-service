@@ -1,32 +1,32 @@
 package com.example.paymentservice.dto.response;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import com.example.paymentservice.model.PaymentMethod;
 import com.example.paymentservice.model.PaymentStatus;
 
 public record PaymentResponse(
-		UUID id,
+	UUID id,
 
-		UUID orderId,
+	UUID orderId,
 
-		UUID userId,
+	UUID userId,
 
-        BigDecimal amount,
+	BigDecimal amount,
 
-        PaymentStatus status,
+	PaymentStatus status,
 
-        PaymentMethod paymentMethod,
+	PaymentMethod paymentMethod,
 
-        String transactionId,
+	String transactionId,
 
-        String failureReason,
+	String failureReason,
 
-        LocalDateTime createdAt,
+	Instant createdAt,
 
-        LocalDateTime updatedAt
+	Instant updatedAt
 ) {
-	
+
 }

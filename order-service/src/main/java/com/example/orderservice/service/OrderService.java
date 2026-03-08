@@ -1,27 +1,44 @@
 package com.example.orderservice.service;
 
-import com.example.orderservice.client.ProductClient;
-import com.example.orderservice.client.email.EmailClient;
-import com.example.orderservice.model.*;
-import com.example.orderservice.dto.request.*;
-import com.example.orderservice.dto.response.*;
-import com.example.orderservice.mapper.OrderMapper;
-import com.example.orderservice.dto.email.OrderStatusEmailRequest;
-import com.example.orderservice.exception.BadRequestException;
-import com.example.orderservice.exception.ForbiddenException;
-import com.example.orderservice.exception.NotFoundException;
-import com.example.orderservice.repository.OrderItemRepository;
-import com.example.orderservice.repository.OrderRepository;
-import com.example.orderservice.repository.OrderStatusHistoryRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.example.orderservice.client.ProductClient;
+import com.example.orderservice.client.email.EmailClient;
+import com.example.orderservice.dto.email.OrderStatusEmailRequest;
+import com.example.orderservice.dto.request.AddressRequest;
+import com.example.orderservice.dto.request.CreateOrderItemRequest;
+import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.StockReleaseRequest;
+import com.example.orderservice.dto.request.StockReserveItem;
+import com.example.orderservice.dto.request.StockReserveRequest;
+import com.example.orderservice.dto.request.UpdateOrderRequest;
+import com.example.orderservice.dto.response.OrderResponse;
+import com.example.orderservice.dto.response.QuoteItemResponse;
+import com.example.orderservice.dto.response.QuoteResponse;
+import com.example.orderservice.exception.BadRequestException;
+import com.example.orderservice.exception.ForbiddenException;
+import com.example.orderservice.exception.NotFoundException;
+import com.example.orderservice.mapper.OrderMapper;
+import com.example.orderservice.model.Order;
+import com.example.orderservice.model.OrderItem;
+import com.example.orderservice.model.OrderStatus;
+import com.example.orderservice.model.OrderStatusHistory;
+import com.example.orderservice.model.PaymentMethod;
+import com.example.orderservice.repository.OrderItemRepository;
+import com.example.orderservice.repository.OrderRepository;
+import com.example.orderservice.repository.OrderStatusHistoryRepository;
 
 @Service
 public class OrderService {
@@ -136,31 +153,26 @@ public class OrderService {
 			throw new BadRequestException("Unsupported paymentMethod: " + req.paymentMethod());
 		}
 
-		Instant now = Instant.now();
-		UUID orderId = UUID.randomUUID();
-
 		AddressRequest a = req.shippingAddress();
 
-		Order order = new Order(orderId, userId, email, OrderStatus.CREATED, pm, a.line1(), a.line2(), a.city(),
-				a.state(), a.zip(), a.country(), currency, subtotal, shipping, total, now, now);
+		Order order = new Order(userId, email, OrderStatus.CREATED, pm, a.line1(), a.line2(), a.city(), a.state(),
+				a.zip(), a.country(), currency, subtotal, shipping, total);
 
 		orderRepository.save(order);
 
 		List<OrderItem> itemEntities = new ArrayList<>();
 		for (CreateOrderItemRequest i : req.items()) {
 			QuoteItemResponse qi = quoteMap.get(i.productId());
-			OrderItem oi = new OrderItem(UUID.randomUUID(), orderId, i.productId(), i.quantity(), qi.priceCents(),
-					currency, now);
+			OrderItem oi = new OrderItem(order.getId(), i.productId(), i.quantity(), qi.priceCents(), currency);
 			itemEntities.add(oi);
 		}
 		orderItemRepository.saveAll(itemEntities);
 
-		orderStatusHistoryRepository
-				.save(new OrderStatusHistory(UUID.randomUUID(), orderId, OrderStatus.CREATED, userId, now));
+		orderStatusHistoryRepository.save(new OrderStatusHistory(order.getId(), OrderStatus.CREATED, userId));
 		notifyOrderStatus(order);
 
 		return orderMapper.toResponse(order, itemEntities,
-				orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId));
+				orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(order.getId()));
 	}
 
 	@Transactional(readOnly = true)
@@ -190,20 +202,11 @@ public class OrderService {
 	public OrderResponse update(UUID adminId, UUID orderId, UpdateOrderRequest req) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 
-		OrderStatus ns;
-
-		try {
-			ns = OrderStatus.valueOf(req.status().trim().toUpperCase(Locale.ROOT));
-		} catch (Exception e) {
-			throw new BadRequestException("Invalid status: " + req.status());
-		}
-
-		o.setStatus(ns);
+		o.setStatus(req.status());
 
 		orderRepository.save(o);
 
-		orderStatusHistoryRepository
-				.save(new OrderStatusHistory(UUID.randomUUID(), orderId, ns, adminId, Instant.now()));
+		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, req.status(), adminId));
 
 		notifyOrderStatus(o);
 

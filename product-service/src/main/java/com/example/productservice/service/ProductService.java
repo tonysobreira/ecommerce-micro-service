@@ -1,6 +1,5 @@
 package com.example.productservice.service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,13 +10,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.productservice.model.Category;
-import com.example.productservice.model.Product;
 import com.example.productservice.dto.request.ProductCreateRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
 import com.example.productservice.dto.response.QuoteItemResponse;
 import com.example.productservice.dto.response.QuoteResponse;
 import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.model.Category;
+import com.example.productservice.model.Product;
 import com.example.productservice.repository.ProductRepository;
 
 @Service
@@ -45,13 +44,13 @@ public class ProductService {
 	@Transactional
 	public Product create(ProductCreateRequest req) {
 		Category category = null;
+
 		if (req.categoryId() != null) {
 			category = categoryService.get(req.categoryId());
 		}
-		Instant now = Instant.now();
+
 		Product p = new Product(UUID.randomUUID(), req.categoryId(), category, req.name().trim(), req.description(),
-				req.priceCents(), req.currency().trim(), req.stock(), req.active() != null ? req.active() : true, now,
-				now);
+				req.priceCents(), req.currency().trim(), req.stock(), req.active() != null ? req.active() : true);
 		return productRepository.save(p);
 	}
 
@@ -88,7 +87,6 @@ public class ProductService {
 			p.setActive(req.active());
 		}
 
-		p.touchUpdated();
 		return productRepository.save(p);
 	}
 

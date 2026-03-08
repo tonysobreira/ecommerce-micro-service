@@ -25,13 +25,13 @@ public class UserProfileService {
 
 	@Transactional(readOnly = true)
 	public List<UserProfile> listAllActive() {
-		return userProfileRepository.findAll().stream().filter(p -> !p.isDeleted()).toList();
+		return userProfileRepository.findAll().stream().filter(p -> p.getDeletedAt() == null).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public UserProfile getActive(UUID id) {
 		UserProfile p = userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
-		if (p.isDeleted()) {
+		if (p.getDeletedAt() != null) {
 			throw new NotFoundException("User not found");
 		}
 		return p;
@@ -62,14 +62,13 @@ public class UserProfileService {
 			p.setPhone(req.phone());
 		}
 
-		p.touchUpdated();
 		return userProfileRepository.save(p);
 	}
 
 	@Transactional
 	public void softDelete(UUID id) {
 		UserProfile p = getActive(id);
-		p.softDelete();
+		p.setDeletedAt(Instant.now());
 		userProfileRepository.save(p);
 	}
 
@@ -80,8 +79,7 @@ public class UserProfileService {
 	@Transactional
 	public UserProfile createIfMissing(UserPrincipal principal) {
 		return userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
-			Instant now = Instant.now();
-			UserProfile p = new UserProfile(principal.getUserId(), principal.getEmail(), now, now);
+			UserProfile p = new UserProfile(principal.getUserId(), principal.getEmail());
 			return userProfileRepository.save(p);
 		});
 	}
@@ -93,8 +91,7 @@ public class UserProfileService {
 	@Transactional
 	public UserProfile createIfMissing(UUID id, String email) {
 		return userProfileRepository.findById(id).orElseGet(() -> {
-			Instant now = Instant.now();
-			UserProfile p = new UserProfile(id, email.trim().toLowerCase(), now, now);
+			UserProfile p = new UserProfile(id, email.trim().toLowerCase());
 			return userProfileRepository.save(p);
 		});
 	}

@@ -38,7 +38,6 @@ public class StockService {
 			}
 
 			p.setStock(p.getStock() - i.quantity());
-			p.touchUpdated();
 			productRepository.save(p);
 		}
 	}
@@ -53,7 +52,6 @@ public class StockService {
 					.orElseThrow(() -> new NotFoundException("Product not found: " + i.productId()));
 
 			p.setStock(p.getStock() + i.quantity());
-			p.touchUpdated();
 			productRepository.save(p);
 		}
 	}

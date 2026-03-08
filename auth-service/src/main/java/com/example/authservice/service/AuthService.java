@@ -61,9 +61,9 @@ public class AuthService {
 	private final long activationTtlMinutes;
 
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
-			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
-			ActivationEmailService activationEmailService, UserClient userClient,
-			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
+			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder,
+			JwtIssuer issuer, JwtVerifier verifier, ActivationEmailService activationEmailService,
+			UserClient userClient, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
@@ -84,7 +84,6 @@ public class AuthService {
 			throw new ConflictException("Email already registered");
 		});
 
-		UUID userId = UUID.randomUUID();
 		String passwordHash = passwordEncoder.encode(password);
 
 		// default role USER
@@ -92,8 +91,7 @@ public class AuthService {
 		roles.add(roleRepository.findByName("ROLE_USER")
 				.orElseThrow(() -> new NotFoundException("Default role ROLE_USER not found")));
 
-		UserAccount account = new UserAccount(userId, email.trim().toLowerCase(Locale.ROOT), passwordHash, roles,
-				Instant.now());
+		UserAccount account = new UserAccount(email.trim().toLowerCase(Locale.ROOT), passwordHash, roles);
 		userAccountRepository.save(account);
 
 		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(),
@@ -138,7 +136,6 @@ public class AuthService {
 		account.activate();
 
 		// Create user profile
-		
 
 		userAccountRepository.save(account);
 		userClient.createProfileIfMissing(new CreateUserProfileRequest(account.getId(), account.getEmail()));
@@ -192,7 +189,7 @@ public class AuthService {
 		Instant now = Instant.now();
 		Instant expires = now.plus(refreshTtlDays, ChronoUnit.DAYS);
 
-		RefreshToken rt = new RefreshToken(UUID.randomUUID(), account.getId(), refreshHash, expires, now);
+		RefreshToken rt = new RefreshToken(account.getId(), refreshHash, expires);
 		refreshTokenRepository.save(rt);
 
 		Set<String> roleNames = account.getRoles().stream().map(Role::getName)

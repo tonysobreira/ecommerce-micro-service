@@ -3,6 +3,7 @@ package com.example.orderservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,14 +50,17 @@ public class OrderController {
 		return service.get(p.getUserId(), p.isAdmin(), orderId);
 	}
 
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{orderId}")
-	public OrderResponse update(@PathVariable("orderId") UUID orderId,
-			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
+	public OrderResponse update(@PathVariable("orderId") UUID orderId, @Valid @RequestBody UpdateOrderRequest req,
+			Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
+
 		// SecurityConfig already requires ADMIN for this route, but double-check is OK:
 		if (!p.isAdmin()) {
 			throw new ForbiddenException("Admin only");
 		}
+
 		return service.update(p.getUserId(), orderId, req);
 	}
 

@@ -12,9 +12,11 @@ import com.example.paymentservice.model.PaymentStatus;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
+
 	Optional<Payment> findByOrderId(UUID orderId);
 
 	List<Payment> findByUserId(UUID userId);
 
 	List<Payment> findByStatus(PaymentStatus status);
+
 }

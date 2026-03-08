@@ -1,8 +1,9 @@
 package com.example.orderservice.model;
 
 public enum PaymentMethod {
-  CARD,
-  PIX,
-  BOLETO,
-  CASH_ON_DELIVERY
+	CREDIT_CARD, 
+	DEBIT_CARD, 
+	PIX, 
+	BANK_TRANSFER, 
+	PAYPAL
 }

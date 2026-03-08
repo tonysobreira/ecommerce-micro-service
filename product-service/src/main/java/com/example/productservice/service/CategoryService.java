@@ -1,17 +1,17 @@
 package com.example.productservice.service;
 
-import com.example.productservice.model.Category;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.productservice.dto.request.CategoryCreateRequest;
 import com.example.productservice.dto.request.CategoryUpdateRequest;
 import com.example.productservice.exception.ConflictException;
 import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.model.Category;
 import com.example.productservice.repository.CategoryRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class CategoryService {
@@ -38,8 +38,7 @@ public class CategoryService {
 			throw new ConflictException("Category name already exists");
 		});
 
-		Instant now = Instant.now();
-		Category c = new Category(UUID.randomUUID(), req.name().trim(), now, now);
+		Category c = new Category(UUID.randomUUID(), req.name().trim());
 		return categoryRepository.save(c);
 	}
 
@@ -54,7 +53,6 @@ public class CategoryService {
 		});
 
 		c.setName(req.name().trim());
-		c.touchUpdated();
 		return categoryRepository.save(c);
 	}
 

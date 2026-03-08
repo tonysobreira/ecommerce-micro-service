@@ -31,6 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		this.verifier = verifier;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
