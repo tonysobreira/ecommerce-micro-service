@@ -75,17 +75,13 @@ public class UserProfileService {
 
 	/**
 	 * Optional helper if you later want auth-service to create profiles on
-	 * registration.
+	 * activation.
 	 */
 	@Transactional
-	public UserProfile createIfMissing(UUID id, UserPrincipal principal) {
-		return userProfileRepository.findById(id).orElseGet(() -> {
-			// only owner (or admin) can auto-create
-			if (!principal.isAdmin() && !principal.getUserId().equals(id)) {
-				throw new NotFoundException("User not found");
-			}
+	public UserProfile createIfMissing(UserPrincipal principal) {
+		return userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
 			Instant now = Instant.now();
-			UserProfile p = new UserProfile(id, principal.getEmail(), now, now);
+			UserProfile p = new UserProfile(principal.getUserId(), principal.getEmail(), now, now);
 			return userProfileRepository.save(p);
 		});
 	}

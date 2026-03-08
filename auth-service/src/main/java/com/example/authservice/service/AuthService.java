@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.authservice.client.UserClient;
 import com.example.authservice.dto.response.AuthResponse;
 import com.example.authservice.dto.response.RegisterResponse;
 import com.example.authservice.exception.ConflictException;
@@ -56,11 +57,13 @@ public class AuthService {
 
 	private final long activationTtlMinutes;
 
+	private final UserClient userClient;
+
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
-			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
-			ActivationEmailService activationEmailService,
+			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder,
+			JwtIssuer issuer, JwtVerifier verifier, ActivationEmailService activationEmailService,
 			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
-			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
+			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes, UserClient userClient) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
 		this.roleRepository = roleRepository;
@@ -71,6 +74,7 @@ public class AuthService {
 		this.activationEmailService = activationEmailService;
 		this.refreshTtlDays = refreshTtlDays;
 		this.activationTtlMinutes = activationTtlMinutes;
+		this.userClient = userClient;
 	}
 
 	@Transactional
@@ -131,6 +135,10 @@ public class AuthService {
 		UserAccount account = userAccountRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
 		account.activate();
+
+		// Create user profile
+		
+
 		userAccountRepository.save(account);
 	}
 
@@ -185,7 +193,8 @@ public class AuthService {
 		RefreshToken rt = new RefreshToken(UUID.randomUUID(), account.getId(), refreshHash, expires, now);
 		refreshTokenRepository.save(rt);
 
-		Set<String> roleNames = account.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.toSet());
+		Set<String> roleNames = account.getRoles().stream().map(Role::getName)
+				.collect(java.util.stream.Collectors.toSet());
 		return new AuthResponse(account.getId(), account.getEmail(), roleNames, accessToken, refreshRaw);
 	}
 

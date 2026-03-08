@@ -21,7 +21,7 @@ public class UserPrincipal implements UserDetails {
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
 		for (String r : roles) {
 			if (r != null && !r.isBlank()) {
-				list.add(new SimpleGrantedAuthority("ROLE_" + r.trim()));
+				list.add(new SimpleGrantedAuthority(r.trim()));
 			}
 		}
 		this.authorities = Collections.unmodifiableList(list);

@@ -49,14 +49,14 @@ public class UserController {
 			throw new ForbiddenException("Not allowed");
 		}
 
-		UserProfile profile = service.createIfMissing(id, p);
+		UserProfile profile = service.createIfMissing(p);
 		return mapper.toResponse(profile);
 	}
 
 	@GetMapping("/me")
 	public UserResponse me(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return mapper.toResponse(service.createIfMissing(p.getUserId(), p));
+		return mapper.toResponse(service.createIfMissing(p));
 	}
 
 	@PutMapping("/{id}")
