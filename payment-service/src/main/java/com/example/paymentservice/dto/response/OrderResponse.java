@@ -1,5 +1,6 @@
 package com.example.paymentservice.dto.response;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -17,11 +18,11 @@ public record OrderResponse(
 
 	String currency,
 
-	long subtotalCents,
+	BigDecimal subtotalCents,
 
-	long shippingCents,
+	BigDecimal shippingCents,
 
-	long totalCents,
+	BigDecimal totalCents,
 
 	Instant createdAt,
 

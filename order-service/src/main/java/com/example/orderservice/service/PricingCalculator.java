@@ -1,13 +1,16 @@
 package com.example.orderservice.service;
 
+import java.math.BigDecimal;
+
 public final class PricingCalculator {
 
 	private PricingCalculator() {
 	}
 
 	// keep it simple for now (flat shipping)
-	public static long shippingCents(long subtotalCents) {
-		return subtotalCents >= 5000 ? 0 : 999; // free over 50.00
+	// free over 50.00
+	public static BigDecimal shippingCents(BigDecimal subtotalCents) {
+		return subtotalCents.compareTo(BigDecimal.valueOf(5000)) >= 0 ? BigDecimal.ZERO : BigDecimal.valueOf(999);
 	}
 
 }

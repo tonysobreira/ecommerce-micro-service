@@ -1,12 +1,21 @@
 package com.example.productservice.model;
 
-import jakarta.persistence.*;
-
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "products")
@@ -29,7 +38,7 @@ public class Product {
 	private String description;
 
 	@Column(name = "price_cents", nullable = false)
-	private long priceCents;
+	private BigDecimal priceCents;
 
 	@Column(nullable = false)
 	private String currency;
@@ -51,7 +60,7 @@ public class Product {
 	protected Product() {
 	}
 
-	public Product(UUID id, UUID categoryId, Category category, String name, String description, long priceCents,
+	public Product(UUID id, UUID categoryId, Category category, String name, String description, BigDecimal priceCents,
 			String currency, int stock, boolean active) {
 		this.id = id;
 		this.categoryId = categoryId;
@@ -104,11 +113,11 @@ public class Product {
 		this.description = description;
 	}
 
-	public long getPriceCents() {
+	public BigDecimal getPriceCents() {
 		return priceCents;
 	}
 
-	public void setPriceCents(long priceCents) {
+	public void setPriceCents(BigDecimal priceCents) {
 		this.priceCents = priceCents;
 	}
 

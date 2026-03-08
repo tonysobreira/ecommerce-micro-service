@@ -1,5 +1,6 @@
 package com.example.orderservice.dto.response;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record OrderItemResponse(
@@ -7,7 +8,7 @@ public record OrderItemResponse(
 
 	int quantity,
 
-	long unitPriceCents,
+	BigDecimal unitPriceCents,
 
 	String currency
 ) {

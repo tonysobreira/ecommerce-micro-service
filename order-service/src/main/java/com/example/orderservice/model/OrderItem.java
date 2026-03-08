@@ -1,11 +1,17 @@
 package com.example.orderservice.model;
 
-import jakarta.persistence.*;
-
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "order_items")
@@ -25,7 +31,7 @@ public class OrderItem {
 	private int quantity;
 
 	@Column(name = "unit_price_cents", nullable = false)
-	private long unitPriceCents;
+	private BigDecimal unitPriceCents;
 
 	@Column(nullable = false)
 	private String currency;
@@ -37,7 +43,7 @@ public class OrderItem {
 	protected OrderItem() {
 	}
 
-	public OrderItem(UUID orderId, UUID productId, int quantity, long unitPriceCents, String currency) {
+	public OrderItem(UUID orderId, UUID productId, int quantity, BigDecimal unitPriceCents, String currency) {
 		this.orderId = orderId;
 		this.productId = productId;
 		this.quantity = quantity;
@@ -77,11 +83,11 @@ public class OrderItem {
 		this.quantity = quantity;
 	}
 
-	public long getUnitPriceCents() {
+	public BigDecimal getUnitPriceCents() {
 		return unitPriceCents;
 	}
 
-	public void setUnitPriceCents(long unitPriceCents) {
+	public void setUnitPriceCents(BigDecimal unitPriceCents) {
 		this.unitPriceCents = unitPriceCents;
 	}
 

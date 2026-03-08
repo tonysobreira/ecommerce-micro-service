@@ -1,5 +1,6 @@
 package com.example.productservice.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -108,7 +109,7 @@ public class ProductService {
 		for (UUID id : productIds) {
 			Product p = found.get(id);
 			if (p == null) {
-				items.add(new QuoteItemResponse(id, false, false, 0, null, 0));
+				items.add(new QuoteItemResponse(id, false, false, BigDecimal.ZERO, null, 0));
 			} else {
 				items.add(new QuoteItemResponse(id, true, p.isActive(), p.getPriceCents(), p.getCurrency(),
 						p.getStock()));

@@ -1,5 +1,6 @@
 package com.example.orderservice.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -88,7 +89,7 @@ public class OrderService {
 
 		// Validate and compute totals with authoritative prices
 		String currency = null;
-		long subtotal = 0;
+		BigDecimal subtotal = BigDecimal.ZERO;
 
 		for (CreateOrderItemRequest i : req.items()) {
 			QuoteItemResponse qi = quoteMap.get(i.productId());
@@ -113,7 +114,7 @@ public class OrderService {
 				throw new BadRequestException("Mixed currencies not supported");
 			}
 
-			subtotal += qi.priceCents() * (long) i.quantity();
+			subtotal = subtotal.add(qi.priceCents().multiply(BigDecimal.valueOf(i.quantity())));
 		}
 
 		if (currency == null) {
@@ -141,10 +142,10 @@ public class OrderService {
 
 	@Transactional
 	protected OrderResponse persistOrder(UUID userId, String email, CreateOrderRequest req,
-			Map<UUID, QuoteItemResponse> quoteMap, String currency, long subtotal) {
+			Map<UUID, QuoteItemResponse> quoteMap, String currency, BigDecimal subtotal) {
 
-		long shipping = PricingCalculator.shippingCents(subtotal);
-		long total = subtotal + shipping;
+		BigDecimal shipping = PricingCalculator.shippingCents(subtotal);
+		BigDecimal total = subtotal.add(shipping);
 
 		PaymentMethod pm;
 		try {

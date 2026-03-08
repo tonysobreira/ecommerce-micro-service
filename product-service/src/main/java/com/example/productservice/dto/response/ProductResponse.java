@@ -1,5 +1,6 @@
 package com.example.productservice.dto.response;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public record ProductResponse(
 
 	String description,
 
-	long priceCents,
+	BigDecimal priceCents,
 
 	String currency,
 

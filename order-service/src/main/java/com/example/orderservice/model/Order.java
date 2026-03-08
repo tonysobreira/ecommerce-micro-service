@@ -1,5 +1,6 @@
 package com.example.orderservice.model;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -55,13 +56,13 @@ public class Order {
 	private String currency;
 
 	@Column(name = "subtotal_cents", nullable = false)
-	private long subtotalCents;
+	private BigDecimal subtotalCents;
 
 	@Column(name = "shipping_cents", nullable = false)
-	private long shippingCents;
+	private BigDecimal shippingCents;
 
 	@Column(name = "total_cents", nullable = false)
-	private long totalCents;
+	private BigDecimal totalCents;
 
 	@CreationTimestamp
 	@Column(name = "created_at", nullable = false, updatable = false)
@@ -76,7 +77,7 @@ public class Order {
 
 	public Order(UUID userId, String customerEmail, OrderStatus status, PaymentMethod paymentMethod, String shipLine1,
 			String shipLine2, String shipCity, String shipState, String shipZip, String shipCountry, String currency,
-			long subtotalCents, long shippingCents, long totalCents) {
+			BigDecimal subtotalCents, BigDecimal shippingCents, BigDecimal totalCents) {
 		this.userId = userId;
 		this.status = status.name();
 		this.customerEmail = customerEmail;
@@ -189,27 +190,27 @@ public class Order {
 		this.currency = currency;
 	}
 
-	public long getSubtotalCents() {
+	public BigDecimal getSubtotalCents() {
 		return subtotalCents;
 	}
 
-	public void setSubtotalCents(long subtotalCents) {
+	public void setSubtotalCents(BigDecimal subtotalCents) {
 		this.subtotalCents = subtotalCents;
 	}
 
-	public long getShippingCents() {
+	public BigDecimal getShippingCents() {
 		return shippingCents;
 	}
 
-	public void setShippingCents(long shippingCents) {
+	public void setShippingCents(BigDecimal shippingCents) {
 		this.shippingCents = shippingCents;
 	}
 
-	public long getTotalCents() {
+	public BigDecimal getTotalCents() {
 		return totalCents;
 	}
 
-	public void setTotalCents(long totalCents) {
+	public void setTotalCents(BigDecimal totalCents) {
 		this.totalCents = totalCents;
 	}
 

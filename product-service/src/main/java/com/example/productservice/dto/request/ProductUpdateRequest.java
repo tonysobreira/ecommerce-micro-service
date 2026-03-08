@@ -1,8 +1,10 @@
 package com.example.productservice.dto.request;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-import java.util.UUID;
 
 public record ProductUpdateRequest(
 	UUID categoryId,
@@ -13,7 +15,7 @@ public record ProductUpdateRequest(
 	String description,
 
 	@Min(0)
-	Long priceCents,
+	BigDecimal priceCents,
 
 	@Size(max = 10)
 	String currency,

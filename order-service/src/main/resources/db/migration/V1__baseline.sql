@@ -4,19 +4,16 @@ CREATE TABLE IF NOT EXISTS orders (
   status TEXT NOT NULL,
   customer_email TEXT NOT NULL,
   payment_method TEXT NOT NULL,
-
   ship_line1 TEXT NOT NULL,
   ship_line2 TEXT NULL,
   ship_city TEXT NOT NULL,
   ship_state TEXT NOT NULL,
   ship_zip TEXT NOT NULL,
   ship_country TEXT NOT NULL,
-
   currency TEXT NOT NULL,
-  subtotal_cents BIGINT NOT NULL,
-  shipping_cents BIGINT NOT NULL,
-  total_cents BIGINT NOT NULL,
-
+  subtotal_cents NUMERIC(19,2) NOT NULL,
+  shipping_cents NUMERIC(19,2) NOT NULL,
+  total_cents NUMERIC(19,2) NOT NULL,
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NULL
 );
@@ -26,7 +23,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID NOT NULL,
   quantity INT NOT NULL,
-  unit_price_cents BIGINT NOT NULL,
+  unit_price_cents NUMERIC(19,2) NOT NULL,
   currency TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL
 );

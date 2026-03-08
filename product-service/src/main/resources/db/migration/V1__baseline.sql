@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS products (
   category_id UUID NULL REFERENCES categories(id),
   name TEXT NOT NULL,
   description TEXT NULL,
-  price_cents BIGINT NOT NULL,
+  price_cents NUMERIC(19,2) NOT NULL,
   currency TEXT NOT NULL,
   stock INT NOT NULL,
   active BOOLEAN NOT NULL DEFAULT TRUE,

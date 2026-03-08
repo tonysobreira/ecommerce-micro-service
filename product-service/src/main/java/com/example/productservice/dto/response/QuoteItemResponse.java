@@ -1,5 +1,6 @@
 package com.example.productservice.dto.response;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record QuoteItemResponse(
@@ -9,7 +10,7 @@ public record QuoteItemResponse(
 
 	boolean active,
 
-	long priceCents,
+	BigDecimal priceCents,
 
 	String currency,
 

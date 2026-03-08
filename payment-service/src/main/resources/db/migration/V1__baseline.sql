@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS payments (
     user_id UUID NOT NULL,
     amount NUMERIC(19,2) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    payment_method VARCHAR(30) NOT NULL,
+    payment_method TEXT NOT NULL,
     transaction_id VARCHAR(100),
     failure_reason TEXT,
     created_at TIMESTAMP NOT NULL,

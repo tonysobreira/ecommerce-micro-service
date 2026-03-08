@@ -64,7 +64,7 @@ public class RoleService {
 	@Transactional
 	public void delete(UUID id) {
 		Role role = roleRepository.findById(id).orElseThrow(() -> new NotFoundException("Role not found"));
-		long activeAssociations = roleRepository.countActiveUserAssociations(id);
+		long activeAssociations = roleRepository.countUserAssociations(id);
 
 		if (activeAssociations > 0) {
 			throw new ConflictException("Cannot delete role with active user associations");

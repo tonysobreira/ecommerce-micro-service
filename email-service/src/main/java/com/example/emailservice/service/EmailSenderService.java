@@ -1,9 +1,7 @@
 package com.example.emailservice.service;
 
-import com.example.emailservice.dto.request.ActivationEmailRequest;
-import com.example.emailservice.dto.request.OrderStatusEmailRequest;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import java.math.BigDecimal;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +9,12 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import com.example.emailservice.dto.request.ActivationEmailRequest;
+import com.example.emailservice.dto.request.OrderStatusEmailRequest;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailSenderService {
@@ -52,7 +56,7 @@ public class EmailSenderService {
 				<p>New status: <b>%s</b></p>
 				<p>Total: <b>%s %.2f</b></p>
 				<p>Thank you for shopping with us.</p>
-				""".formatted(request.orderId(), status, request.currency(), request.totalCents() / 100.0);
+				""".formatted(request.orderId(), status, request.currency(), request.totalCents().divide(BigDecimal.valueOf(100)));
 
 		send(request.email(), "Order " + request.orderId() + " is " + status, body);
 	}

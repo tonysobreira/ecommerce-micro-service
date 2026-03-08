@@ -1,5 +1,6 @@
 package com.example.orderservice.dto.email;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import jakarta.validation.constraints.DecimalMin;
@@ -21,9 +22,9 @@ public record OrderStatusEmailRequest (
 	@NotBlank
 	String currency,
 	
-	@NotNull(message = "Amount is required")
-	@DecimalMin(value = "0.01", message = "Amount must be greater than 0")
-	long totalCents
+	@NotNull(message = "Total is required")
+	@DecimalMin(value = "0.01", message = "Total must be greater than 0")
+	BigDecimal totalCents
 ) {
 
 }

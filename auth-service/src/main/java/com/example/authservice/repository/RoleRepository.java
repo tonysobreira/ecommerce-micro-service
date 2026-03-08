@@ -17,8 +17,7 @@ public interface RoleRepository extends JpaRepository<Role, UUID> {
 			FROM user_account_roles uar
 			JOIN user_accounts ua ON ua.id = uar.user_id
 			WHERE uar.role_id = :roleId
-			  AND ua.deleted_at IS NULL
 			""", nativeQuery = true)
-	long countActiveUserAssociations(UUID roleId);
+	long countUserAssociations(UUID roleId);
 
 }

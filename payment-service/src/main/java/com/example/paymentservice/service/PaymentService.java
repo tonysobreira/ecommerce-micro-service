@@ -68,8 +68,8 @@ public class PaymentService {
 			throw new BadRequestException("Payment already processed.");
 		});
 
-		Payment payment = Payment.builder().orderId(request.orderId()).userId(authenticatedUserId).amount(request.amount())
-				.paymentMethod(request.paymentMethod()).build();
+		Payment payment = Payment.builder().orderId(request.orderId()).userId(authenticatedUserId)
+				.amount(request.amount()).paymentMethod(request.paymentMethod()).build();
 
 		payment = paymentRepository.save(payment);
 
@@ -163,7 +163,8 @@ public class PaymentService {
 			throw new BadRequestException("Order status does not allow payment: " + order.status());
 		}
 
-		BigDecimal expectedAmount = BigDecimal.valueOf(order.totalCents(), 2);
+		BigDecimal expectedAmount = order.totalCents().divide(BigDecimal.valueOf(100));
+
 		if (request.amount().compareTo(expectedAmount) != 0) {
 			throw new BadRequestException("Payment amount must match order total.");
 		}

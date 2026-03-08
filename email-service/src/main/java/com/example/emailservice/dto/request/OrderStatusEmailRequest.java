@@ -1,9 +1,11 @@
 package com.example.emailservice.dto.request;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
 
 public record OrderStatusEmailRequest(
 	@Email
@@ -19,7 +21,7 @@ public record OrderStatusEmailRequest(
 	@NotBlank
 	String currency,
 
-	long totalCents
+	BigDecimal totalCents
 ) {
 
 }
