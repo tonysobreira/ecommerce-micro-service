@@ -8,11 +8,11 @@ public record ResetPasswordRequest(
 	String token,
 
 	@NotBlank 
-	@Size(min = 8, max = 128) 
+	@Size(min = 4, max = 100) 
 	String newPassword,
 
 	@NotBlank 
-	@Size(min = 8, max = 128) 
+	@Size(min = 4, max = 100) 
 	String repeatPassword
 ) {
 
