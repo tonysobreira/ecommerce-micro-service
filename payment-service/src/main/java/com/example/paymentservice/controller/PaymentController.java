@@ -32,11 +32,17 @@ public class PaymentController {
 	}
 
 	@PostMapping
-	public ResponseEntity<PaymentResponse> processPayment(@Valid @RequestBody CreatePaymentRequest request,
+	public ResponseEntity<PaymentResponse> createPendingPayment(@Valid @RequestBody CreatePaymentRequest request,
 			Authentication authentication) {
 		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(paymentService.processPayment(principal.getUserId(), request));
+				.body(paymentService.createPendingPayment(principal.getUserId(), request));
+	}
+
+	@PostMapping("/{id}/process")
+	public ResponseEntity<PaymentResponse> processPayment(@PathVariable UUID id, Authentication authentication) {
+		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+		return ResponseEntity.ok(paymentService.processPayment(principal.getUserId(), id));
 	}
 
 	@GetMapping("/{id}")

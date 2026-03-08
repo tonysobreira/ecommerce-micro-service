@@ -1,6 +1,5 @@
 package com.example.paymentservice.service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -56,23 +55,40 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public PaymentResponse processPayment(UUID authenticatedUserId, CreatePaymentRequest request) {
+	public PaymentResponse createPendingPayment(UUID authenticatedUserId, CreatePaymentRequest request) {
 		UserResponse user = fetchUser(authenticatedUserId);
 		if (user == null) {
 			throw new NotFoundException("User not found.");
 		}
 
 		OrderResponse order = fetchOrder(request.orderId());
-		validatePaymentRequest(authenticatedUserId, order, request);
+		validatePaymentCreationRequest(authenticatedUserId, order, request);
 
 		paymentRepository.findByOrderId(request.orderId()).ifPresent(p -> {
-			throw new BadRequestException("Payment already processed.");
+			throw new BadRequestException("Payment already exists for this order.");
 		});
 
-		Payment payment = new Payment(request.orderId(), authenticatedUserId, request.amount(),
-				request.paymentMethod());
-
+		Payment payment = new Payment(request.orderId(), request.userId(), request.amount(), request.paymentMethod());
 		payment = paymentRepository.save(payment);
+		log.info("Pending payment created: {}", payment.getId());
+		return paymentMapper.toResponse(payment);
+	}
+
+	@Transactional
+	public PaymentResponse processPayment(UUID authenticatedUserId, UUID paymentId) {
+		Payment payment = paymentRepository.findById(paymentId)
+				.orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + paymentId));
+
+		if (!authenticatedUserId.equals(payment.getUserId())) {
+			throw new BadRequestException("Authenticated user does not match the payment owner.");
+		}
+
+		if (payment.getStatus() != PaymentStatus.PENDING) {
+			throw new BadRequestException("Only pending payments can be processed.");
+		}
+
+		OrderResponse order = fetchOrder(payment.getOrderId());
+		validateProcessPaymentRequest(order, payment);
 
 		try {
 			orderClient.update(order.id(), new UpdateOrderRequest("PAID"));
@@ -151,26 +167,47 @@ public class PaymentService {
 		} catch (FeignException.NotFound ex) {
 			throw new NotFoundException("Order not found.");
 		} catch (FeignException.Forbidden ex) {
-			throw new BadRequestException("You are not allowed to pay this order.");
+			throw new BadRequestException("You are not allowed to access this order.");
 		}
 	}
 
-	private void validatePaymentRequest(UUID authenticatedUserId, OrderResponse order, CreatePaymentRequest request) {
+	private void validatePaymentCreationRequest(UUID authenticatedUserId, OrderResponse order,
+			CreatePaymentRequest request) {
 		if (!authenticatedUserId.equals(order.userId())) {
 			throw new BadRequestException("Authenticated user does not match the order owner.");
+		}
+
+		if (!request.userId().equals(order.userId())) {
+			throw new BadRequestException("Request user does not match the order owner.");
 		}
 
 		if ("PAID".equalsIgnoreCase(order.status()) || "CANCELLED".equalsIgnoreCase(order.status())) {
 			throw new BadRequestException("Order status does not allow payment: " + order.status());
 		}
 
-		BigDecimal expectedAmount = MoneyUtils.centsToAmount(order.totalCents());
-
-		if (request.amount().compareTo(expectedAmount) != 0) {
+		if (request.amount().compareTo(MoneyUtils.centsToAmount(order.totalCents())) != 0) {
 			throw new BadRequestException("Payment amount must match order total.");
 		}
 
 		if (!request.paymentMethod().name().equalsIgnoreCase(order.paymentMethod())) {
+			throw new BadRequestException("Payment method must match order payment method.");
+		}
+	}
+
+	private void validateProcessPaymentRequest(OrderResponse order, Payment payment) {
+		if (!payment.getUserId().equals(order.userId())) {
+			throw new BadRequestException("Payment owner does not match order owner.");
+		}
+
+		if ("PAID".equalsIgnoreCase(order.status()) || "CANCELLED".equalsIgnoreCase(order.status())) {
+			throw new BadRequestException("Order status does not allow payment: " + order.status());
+		}
+
+		if (payment.getAmount().compareTo(MoneyUtils.centsToAmount(order.totalCents())) != 0) {
+			throw new BadRequestException("Payment amount must match order total.");
+		}
+
+		if (!payment.getPaymentMethod().name().equalsIgnoreCase(order.paymentMethod())) {
 			throw new BadRequestException("Payment method must match order payment method.");
 		}
 	}

@@ -16,11 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.orderservice.client.ProductClient;
+import com.example.orderservice.client.PaymentClient;
 import com.example.orderservice.client.email.EmailClient;
 import com.example.orderservice.dto.email.OrderStatusEmailRequest;
 import com.example.orderservice.dto.request.AddressRequest;
 import com.example.orderservice.dto.request.CreateOrderItemRequest;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.CreatePaymentRequest;
 import com.example.orderservice.dto.request.StockReleaseRequest;
 import com.example.orderservice.dto.request.StockReserveItem;
 import com.example.orderservice.dto.request.StockReserveRequest;
@@ -40,6 +42,7 @@ import com.example.orderservice.model.PaymentMethod;
 import com.example.orderservice.repository.OrderItemRepository;
 import com.example.orderservice.repository.OrderRepository;
 import com.example.orderservice.repository.OrderStatusHistoryRepository;
+import com.example.orderservice.util.MoneyUtils;
 
 @Service
 public class OrderService {
@@ -47,6 +50,8 @@ public class OrderService {
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
 	private final ProductClient productClient;
+
+	private final PaymentClient paymentClient;
 
 	private final OrderRepository orderRepository;
 
@@ -58,10 +63,11 @@ public class OrderService {
 
 	private final OrderMapper orderMapper;
 
-	public OrderService(ProductClient productClient, OrderRepository orderRepository,
+	public OrderService(ProductClient productClient, PaymentClient paymentClient, OrderRepository orderRepository,
 			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
 			EmailClient emailClient, OrderMapper orderMapper) {
 		this.productClient = productClient;
+		this.paymentClient = paymentClient;
 		this.orderRepository = orderRepository;
 		this.orderItemRepository = orderItemRepository;
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
@@ -170,6 +176,10 @@ public class OrderService {
 		orderItemRepository.saveAll(itemEntities);
 
 		orderStatusHistoryRepository.save(new OrderStatusHistory(order.getId(), OrderStatus.CREATED, userId));
+
+		paymentClient.createPendingPayment(new CreatePaymentRequest(order.getId(), userId,
+				MoneyUtils.centsToAmount(total), pm));
+
 		notifyOrderStatus(order);
 
 		return orderMapper.toResponse(order, itemEntities,
@@ -215,6 +225,7 @@ public class OrderService {
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
 	}
+
 
 	private void notifyOrderStatus(Order order) {
 		try {
