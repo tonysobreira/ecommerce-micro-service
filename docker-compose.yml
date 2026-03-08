@@ -118,7 +118,7 @@ services:
       MAIL_SMTP_STARTTLS_ENABLE: "false"
       MAIL_FROM: no-reply@ecommerce.local
     expose:
-      - "8085"
+      - "8086"
     networks:
       - ecommerce-net
     depends_on:

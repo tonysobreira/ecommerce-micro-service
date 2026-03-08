@@ -1,10 +1,16 @@
 package com.example.authservice.security;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.*;
+import com.example.authservice.model.UserAccount;
 
 public class UserPrincipal implements UserDetails {
 	private static final long serialVersionUID = 1L;
@@ -25,6 +31,33 @@ public class UserPrincipal implements UserDetails {
 			}
 		}
 		this.authorities = Collections.unmodifiableList(list);
+	}
+
+	public UserPrincipal(UserAccount user) {
+		this.userId = user.getId();
+		this.email = user.getEmail();
+
+		if (user.getRoles() != null || !user.getRoles().isBlank()) {
+			List<SimpleGrantedAuthority> list = new ArrayList<>();
+			String[] parts = user.getRoles().split(",");
+			List<String> out = new ArrayList<>();
+
+			for (String p : parts) {
+				if (p != null && !p.isBlank()) {
+					out.add(p.trim());
+				}
+			}
+
+			for (String r : out) {
+				if (r != null && !r.isBlank()) {
+					list.add(new SimpleGrantedAuthority("ROLE_" + r.trim()));
+				}
+			}
+
+			this.authorities = Collections.unmodifiableList(list);
+		} else {
+			this.authorities = null;
+		}
 	}
 
 	public UUID getUserId() {

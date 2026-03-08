@@ -1,16 +1,17 @@
 package com.example.authservice.exception;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -56,6 +57,16 @@ public class GlobalExceptionHandler {
 		pd.setTitle("Conflict");
 		pd.setDetail(ex.getMessage());
 		pd.setType(URI.create("https://example.com/problems/conflict"));
+		pd.setProperty("correlationId", MDC.get("correlationId"));
+		return pd;
+	}
+
+	@ExceptionHandler(AuthenticationException.class)
+	public ProblemDetail handleAuthentication(AuthenticationException ex) {
+		ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+		pd.setTitle("Authentication");
+		pd.setDetail(ex.getMessage());
+		pd.setType(URI.create("https://example.com/problems/authentication"));
 		pd.setProperty("correlationId", MDC.get("correlationId"));
 		return pd;
 	}

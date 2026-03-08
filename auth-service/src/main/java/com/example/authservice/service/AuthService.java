@@ -10,17 +10,20 @@ import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.authservice.model.RefreshToken;
-import com.example.authservice.model.UserAccount;
 import com.example.authservice.dto.response.AuthResponse;
 import com.example.authservice.dto.response.RegisterResponse;
 import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
 import com.example.authservice.exception.UnauthorizedException;
+import com.example.authservice.model.RefreshToken;
+import com.example.authservice.model.UserAccount;
 import com.example.authservice.repository.RefreshTokenRepository;
 import com.example.authservice.repository.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
@@ -35,6 +38,8 @@ public class AuthService {
 
 	private final RefreshTokenRepository refreshTokenRepository;
 
+	private final AuthenticationManager authManager;
+
 	private final PasswordEncoder passwordEncoder;
 
 	private final JwtIssuer issuer;
@@ -48,12 +53,13 @@ public class AuthService {
 	private final long activationTtlMinutes;
 
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
-			PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
+			AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService,
 			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
+		this.authManager = authManager;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
 		this.verifier = verifier;
@@ -86,20 +92,15 @@ public class AuthService {
 
 	@Transactional
 	public AuthResponse login(String email, String password) {
-		UserAccount account = userAccountRepository.findByEmailIgnoreCase(email)
-				.orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
-
-		if (account.isDeleted()) {
-			throw new UnauthorizedException("Account disabled");
+		try {
+			authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+		} catch (AuthenticationException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw ex;
 		}
 
-		if (!account.isActivated()) {
-			throw new UnauthorizedException("Account not activated");
-		}
-
-		if (!passwordEncoder.matches(password, account.getPasswordHash())) {
-			throw new UnauthorizedException("Invalid credentials");
-		}
+		UserAccount account = userAccountRepository.findByEmailIgnoreCase(email).orElseThrow();
 
 		return issueTokens(account);
 	}
@@ -181,8 +182,9 @@ public class AuthService {
 	}
 
 	private static List<String> splitRoles(String rolesCsv) {
-		if (rolesCsv == null || rolesCsv.isBlank())
+		if (rolesCsv == null || rolesCsv.isBlank()) {
 			return List.of();
+		}
 		String[] parts = rolesCsv.split(",");
 		List<String> out = new ArrayList<>();
 		for (String p : parts) {

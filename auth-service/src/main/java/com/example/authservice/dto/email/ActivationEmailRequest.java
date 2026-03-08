@@ -1,41 +1,19 @@
 package com.example.authservice.dto.email;
 
-public class ActivationEmailRequest {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-	private String email;
-	private String activationLink;
-	private long expiresInMinutes;
+public record ActivationEmailRequest (
+	@Email
+	@NotBlank
+	String email,
 
-	public ActivationEmailRequest() {
-	}
+	@NotBlank
+	String activationLink,
 
-	public ActivationEmailRequest(String email, String activationLink, long expiresInMinutes) {
-		this.email = email;
-		this.activationLink = activationLink;
-		this.expiresInMinutes = expiresInMinutes;
-	}
+	@NotNull
+	long expiresInMinutes
+) { 
 
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getActivationLink() {
-		return activationLink;
-	}
-
-	public void setActivationLink(String activationLink) {
-		this.activationLink = activationLink;
-	}
-
-	public long getExpiresInMinutes() {
-		return expiresInMinutes;
-	}
-
-	public void setExpiresInMinutes(long expiresInMinutes) {
-		this.expiresInMinutes = expiresInMinutes;
-	}
 }
