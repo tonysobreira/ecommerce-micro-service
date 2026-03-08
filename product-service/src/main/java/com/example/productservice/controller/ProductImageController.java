@@ -5,6 +5,8 @@ import com.example.productservice.dto.response.ProductImageResponse;
 import com.example.productservice.mapper.ProductImageMapper;
 import com.example.productservice.service.ProductImageService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,18 +26,19 @@ public class ProductImageController {
 	}
 
 	@GetMapping
-	public List<ProductImageResponse> listByProduct(@RequestParam("productId") UUID productId) {
-		return service.listByProduct(productId).stream().map(mapper::toResponse).toList();
+	public ResponseEntity<List<ProductImageResponse>> listByProduct(@RequestParam("productId") UUID productId) {
+		return ResponseEntity.ok(service.listByProduct(productId).stream().map(mapper::toResponse).toList());
 	}
 
 	@PostMapping
-	public ProductImageResponse create(@Valid @RequestBody ProductImageCreateRequest req) {
-		return mapper.toResponse(service.create(req));
+	public ResponseEntity<ProductImageResponse> create(@Valid @RequestBody ProductImageCreateRequest req) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.create(req)));
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable("id") UUID id) {
+	public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
 		service.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 }

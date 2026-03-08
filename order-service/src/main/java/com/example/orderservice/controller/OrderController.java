@@ -3,6 +3,8 @@ package com.example.orderservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,35 +35,34 @@ public class OrderController {
 	}
 
 	@PostMapping
-	public OrderResponse create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
+	public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return service.create(p.getUserId(), p.getUsername(), req);
+		return ResponseEntity.status(HttpStatus.CREATED).body(service.create(p.getUserId(), p.getUsername(), req));
 	}
 
 	@GetMapping("/my")
-	public List<OrderResponse> my(Authentication auth) {
+	public ResponseEntity<List<OrderResponse>> my(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return service.listMy(p.getUserId());
+		return ResponseEntity.ok(service.listMy(p.getUserId()));
 	}
 
 	@GetMapping("/{orderId}")
-	public OrderResponse get(@PathVariable("orderId") UUID orderId, Authentication auth) {
+	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return service.get(p.getUserId(), p.isAdmin(), orderId);
+		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
 	}
 
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{orderId}")
-	public OrderResponse update(@PathVariable("orderId") UUID orderId, @Valid @RequestBody UpdateOrderRequest req,
-			Authentication auth) {
+	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
+			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 
-		// SecurityConfig already requires ADMIN for this route, but double-check is OK:
 		if (!p.isAdmin()) {
 			throw new ForbiddenException("Admin only");
 		}
 
-		return service.update(p.getUserId(), orderId, req);
+		return ResponseEntity.ok(service.update(p.getUserId(), orderId, req));
 	}
 
 }

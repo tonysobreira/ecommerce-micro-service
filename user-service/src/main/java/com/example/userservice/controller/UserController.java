@@ -3,6 +3,7 @@ package com.example.userservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,45 +37,45 @@ public class UserController {
 	}
 
 	@GetMapping
-	public List<UserResponse> listAll() {
-		return service.listAllActive().stream().map(mapper::toResponse).toList();
+	public ResponseEntity<List<UserResponse>> listAll() {
+		return ResponseEntity.ok(service.listAllActive().stream().map(mapper::toResponse).toList());
 	}
 
 	@GetMapping("/{id}")
-	public UserResponse getById(@PathVariable("id") UUID id, Authentication auth) {
+	public ResponseEntity<UserResponse> getById(@PathVariable("id") UUID id, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 
-		// enforce owner/admin access
 		if (!p.isAdmin() && !p.getUserId().equals(id)) {
 			throw new ForbiddenException("Not allowed");
 		}
 
 		UserProfile profile = service.createIfMissing(p);
-		return mapper.toResponse(profile);
+		return ResponseEntity.ok(mapper.toResponse(profile));
 	}
 
 	@GetMapping("/me")
-	public UserResponse me(Authentication auth) {
+	public ResponseEntity<UserResponse> me(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return mapper.toResponse(service.createIfMissing(p));
+		return ResponseEntity.ok(mapper.toResponse(service.createIfMissing(p)));
 	}
 
 	@PutMapping("/{id}")
-	public UserResponse update(@PathVariable("id") UUID id, @Valid @RequestBody UserUpdateRequest req,
+	public ResponseEntity<UserResponse> update(@PathVariable("id") UUID id, @Valid @RequestBody UserUpdateRequest req,
 			Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
-		return mapper.toResponse(service.update(id, req));
+		return ResponseEntity.ok(mapper.toResponse(service.update(id, req)));
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable("id") UUID id, Authentication auth) {
+	public ResponseEntity<Void> delete(@PathVariable("id") UUID id, Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
 		service.softDelete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 	@GetMapping("/user/{id}")
-	public UserResponse findById(@PathVariable("id") UUID id) {
-		return mapper.toResponse(service.findById(id));
+	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID id) {
+		return ResponseEntity.ok(mapper.toResponse(service.findById(id)));
 	}
 
 	private void assertOwnerOrAdmin(UUID targetUserId, Authentication auth) {
