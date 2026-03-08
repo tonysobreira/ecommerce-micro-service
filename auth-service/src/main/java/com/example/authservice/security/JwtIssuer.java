@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
@@ -36,7 +37,8 @@ public class JwtIssuer {
 		Instant exp = now.plusSeconds(accessTtlSeconds);
 
 		return Jwts.builder().setIssuer(issuer).setSubject(userId.toString()).setIssuedAt(Date.from(now))
-				.setExpiration(Date.from(exp)).claim("email", email).claim("roles", roles)
+				.setExpiration(Date.from(exp)).claim("email", email)
+				.claim("roles", roles.stream().map(Role::getName).collect(Collectors.toSet()))
 				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 
