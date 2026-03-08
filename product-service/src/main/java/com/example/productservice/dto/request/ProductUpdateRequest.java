@@ -3,6 +3,7 @@ package com.example.productservice.dto.request;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
@@ -14,7 +15,7 @@ public record ProductUpdateRequest(
 
 	String description,
 
-	@Min(0)
+	@DecimalMin("0")
 	BigDecimal priceCents,
 
 	@Size(max = 10)
