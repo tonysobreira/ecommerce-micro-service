@@ -59,6 +59,13 @@ public class Payment {
 	public Payment() {
 	}
 
+	public Payment(UUID orderId, UUID userId, BigDecimal amount, PaymentMethod paymentMethod) {
+		this.orderId = orderId;
+		this.userId = userId;
+		this.amount = amount;
+		this.paymentMethod = paymentMethod;
+	}
+
 	@PrePersist
 	protected void onCreate() {
 		status = PaymentStatus.PENDING;
@@ -132,47 +139,16 @@ public class Payment {
 		return createdAt;
 	}
 
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+
 	public Instant getUpdatedAt() {
 		return updatedAt;
 	}
 
-	public static Builder builder() {
-		return new Builder();
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
-	public static class Builder {
-		private UUID orderId;
-		private UUID userId;
-		private BigDecimal amount;
-		private PaymentMethod paymentMethod;
-
-		public Builder orderId(UUID orderId) {
-			this.orderId = orderId;
-			return this;
-		}
-
-		public Builder userId(UUID userId) {
-			this.userId = userId;
-			return this;
-		}
-
-		public Builder amount(BigDecimal amount) {
-			this.amount = amount;
-			return this;
-		}
-
-		public Builder paymentMethod(PaymentMethod paymentMethod) {
-			this.paymentMethod = paymentMethod;
-			return this;
-		}
-
-		public Payment build() {
-			Payment p = new Payment();
-			p.orderId = orderId;
-			p.userId = userId;
-			p.amount = amount;
-			p.paymentMethod = paymentMethod;
-			return p;
-		}
-	}
 }

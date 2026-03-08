@@ -69,8 +69,8 @@ public class PaymentService {
 			throw new BadRequestException("Payment already processed.");
 		});
 
-		Payment payment = Payment.builder().orderId(request.orderId()).userId(authenticatedUserId)
-				.amount(request.amount()).paymentMethod(request.paymentMethod()).build();
+		Payment payment = new Payment(request.orderId(), authenticatedUserId, request.amount(),
+				request.paymentMethod());
 
 		payment = paymentRepository.save(payment);
 
