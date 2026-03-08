@@ -23,12 +23,15 @@ public class UserPrincipal implements UserDetails {
 
 	private final String passwordHash;
 
+	private final boolean enabled;
+
 	private final List<SimpleGrantedAuthority> authorities;
 
 	public UserPrincipal(UUID userId, String email, Set<Role> roles) {
 		this.userId = userId;
 		this.email = email;
 		this.passwordHash = "";
+		this.enabled = true;
 
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
 		for (Role role : roles) {
@@ -41,6 +44,7 @@ public class UserPrincipal implements UserDetails {
 		this.userId = user.getId();
 		this.email = user.getEmail();
 		this.passwordHash = user.getPasswordHash();
+		this.enabled = user.isActivated() && !user.isDeleted();
 
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
 		for (Role role : user.getRoles()) {
@@ -89,7 +93,7 @@ public class UserPrincipal implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		return enabled;
 	}
 
 }

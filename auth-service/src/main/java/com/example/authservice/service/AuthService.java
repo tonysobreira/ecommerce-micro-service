@@ -24,9 +24,11 @@ import com.example.authservice.dto.user.CreateUserProfileRequest;
 import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
 import com.example.authservice.exception.UnauthorizedException;
+import com.example.authservice.model.PasswordResetToken;
 import com.example.authservice.model.RefreshToken;
 import com.example.authservice.model.Role;
 import com.example.authservice.model.UserAccount;
+import com.example.authservice.repository.PasswordResetTokenRepository;
 import com.example.authservice.repository.RefreshTokenRepository;
 import com.example.authservice.repository.RoleRepository;
 import com.example.authservice.repository.UserAccountRepository;
@@ -42,6 +44,8 @@ public class AuthService {
 
 	private final RefreshTokenRepository refreshTokenRepository;
 
+	private final PasswordResetTokenRepository passwordResetTokenRepository;
+
 	private final RoleRepository roleRepository;
 
 	private final AuthenticationManager authManager;
@@ -54,28 +58,37 @@ public class AuthService {
 
 	private final ActivationEmailService activationEmailService;
 
+	private final PasswordResetEmailService passwordResetEmailService;
+
 	private final UserClient userClient;
 
 	private final long refreshTtlDays;
 
 	private final long activationTtlMinutes;
 
+	private final long passwordResetTtlMinutes;
+
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
-			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder,
-			JwtIssuer issuer, JwtVerifier verifier, ActivationEmailService activationEmailService,
+			PasswordResetTokenRepository passwordResetTokenRepository, RoleRepository roleRepository,
+			AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
+			ActivationEmailService activationEmailService, PasswordResetEmailService passwordResetEmailService,
 			UserClient userClient, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
-			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
+			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes,
+			@Value("${security.password-reset.ttl-minutes:30}") long passwordResetTtlMinutes) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
+		this.passwordResetTokenRepository = passwordResetTokenRepository;
 		this.roleRepository = roleRepository;
 		this.authManager = authManager;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
 		this.verifier = verifier;
 		this.activationEmailService = activationEmailService;
+		this.passwordResetEmailService = passwordResetEmailService;
 		this.userClient = userClient;
 		this.refreshTtlDays = refreshTtlDays;
 		this.activationTtlMinutes = activationTtlMinutes;
+		this.passwordResetTtlMinutes = passwordResetTtlMinutes;
 	}
 
 	@Transactional
@@ -86,7 +99,6 @@ public class AuthService {
 
 		String passwordHash = passwordEncoder.encode(password);
 
-		// default role USER
 		Set<Role> roles = new HashSet<>();
 		roles.add(roleRepository.findByName("ROLE_USER")
 				.orElseThrow(() -> new NotFoundException("Default role ROLE_USER not found")));
@@ -94,12 +106,83 @@ public class AuthService {
 		UserAccount account = new UserAccount(email.trim().toLowerCase(Locale.ROOT), passwordHash, roles);
 		userAccountRepository.save(account);
 
-		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(),
-				activationTtlMinutes * 60L);
-
-		activationEmailService.sendActivationEmail(account.getEmail(), activationRaw);
+		sendActivationEmail(account);
 
 		return new RegisterResponse("Registration successful. Check your email to activate your account.");
+	}
+
+	@Transactional
+	public RegisterResponse resendActivation(String email) {
+		userAccountRepository.findByEmailIgnoreCase(email).ifPresent(account -> {
+			if (!account.isActivated() && !account.isDeleted()) {
+				sendActivationEmail(account);
+			}
+		});
+		return new RegisterResponse("If your account exists, activation instructions were sent.");
+	}
+
+	@Transactional
+	public RegisterResponse forgotPassword(String email) {
+		userAccountRepository.findByEmailIgnoreCase(email).ifPresent(account -> {
+			if (!account.isDeleted()) {
+				String resetRaw = issuer.issuePasswordResetToken(account.getId(), account.getEmail(),
+						passwordResetTtlMinutes * 60L);
+				String resetHash = TokenHash.sha256Base64(resetRaw);
+				Instant expires = Instant.now().plus(passwordResetTtlMinutes, ChronoUnit.MINUTES);
+
+				passwordResetTokenRepository.save(new PasswordResetToken(account.getId(), resetHash, expires));
+				passwordResetEmailService.sendPasswordResetEmail(account.getEmail(), resetRaw);
+			}
+		});
+		return new RegisterResponse("If your account exists, password reset instructions were sent.");
+	}
+
+	@Transactional
+	public RegisterResponse resetPassword(String rawToken, String newPassword, String repeatPassword) {
+		if (!newPassword.equals(repeatPassword)) {
+			throw new ConflictException("Passwords do not match");
+		}
+
+		Claims claims;
+		try {
+			claims = verifier.verify(rawToken).getBody();
+		} catch (Exception ex) {
+			throw new UnauthorizedException("Invalid password reset token");
+		}
+
+		if (!"password-reset".equals(claims.get("typ", String.class))) {
+			throw new UnauthorizedException("Invalid password reset token");
+		}
+
+		String tokenHash = TokenHash.sha256Base64(rawToken);
+		PasswordResetToken prt = passwordResetTokenRepository.findByTokenHash(tokenHash)
+				.orElseThrow(() -> new UnauthorizedException("Invalid password reset token"));
+
+		if (prt.isUsed() || prt.isExpired()) {
+			throw new UnauthorizedException("Password reset token expired or already used");
+		}
+
+		UUID userId = UUID.fromString(claims.getSubject());
+		if (!userId.equals(prt.getUserId())) {
+			throw new UnauthorizedException("Invalid password reset token");
+		}
+
+		UserAccount account = userAccountRepository.findById(userId)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+		if (account.isDeleted()) {
+			throw new UnauthorizedException("Account disabled");
+		}
+
+		account.setPasswordHash(passwordEncoder.encode(newPassword));
+		if (!account.isActivated()) {
+			account.activate();
+		}
+		userAccountRepository.save(account);
+
+		prt.markUsed();
+		passwordResetTokenRepository.save(prt);
+
+		return new RegisterResponse("Password reset successfully. You can now log in.");
 	}
 
 	@Transactional
@@ -113,6 +196,9 @@ public class AuthService {
 		}
 
 		UserAccount account = userAccountRepository.findByEmailIgnoreCase(email).orElseThrow();
+		if (!account.isActivated()) {
+			throw new UnauthorizedException("Account is not activated");
+		}
 
 		return issueTokens(account);
 	}
@@ -135,8 +221,6 @@ public class AuthService {
 				.orElseThrow(() -> new NotFoundException("User not found"));
 		account.activate();
 
-		// Create user profile
-
 		userAccountRepository.save(account);
 		userClient.createProfileIfMissing(new CreateUserProfileRequest(account.getId(), account.getEmail()));
 	}
@@ -158,7 +242,6 @@ public class AuthService {
 			throw new UnauthorizedException("Account disabled");
 		}
 
-		// Rotate refresh token: revoke old, issue new
 		rt.revoke();
 		refreshTokenRepository.save(rt);
 
@@ -195,6 +278,11 @@ public class AuthService {
 		Set<String> roleNames = account.getRoles().stream().map(Role::getName)
 				.collect(java.util.stream.Collectors.toSet());
 		return new AuthResponse(account.getId(), account.getEmail(), roleNames, accessToken, refreshRaw);
+	}
+
+	private void sendActivationEmail(UserAccount account) {
+		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(), activationTtlMinutes * 60L);
+		activationEmailService.sendActivationEmail(account.getEmail(), activationRaw);
 	}
 
 	private static String generateSecureToken() {

@@ -36,6 +36,9 @@ export JWT_SECRET="dev-jwt-secret-32-bytes-long-123456"
 ## Endpoints
 - POST /auth/register
 - GET  /auth/activate?token=...
+- POST /auth/activation/resend
+- POST /auth/password/forgot
+- POST /auth/password/reset
 - POST /auth/login
 - GET  /auth/me
 - POST /auth/refresh

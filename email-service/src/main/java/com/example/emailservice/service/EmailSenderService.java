@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.emailservice.dto.request.ActivationEmailRequest;
 import com.example.emailservice.dto.request.OrderStatusEmailRequest;
+import com.example.emailservice.dto.request.PasswordResetEmailRequest;
 import com.example.emailservice.util.MoneyUtils;
 
 import jakarta.mail.MessagingException;
@@ -46,6 +47,22 @@ public class EmailSenderService {
 				.formatted(request.email(), request.activationLink(), request.expiresInMinutes());
 
 		send(request.email(), "Activate Your Account", body);
+	}
+
+	public void sendPasswordReset(PasswordResetEmailRequest request) {
+		String body = """
+				<h2>Hello %s,</h2>
+				<p>We received a request to reset your password.</p>
+				<p>Click the button below to set a new password:</p>
+				<a href=\"%s\" style=\"padding:12px 24px; background:#0066cc; color:white; text-decoration:none; border-radius:6px;\">
+				    Reset Password
+				</a>
+				<p>This link expires in %d minutes.</p>
+				<p style=\"color:#666; font-size:0.9em;\">If you didn't request this, you can ignore this email.</p>
+				"""
+				.formatted(request.email(), request.resetLink(), request.expiresInMinutes());
+
+		send(request.email(), "Reset Your Password", body);
 	}
 
 	public void sendOrderStatus(OrderStatusEmailRequest request) {
