@@ -37,4 +37,5 @@ public class PasswordResetEmailService {
 			throw new IllegalStateException("Failed to send password reset email.", ex);
 		}
 	}
+
 }
