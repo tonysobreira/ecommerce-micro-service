@@ -1,8 +1,18 @@
 package com.example.authservice.model;
 
-import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user_accounts")
@@ -17,9 +27,9 @@ public class UserAccount {
 	@Column(name = "password_hash", nullable = false)
 	private String passwordHash;
 
-	// Comma-separated roles: "USER" or "USER,ADMIN"
-	@Column(nullable = false)
-	private String roles;
+	@ElementCollection(fetch = FetchType.EAGER)
+	@Enumerated(EnumType.STRING)
+	private Set<Role> roles = new HashSet<>();
 
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
@@ -33,7 +43,7 @@ public class UserAccount {
 	protected UserAccount() {
 	}
 
-	public UserAccount(UUID id, String email, String passwordHash, String roles, Instant createdAt) {
+	public UserAccount(UUID id, String email, String passwordHash, Set<Role> roles, Instant createdAt) {
 		this.id = id;
 		this.email = email;
 		this.passwordHash = passwordHash;
@@ -53,7 +63,7 @@ public class UserAccount {
 		return passwordHash;
 	}
 
-	public String getRoles() {
+	public Set<Role> getRoles() {
 		return roles;
 	}
 

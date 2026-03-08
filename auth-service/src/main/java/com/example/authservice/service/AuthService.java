@@ -3,10 +3,10 @@ package com.example.authservice.service;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +23,7 @@ import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
 import com.example.authservice.exception.UnauthorizedException;
 import com.example.authservice.model.RefreshToken;
+import com.example.authservice.model.Role;
 import com.example.authservice.model.UserAccount;
 import com.example.authservice.repository.RefreshTokenRepository;
 import com.example.authservice.repository.UserAccountRepository;
@@ -78,7 +79,10 @@ public class AuthService {
 		String passwordHash = passwordEncoder.encode(password);
 
 		// default role USER
-		UserAccount account = new UserAccount(userId, email.trim().toLowerCase(Locale.ROOT), passwordHash, "USER",
+		Set<Role> roles = new HashSet<>();
+		roles.add(Role.ROLE_USER);
+
+		UserAccount account = new UserAccount(userId, email.trim().toLowerCase(Locale.ROOT), passwordHash, roles,
 				Instant.now());
 		userAccountRepository.save(account);
 
@@ -165,8 +169,7 @@ public class AuthService {
 	}
 
 	public AuthResponse issueTokens(UserAccount account) {
-		List<String> roles = splitRoles(account.getRoles());
-		String accessToken = issuer.issueAccessToken(account.getId(), account.getEmail(), roles);
+		String accessToken = issuer.issueAccessToken(account.getId(), account.getEmail(), account.getRoles());
 
 		String refreshRaw = generateSecureToken();
 		String refreshHash = TokenHash.sha256Base64(refreshRaw);
@@ -177,22 +180,7 @@ public class AuthService {
 		RefreshToken rt = new RefreshToken(UUID.randomUUID(), account.getId(), refreshHash, expires, now);
 		refreshTokenRepository.save(rt);
 
-		return new AuthResponse(account.getId(), account.getEmail(), roles.toArray(new String[0]), accessToken,
-				refreshRaw);
-	}
-
-	private static List<String> splitRoles(String rolesCsv) {
-		if (rolesCsv == null || rolesCsv.isBlank()) {
-			return List.of();
-		}
-		String[] parts = rolesCsv.split(",");
-		List<String> out = new ArrayList<>();
-		for (String p : parts) {
-			if (p != null && !p.isBlank()) {
-				out.add(p.trim());
-			}
-		}
-		return out;
+		return new AuthResponse(account.getId(), account.getEmail(), account.getRoles(), accessToken, refreshRaw);
 	}
 
 	private static String generateSecureToken() {

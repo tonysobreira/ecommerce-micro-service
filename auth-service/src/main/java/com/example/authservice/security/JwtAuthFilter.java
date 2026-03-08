@@ -1,8 +1,8 @@
 package com.example.authservice.security;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.authservice.exception.UnauthorizedException;
+import com.example.authservice.model.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -55,10 +56,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			UUID userId = UUID.fromString(claims.getSubject());
 			String email = claims.get("email", String.class);
 
-			List<String> roles = claims.get("roles", List.class);
+			Set<Role> roles = claims.get("roles", Set.class);
 
 			if (roles == null) {
-				roles = new ArrayList<>();
+				roles = new HashSet<>();
 			}
 
 			UserPrincipal principal = new UserPrincipal(userId, email == null ? "" : email, roles);

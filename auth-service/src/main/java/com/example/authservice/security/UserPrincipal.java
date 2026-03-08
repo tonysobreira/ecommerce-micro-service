@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.example.authservice.model.Role;
 import com.example.authservice.model.UserAccount;
 
 public class UserPrincipal implements UserDetails {
@@ -23,15 +25,14 @@ public class UserPrincipal implements UserDetails {
 
 	private final List<SimpleGrantedAuthority> authorities;
 
-	public UserPrincipal(UUID userId, String email, List<String> roles) {
+	public UserPrincipal(UUID userId, String email, Set<Role> roles) {
 		this.userId = userId;
 		this.email = email;
 		this.passwordHash = "";
+
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
-		for (String r : roles) {
-			if (r != null && !r.isBlank()) {
-				list.add(new SimpleGrantedAuthority("ROLE_" + r.trim()));
-			}
+		for (Role role : roles) {
+			list.add(new SimpleGrantedAuthority("ROLE_" + role.name().trim()));
 		}
 		this.authorities = Collections.unmodifiableList(list);
 	}
@@ -41,27 +42,11 @@ public class UserPrincipal implements UserDetails {
 		this.email = user.getEmail();
 		this.passwordHash = user.getPasswordHash();
 
-		if (user.getRoles() != null && !user.getRoles().isBlank()) {
-			List<SimpleGrantedAuthority> list = new ArrayList<>();
-			String[] parts = user.getRoles().split(",");
-			List<String> out = new ArrayList<>();
-
-			for (String p : parts) {
-				if (p != null && !p.isBlank()) {
-					out.add(p.trim());
-				}
-			}
-
-			for (String r : out) {
-				if (r != null && !r.isBlank()) {
-					list.add(new SimpleGrantedAuthority("ROLE_" + r.trim()));
-				}
-			}
-
-			this.authorities = Collections.unmodifiableList(list);
-		} else {
-			this.authorities = Collections.emptyList();
+		List<SimpleGrantedAuthority> list = new ArrayList<>();
+		for (Role role : user.getRoles()) {
+			list.add(new SimpleGrantedAuthority("ROLE_" + role.name().trim()));
 		}
+		this.authorities = Collections.unmodifiableList(list);
 	}
 
 	public UUID getUserId() {

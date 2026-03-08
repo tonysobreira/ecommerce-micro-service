@@ -1,15 +1,18 @@
 package com.example.authservice.security;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+
+import javax.crypto.SecretKey;
+
+import com.example.authservice.model.Role;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 public class JwtIssuer {
 
@@ -28,7 +31,7 @@ public class JwtIssuer {
 		this.accessTtlSeconds = accessTtlSeconds;
 	}
 
-	public String issueAccessToken(UUID userId, String email, List<String> roles) {
+	public String issueAccessToken(UUID userId, String email, Set<Role> roles) {
 		Instant now = Instant.now();
 		Instant exp = now.plusSeconds(accessTtlSeconds);
 
