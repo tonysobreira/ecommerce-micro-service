@@ -37,6 +37,21 @@ public class AuthController {
 		return ResponseEntity.ok(new RegisterResponse("Account activated successfully. You can now log in."));
 	}
 
+	@PostMapping("/activation/resend")
+	public ResponseEntity<RegisterResponse> resendActivation(@Valid @RequestBody ResendActivationRequest req) {
+		return ResponseEntity.ok(authService.resendActivation(req.email()));
+	}
+
+	@PostMapping("/password/forgot")
+	public ResponseEntity<RegisterResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+		return ResponseEntity.ok(authService.forgotPassword(req.email()));
+	}
+
+	@PostMapping("/password/reset")
+	public ResponseEntity<RegisterResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
+		return ResponseEntity.ok(authService.resetPassword(req.token(), req.newPassword(), req.repeatPassword()));
+	}
+
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
 		return ResponseEntity.ok(authService.login(req.email(), req.password()));

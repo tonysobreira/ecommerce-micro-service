@@ -2,6 +2,7 @@ package com.example.emailservice.controller;
 
 import com.example.emailservice.dto.request.ActivationEmailRequest;
 import com.example.emailservice.dto.request.OrderStatusEmailRequest;
+import com.example.emailservice.dto.request.PasswordResetEmailRequest;
 import com.example.emailservice.service.EmailSenderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,12 @@ public class EmailController {
 	@PostMapping("/activation")
 	public ResponseEntity<Void> sendActivation(@Valid @RequestBody ActivationEmailRequest request) {
 		emailSenderService.sendActivation(request);
+		return ResponseEntity.accepted().build();
+	}
+
+	@PostMapping("/password-reset")
+	public ResponseEntity<Void> sendPasswordReset(@Valid @RequestBody PasswordResetEmailRequest request) {
+		emailSenderService.sendPasswordReset(request);
 		return ResponseEntity.accepted().build();
 	}
 
