@@ -94,4 +94,13 @@ public class UserProfileService {
 		return userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
+	@Transactional
+	public UserProfile createIfMissing(UUID id, String email) {
+		return userProfileRepository.findById(id).orElseGet(() -> {
+			Instant now = Instant.now();
+			UserProfile p = new UserProfile(id, email.trim().toLowerCase(), now, now);
+			return userProfileRepository.save(p);
+		});
+	}
+
 }
