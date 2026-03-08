@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.authservice.client.UserClient;
 import com.example.authservice.dto.response.AuthResponse;
 import com.example.authservice.dto.response.RegisterResponse;
+import com.example.authservice.dto.user.CreateUserProfileRequest;
 import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
 import com.example.authservice.exception.UnauthorizedException;
@@ -53,17 +54,17 @@ public class AuthService {
 
 	private final ActivationEmailService activationEmailService;
 
+	private final UserClient userClient;
+
 	private final long refreshTtlDays;
 
 	private final long activationTtlMinutes;
 
-	private final UserClient userClient;
-
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
-			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder,
-			JwtIssuer issuer, JwtVerifier verifier, ActivationEmailService activationEmailService,
+			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
+			ActivationEmailService activationEmailService, UserClient userClient,
 			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
-			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes, UserClient userClient) {
+			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
 		this.roleRepository = roleRepository;
@@ -72,9 +73,9 @@ public class AuthService {
 		this.issuer = issuer;
 		this.verifier = verifier;
 		this.activationEmailService = activationEmailService;
+		this.userClient = userClient;
 		this.refreshTtlDays = refreshTtlDays;
 		this.activationTtlMinutes = activationTtlMinutes;
-		this.userClient = userClient;
 	}
 
 	@Transactional
@@ -140,6 +141,7 @@ public class AuthService {
 		
 
 		userAccountRepository.save(account);
+		userClient.createProfileIfMissing(new CreateUserProfileRequest(account.getId(), account.getEmail()));
 	}
 
 	@Transactional
