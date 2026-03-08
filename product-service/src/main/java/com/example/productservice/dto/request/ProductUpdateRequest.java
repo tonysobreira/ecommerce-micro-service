@@ -13,9 +13,10 @@ public record ProductUpdateRequest(
 	@Size(max = 200)
 	String name,
 
+	@Size(max = 255)
 	String description,
 
-	@DecimalMin("0")
+	@DecimalMin(value = "0.01", message = "Price must be greater than 0")
 	BigDecimal priceCents,
 
 	@Size(max = 10)

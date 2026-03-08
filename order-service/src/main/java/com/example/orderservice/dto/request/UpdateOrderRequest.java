@@ -2,10 +2,10 @@ package com.example.orderservice.dto.request;
 
 import com.example.orderservice.model.OrderStatus;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record UpdateOrderRequest(
-	@NotBlank
+	@NotNull
 	OrderStatus status
 ) {
 

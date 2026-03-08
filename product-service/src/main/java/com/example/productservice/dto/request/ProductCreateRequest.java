@@ -16,8 +16,8 @@ public record ProductCreateRequest(
 
 	String description,
 
-	@NotNull
-	@DecimalMin("0")
+	@NotNull(message = "Price is required")
+	@DecimalMin(value = "0.01", message = "Price must be greater than 0")
 	BigDecimal priceCents,
 
 	@NotBlank

@@ -11,6 +11,7 @@ public record AddressRequest(
 	@NotBlank
 	String city,
 
+	@NotBlank
 	String state,
 
 	@NotBlank

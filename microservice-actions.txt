@@ -1,0 +1,33 @@
+Auth:
+register user
+activate user
+add admin role
+
+resend activation
+
+forgot password
+reset password
+
+User:
+create address
+
+Product:
+create category
+create product 1
+create product 2
+
+Order:
+create order
+	product 1
+	product 2
+
+Payment:
+payment by order id
+payments my
+refund payment
+check products quantity
+
+
+
+
+
