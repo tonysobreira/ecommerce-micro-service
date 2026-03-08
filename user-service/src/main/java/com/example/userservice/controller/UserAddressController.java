@@ -3,6 +3,8 @@ package com.example.userservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,35 +36,37 @@ public class UserAddressController {
 	}
 
 	@GetMapping
-	public List<UserAddressResponse> list(@PathVariable UUID userId, Authentication auth) {
+	public ResponseEntity<List<UserAddressResponse>> list(@PathVariable UUID userId, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return userAddressService.listByUserId(userId).stream().map(this::toResponse).toList();
+		return ResponseEntity.ok(userAddressService.listByUserId(userId).stream().map(this::toResponse).toList());
 	}
 
 	@GetMapping("/{addressId}")
-	public UserAddressResponse get(@PathVariable UUID userId, @PathVariable UUID addressId, Authentication auth) {
+	public ResponseEntity<UserAddressResponse> get(@PathVariable UUID userId, @PathVariable UUID addressId,
+			Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return toResponse(userAddressService.getById(userId, addressId));
+		return ResponseEntity.ok(toResponse(userAddressService.getById(userId, addressId)));
 	}
 
 	@PostMapping
-	public UserAddressResponse create(@PathVariable UUID userId, @Valid @RequestBody CreateUserAddressRequest request,
-			Authentication auth) {
+	public ResponseEntity<UserAddressResponse> create(@PathVariable UUID userId,
+			@Valid @RequestBody CreateUserAddressRequest request, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return toResponse(userAddressService.create(userId, request));
+		return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(userAddressService.create(userId, request)));
 	}
 
 	@PutMapping("/{addressId}")
-	public UserAddressResponse update(@PathVariable UUID userId, @PathVariable UUID addressId,
+	public ResponseEntity<UserAddressResponse> update(@PathVariable UUID userId, @PathVariable UUID addressId,
 			@Valid @RequestBody UpdateUserAddressRequest request, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return toResponse(userAddressService.update(userId, addressId, request));
+		return ResponseEntity.ok(toResponse(userAddressService.update(userId, addressId, request)));
 	}
 
 	@DeleteMapping("/{addressId}")
-	public void delete(@PathVariable UUID userId, @PathVariable UUID addressId, Authentication auth) {
+	public ResponseEntity<Void> delete(@PathVariable UUID userId, @PathVariable UUID addressId, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
 		userAddressService.delete(userId, addressId);
+		return ResponseEntity.noContent().build();
 	}
 
 	private UserAddressResponse toResponse(UserAddress address) {

@@ -8,6 +8,8 @@ import com.example.authservice.security.UserPrincipal;
 import com.example.authservice.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,42 +27,43 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public RegisterResponse register(@Valid @RequestBody RegisterRequest req) {
-		return authService.register(req.email(), req.password());
+	public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest req) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(req.email(), req.password()));
 	}
 
 	@GetMapping("/activate")
-	public RegisterResponse activate(@RequestParam("token") String token) {
+	public ResponseEntity<RegisterResponse> activate(@RequestParam("token") String token) {
 		authService.activateAccount(token);
-		return new RegisterResponse("Account activated successfully. You can now log in.");
+		return ResponseEntity.ok(new RegisterResponse("Account activated successfully. You can now log in."));
 	}
 
 	@PostMapping("/login")
-	public AuthResponse login(@Valid @RequestBody LoginRequest req) {
-		return authService.login(req.email(), req.password());
+	public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
+		return ResponseEntity.ok(authService.login(req.email(), req.password()));
 	}
 
 	@GetMapping("/me")
-	public MeResponse me(Authentication authentication) {
+	public ResponseEntity<MeResponse> me(Authentication authentication) {
 		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 		UserAccount u = authService.getUser(principal.getUserId());
-		return authMapper.toMeResponse(u);
+		return ResponseEntity.ok(authMapper.toMeResponse(u));
 	}
 
 	@PostMapping("/refresh")
-	public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
-		return authService.refresh(req.refreshToken());
+	public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest req) {
+		return ResponseEntity.ok(authService.refresh(req.refreshToken()));
 	}
 
 	@PostMapping("/logout")
-	public void logout(@Valid @RequestBody LogoutRequest req) {
+	public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest req) {
 		authService.logout(req.refreshToken());
+		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/validate")
-	public ValidateResponse validate(@Valid @RequestBody ValidateRequest req,
+	public ResponseEntity<ValidateResponse> validate(@Valid @RequestBody ValidateRequest req,
 			@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
-		return new ValidateResponse(true, null, null, new String[0]);
+		return ResponseEntity.ok(new ValidateResponse(true, null, null, new String[0]));
 	}
 
 }

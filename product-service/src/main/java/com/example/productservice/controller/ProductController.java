@@ -3,6 +3,8 @@ package com.example.productservice.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,28 +37,29 @@ public class ProductController {
 	}
 
 	@GetMapping
-	public List<ProductResponse> list() {
-		return productService.listPublic().stream().map(mapper::toResponse).toList();
+	public ResponseEntity<List<ProductResponse>> list() {
+		return ResponseEntity.ok(productService.listPublic().stream().map(mapper::toResponse).toList());
 	}
 
 	@GetMapping("/{id}")
-	public ProductResponse get(@PathVariable("id") UUID id) {
-		return mapper.toResponse(productService.get(id));
+	public ResponseEntity<ProductResponse> get(@PathVariable("id") UUID id) {
+		return ResponseEntity.ok(mapper.toResponse(productService.get(id)));
 	}
 
 	@PostMapping
-	public ProductResponse create(@Valid @RequestBody ProductCreateRequest req) {
-		return mapper.toResponse(productService.create(req));
+	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest req) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(productService.create(req)));
 	}
 
 	@PutMapping("/{id}")
-	public ProductResponse update(@PathVariable UUID id, @Valid @RequestBody ProductUpdateRequest req) {
-		return mapper.toResponse(productService.update(id, req));
+	public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @Valid @RequestBody ProductUpdateRequest req) {
+		return ResponseEntity.ok(mapper.toResponse(productService.update(id, req)));
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable("id") UUID id) {
+	public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
 		productService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 

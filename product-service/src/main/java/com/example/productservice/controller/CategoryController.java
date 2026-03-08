@@ -6,6 +6,8 @@ import com.example.productservice.dto.request.CategoryUpdateRequest;
 import com.example.productservice.mapper.CategoryMapper;
 import com.example.productservice.service.CategoryService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,28 +27,30 @@ public class CategoryController {
 	}
 
 	@GetMapping
-	public List<CategoryResponse> list() {
-		return service.list().stream().map(mapper::toResponse).toList();
+	public ResponseEntity<List<CategoryResponse>> list() {
+		return ResponseEntity.ok(service.list().stream().map(mapper::toResponse).toList());
 	}
 
 	@GetMapping("/{id}")
-	public CategoryResponse get(@PathVariable("id") UUID id) {
-		return mapper.toResponse(service.get(id));
+	public ResponseEntity<CategoryResponse> get(@PathVariable("id") UUID id) {
+		return ResponseEntity.ok(mapper.toResponse(service.get(id)));
 	}
 
 	@PostMapping
-	public CategoryResponse create(@Valid @RequestBody CategoryCreateRequest req) {
-		return mapper.toResponse(service.create(req));
+	public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryCreateRequest req) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.create(req)));
 	}
 
 	@PutMapping("/{id}")
-	public CategoryResponse update(@PathVariable("id") UUID id, @Valid @RequestBody CategoryUpdateRequest req) {
-		return mapper.toResponse(service.update(id, req));
+	public ResponseEntity<CategoryResponse> update(@PathVariable("id") UUID id,
+			@Valid @RequestBody CategoryUpdateRequest req) {
+		return ResponseEntity.ok(mapper.toResponse(service.update(id, req)));
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable("id") UUID id) {
+	public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
 		service.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 }

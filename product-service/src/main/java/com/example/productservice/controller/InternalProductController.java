@@ -1,5 +1,6 @@
 package com.example.productservice.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,19 +33,20 @@ public class InternalProductController {
 	}
 
 	@GetMapping("/quote")
-	public QuoteResponse quote(@RequestParam("ids") String ids) {
-		return productService.quote(ids);
+	public ResponseEntity<QuoteResponse> quote(@RequestParam("ids") String ids) {
+		return ResponseEntity.ok(productService.quote(ids));
 	}
 
 	@PostMapping("/stock/reserve")
-	public StockReserveResponse reserve(@Valid @RequestBody StockReserveRequest req) {
+	public ResponseEntity<StockReserveResponse> reserve(@Valid @RequestBody StockReserveRequest req) {
 		stockService.reserve(req.items());
-		return new StockReserveResponse(true);
+		return ResponseEntity.ok(new StockReserveResponse(true));
 	}
 
 	@PostMapping("/stock/release")
-	public void release(@Valid @RequestBody StockReleaseRequest req) {
+	public ResponseEntity<Void> release(@Valid @RequestBody StockReleaseRequest req) {
 		stockService.release(req.items());
+		return ResponseEntity.noContent().build();
 	}
 
 }

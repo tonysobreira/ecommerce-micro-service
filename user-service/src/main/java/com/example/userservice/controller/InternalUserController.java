@@ -1,5 +1,6 @@
 package com.example.userservice.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +22,9 @@ public class InternalUserController {
 	}
 
 	@PostMapping("/profiles")
-	public void createProfileIfMissing(@Valid @RequestBody CreateUserProfileRequest request) {
+	public ResponseEntity<Void> createProfileIfMissing(@Valid @RequestBody CreateUserProfileRequest request) {
 		userProfileService.createIfMissing(request.id(), request.email());
+		return ResponseEntity.noContent().build();
 	}
 
 }
