@@ -32,7 +32,7 @@ public class UserPrincipal implements UserDetails {
 
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
 		for (Role role : roles) {
-			list.add(new SimpleGrantedAuthority("ROLE_" + role.name().trim()));
+			list.add(new SimpleGrantedAuthority(role.getName().trim()));
 		}
 		this.authorities = Collections.unmodifiableList(list);
 	}
@@ -44,7 +44,7 @@ public class UserPrincipal implements UserDetails {
 
 		List<SimpleGrantedAuthority> list = new ArrayList<>();
 		for (Role role : user.getRoles()) {
-			list.add(new SimpleGrantedAuthority("ROLE_" + role.name().trim()));
+			list.add(new SimpleGrantedAuthority(role.getName().trim()));
 		}
 		this.authorities = Collections.unmodifiableList(list);
 	}

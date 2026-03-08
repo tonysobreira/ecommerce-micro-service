@@ -2,6 +2,7 @@ package com.example.authservice.security;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,23 +31,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		this.verifier = verifier;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-
-//		String path = request.getRequestURI();
-//
-//		if (path.startsWith("/auth/register") || path.startsWith("/auth/login")
-//				|| path.startsWith("/actuator/health")) {
-//			filterChain.doFilter(request, response);
-//			return;
-//		}
-
 		String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
 
 		if (auth == null || !auth.startsWith("Bearer ")) {
-			// let security decide (401)
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -56,10 +46,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			UUID userId = UUID.fromString(claims.getSubject());
 			String email = claims.get("email", String.class);
 
-			Set<Role> roles = claims.get("roles", Set.class);
-
-			if (roles == null) {
-				roles = new HashSet<>();
+			List<String> roleNames = claims.get("roles", List.class);
+			Set<Role> roles = new HashSet<>();
+			if (roleNames != null) {
+				for (String roleName : roleNames) {
+					roles.add(new Role(roleName));
+				}
 			}
 
 			UserPrincipal principal = new UserPrincipal(userId, email == null ? "" : email, roles);

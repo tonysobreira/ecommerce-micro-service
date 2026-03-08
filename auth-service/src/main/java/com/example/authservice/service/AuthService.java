@@ -26,6 +26,7 @@ import com.example.authservice.model.RefreshToken;
 import com.example.authservice.model.Role;
 import com.example.authservice.model.UserAccount;
 import com.example.authservice.repository.RefreshTokenRepository;
+import com.example.authservice.repository.RoleRepository;
 import com.example.authservice.repository.UserAccountRepository;
 import com.example.authservice.security.JwtIssuer;
 import com.example.authservice.security.JwtVerifier;
@@ -38,6 +39,8 @@ public class AuthService {
 	private final UserAccountRepository userAccountRepository;
 
 	private final RefreshTokenRepository refreshTokenRepository;
+
+	private final RoleRepository roleRepository;
 
 	private final AuthenticationManager authManager;
 
@@ -54,12 +57,13 @@ public class AuthService {
 	private final long activationTtlMinutes;
 
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
-			AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
+			RoleRepository roleRepository, AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService,
 			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
+		this.roleRepository = roleRepository;
 		this.authManager = authManager;
 		this.passwordEncoder = passwordEncoder;
 		this.issuer = issuer;
@@ -80,7 +84,8 @@ public class AuthService {
 
 		// default role USER
 		Set<Role> roles = new HashSet<>();
-		roles.add(Role.ROLE_USER);
+		roles.add(roleRepository.findByName("ROLE_USER")
+				.orElseThrow(() -> new NotFoundException("Default role ROLE_USER not found")));
 
 		UserAccount account = new UserAccount(userId, email.trim().toLowerCase(Locale.ROOT), passwordHash, roles,
 				Instant.now());
@@ -180,7 +185,8 @@ public class AuthService {
 		RefreshToken rt = new RefreshToken(UUID.randomUUID(), account.getId(), refreshHash, expires, now);
 		refreshTokenRepository.save(rt);
 
-		return new AuthResponse(account.getId(), account.getEmail(), account.getRoles(), accessToken, refreshRaw);
+		Set<String> roleNames = account.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.toSet());
+		return new AuthResponse(account.getId(), account.getEmail(), roleNames, accessToken, refreshRaw);
 	}
 
 	private static String generateSecureToken() {
