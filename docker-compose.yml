@@ -49,6 +49,16 @@ services:
     networks:
       - ecommerce-net
 
+  mongodb:
+    image: mongo:7
+    container_name: ecommerce-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - ecommerce-net
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
@@ -221,8 +231,32 @@ services:
       email-service:
         condition: service_started
 
+  cart-service:
+    build: ./cart-service
+    container_name: cart-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
+      JWT_ISSUER: ecommerce-ms
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/cartdb
+    expose:
+      - "8087"
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+
 networks:
   ecommerce-net:
 
 volumes:
   pgdata:
+  mongodata:
