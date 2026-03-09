@@ -13,6 +13,8 @@
 - user-service: 8082
 - product-service: 8083
 - order-service: 8084
+- payment-service: 8085
+- cart-service: 8087 (MongoDB)
 
 > Internal endpoints like `/internal/**` are NOT routed by the gateway.
 
@@ -60,6 +62,7 @@ Swagger is now centralized in the API Gateway, aggregating docs from all backend
   - `/v3/api-docs/order`
   - `/v3/api-docs/payment`
   - `/v3/api-docs/email`
+  - `/v3/api-docs/cart`
 
 Notes:
 - Product internal endpoints (`/internal/products/quote`, `/internal/products/stock/reserve`, `/internal/products/stock/release`) stay internal and are excluded from OpenAPI.
