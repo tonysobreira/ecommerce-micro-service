@@ -7,6 +7,8 @@
 - eureka-server: http://localhost:8761
 - postgres: localhost:5432 (optional for debugging)
 - mailhog ui: http://localhost:8025
+- mongodb: localhost:27017 (cart database)
+- pgadmin: http://localhost:8090
 
 ### Internal-only (Docker network)
 - auth-service: 8081
@@ -14,6 +16,7 @@
 - product-service: 8083
 - order-service: 8084
 - payment-service: 8085
+- email-service: 8086
 - cart-service: 8087 (MongoDB)
 
 > Internal endpoints like `/internal/**` are NOT routed by the gateway.
