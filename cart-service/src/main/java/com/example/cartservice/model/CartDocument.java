@@ -20,8 +20,11 @@ public class CartDocument {
 	private UUID userId;
 
 	private List<CartItem> items = new ArrayList<>();
+
 	private BigDecimal subtotal = BigDecimal.ZERO;
+
 	private String currency;
+
 	private Instant updatedAt;
 
 	@Indexed(name = "cart_expiration_ttl", expireAfterSeconds = 0)

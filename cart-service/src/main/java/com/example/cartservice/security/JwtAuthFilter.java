@@ -54,8 +54,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			}
 
 			UserPrincipal principal = new UserPrincipal(userId, email == null ? "" : email, roles);
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null,
-					principal.getAuthorities());
+			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal,
+					null, principal.getAuthorities());
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			filterChain.doFilter(request, response);
 		} catch (JwtException | IllegalArgumentException e) {

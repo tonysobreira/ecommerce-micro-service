@@ -7,10 +7,15 @@ import java.util.UUID;
 
 public record CartResponse(
 	UUID userId,
+
 	List<CartItemResponse> items,
+
 	BigDecimal subtotal,
+
 	String currency,
+
 	Instant updatedAt,
+
 	Instant expiresAt
 ) {
 

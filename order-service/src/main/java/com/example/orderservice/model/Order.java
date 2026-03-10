@@ -43,7 +43,7 @@ public class Order {
 	@Column(name = "ship_city", nullable = false)
 	private String shipCity;
 
-	@Column(name = "ship_state")
+	@Column(name = "ship_state", nullable = false)
 	private String shipState;
 
 	@Column(name = "ship_zip", nullable = false)

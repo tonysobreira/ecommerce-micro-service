@@ -5,9 +5,13 @@ import java.util.UUID;
 
 public record CartItemResponse(
 	UUID productId,
+
 	Integer quantity,
+
 	BigDecimal unitPrice,
+
 	String currency,
+
 	String nameSnapshot
 ) {
 

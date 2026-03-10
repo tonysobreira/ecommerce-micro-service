@@ -7,10 +7,15 @@ import java.util.UUID;
 public class CartItem {
 
 	private UUID productId;
+
 	private Integer quantity;
+
 	private BigDecimal unitPrice;
+
 	private String currency;
+
 	private String nameSnapshot;
+
 	private Instant addedAt;
 
 	public UUID getProductId() {

@@ -14,7 +14,9 @@ public class UserPrincipal implements UserDetails {
 	private static final long serialVersionUID = 1L;
 
 	private final UUID userId;
+
 	private final String email;
+
 	private final List<SimpleGrantedAuthority> authorities;
 
 	public UserPrincipal(UUID userId, String email, List<String> roles) {
@@ -47,4 +49,5 @@ public class UserPrincipal implements UserDetails {
 	public String getUsername() {
 		return email;
 	}
+
 }

@@ -38,7 +38,9 @@ public class CartService {
 	private static final long CART_TTL_DAYS = 7;
 
 	private final CartRepository repository;
+
 	private final ProductClient productClient;
+
 	private final OrderClient orderClient;
 
 	public CartService(CartRepository repository, ProductClient productClient, OrderClient orderClient) {
@@ -57,7 +59,8 @@ public class CartService {
 		validateProductForCart(quoted, req.quantity());
 
 		CartDocument cart = repository.findByUserId(userId).orElseGet(() -> emptyCart(userId));
-		CartItem item = cart.getItems().stream().filter(i -> req.productId().equals(i.getProductId())).findFirst().orElse(null);
+		CartItem item = cart.getItems().stream().filter(i -> req.productId().equals(i.getProductId())).findFirst()
+				.orElse(null);
 
 		if (item == null) {
 			item = new CartItem();
@@ -124,7 +127,8 @@ public class CartService {
 		List<CreateOrderItemRequest> orderItems = cart.getItems().stream()
 				.map(i -> new CreateOrderItemRequest(i.getProductId(), i.getQuantity())).toList();
 
-		OrderResponse order = orderClient.createOrder(new CreateOrderRequest(orderItems, req.shippingAddress(), req.paymentMethod()));
+		OrderResponse order = orderClient
+				.createOrder(new CreateOrderRequest(orderItems, req.shippingAddress(), req.paymentMethod()));
 		repository.deleteByUserId(userId);
 
 		return new CheckoutResponse(order.id(), order.status(), "Order created and cart cleared");
@@ -196,10 +200,8 @@ public class CartService {
 	}
 
 	private CartResponse toResponse(CartDocument cart) {
-		List<CartItemResponse> items = cart.getItems().stream()
-				.map(i -> new CartItemResponse(i.getProductId(), i.getQuantity(), i.getUnitPrice(), i.getCurrency(),
-						i.getNameSnapshot()))
-				.toList();
+		List<CartItemResponse> items = cart.getItems().stream().map(i -> new CartItemResponse(i.getProductId(),
+				i.getQuantity(), i.getUnitPrice(), i.getCurrency(), i.getNameSnapshot())).toList();
 		return new CartResponse(cart.getUserId(), items, cart.getSubtotal(), cart.getCurrency(), cart.getUpdatedAt(),
 				cart.getExpiresAt());
 	}
