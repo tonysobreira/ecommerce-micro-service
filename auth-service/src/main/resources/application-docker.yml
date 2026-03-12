@@ -16,6 +16,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 eureka:
   client:
     service-url:
@@ -33,6 +38,10 @@ security:
 app:
   activation:
     base-url: ${ACTIVATION_BASE_URL:http://localhost:8080/auth/activate}
+  kafka:
+    topics:
+      activation-email: ${KAFKA_TOPIC_ACTIVATION_EMAIL:email.activation.requested}
+      password-reset-email: ${KAFKA_TOPIC_PASSWORD_RESET_EMAIL:email.password-reset.requested}
 
 management:
   endpoints:
