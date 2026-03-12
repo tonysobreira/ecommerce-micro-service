@@ -59,6 +59,23 @@ services:
     networks:
       - ecommerce-net
 
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: kafka
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    networks:
+      - ecommerce-net
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
@@ -104,6 +121,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       ACTIVATION_BASE_URL: http://localhost:8080/auth/activate
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     expose:
       - "8081"
     networks:
@@ -114,6 +132,8 @@ services:
       eureka-server:
         condition: service_healthy
       email-service:
+        condition: service_started
+      kafka:
         condition: service_started
 
   email-service:
@@ -127,6 +147,7 @@ services:
       MAIL_SMTP_AUTH: "false"
       MAIL_SMTP_STARTTLS_ENABLE: "false"
       MAIL_FROM: no-reply@ecommerce.local
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     expose:
       - "8086"
     networks:
@@ -135,6 +156,8 @@ services:
       eureka-server:
         condition: service_healthy
       mailhog:
+        condition: service_started
+      kafka:
         condition: service_started
 
   user-service:
@@ -190,6 +213,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       # Feign uses Eureka name "product-service" already
       PRODUCT_SERVICE_NAME: product-service
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     expose:
       - "8084"
     networks:
@@ -202,6 +226,8 @@ services:
       product-service:
         condition: service_started
       email-service:
+        condition: service_started
+      kafka:
         condition: service_started
 
   payment-service:
