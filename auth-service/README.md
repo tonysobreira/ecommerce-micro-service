@@ -26,6 +26,16 @@ Notes:
 Example:
 export JWT_SECRET="dev-jwt-secret-32-bytes-long-123456"
 
+
+### Kafka when running locally
+If Kafka is running in Docker and the service runs from your IDE, set:
+
+```bash
+export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+```
+
+The app now supports a fallback list (`localhost:9092,kafka:29092`) so it can work in both host and Docker-network setups.
+
 ## Run locally
 1) Create DB:
    createdb authdb
