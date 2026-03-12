@@ -21,21 +21,24 @@ public class EmailEventsConsumer {
 		this.emailSenderService = emailSenderService;
 	}
 
-	@KafkaListener(topics = "${app.kafka.topics.activation-email:email.activation.requested}", groupId = "${spring.kafka.consumer.group-id:email-service}")
+	@KafkaListener(topics = "${app.kafka.topics.activation-email:email.activation.requested}", groupId = "${spring.kafka.consumer.group-id:email-service}", properties = {
+			"spring.json.value.default.type=com.example.emailservice.messaging.ActivationEmailEvent" })
 	public void consumeActivation(ActivationEmailEvent event) {
 		emailSenderService
 				.sendActivation(new ActivationEmailRequest(event.email(), event.activationLink(), event.expiresInMinutes()));
 		log.info("Activation email consumed for {}", event.email());
 	}
 
-	@KafkaListener(topics = "${app.kafka.topics.password-reset-email:email.password-reset.requested}", groupId = "${spring.kafka.consumer.group-id:email-service}")
+	@KafkaListener(topics = "${app.kafka.topics.password-reset-email:email.password-reset.requested}", groupId = "${spring.kafka.consumer.group-id:email-service}", properties = {
+			"spring.json.value.default.type=com.example.emailservice.messaging.PasswordResetEmailEvent" })
 	public void consumePasswordReset(PasswordResetEmailEvent event) {
 		emailSenderService
 				.sendPasswordReset(new PasswordResetEmailRequest(event.email(), event.resetLink(), event.expiresInMinutes()));
 		log.info("Password reset email consumed for {}", event.email());
 	}
 
-	@KafkaListener(topics = "${app.kafka.topics.order-status-email:email.order-status.requested}", groupId = "${spring.kafka.consumer.group-id:email-service}")
+	@KafkaListener(topics = "${app.kafka.topics.order-status-email:email.order-status.requested}", groupId = "${spring.kafka.consumer.group-id:email-service}", properties = {
+			"spring.json.value.default.type=com.example.emailservice.messaging.OrderStatusEmailEvent" })
 	public void consumeOrderStatus(OrderStatusEmailEvent event) {
 		emailSenderService.sendOrderStatus(
 				new OrderStatusEmailRequest(event.email(), event.orderId(), event.status(), event.currency(), event.totalCents()));
@@ -43,4 +46,3 @@ public class EmailEventsConsumer {
 	}
 
 }
-
