@@ -17,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.client.PaymentClient;
-import com.example.orderservice.client.email.EmailClient;
-import com.example.orderservice.dto.email.OrderStatusEmailRequest;
+import com.example.orderservice.messaging.EmailEventPublisher;
 import com.example.orderservice.dto.request.AddressRequest;
 import com.example.orderservice.dto.request.CreateOrderItemRequest;
 import com.example.orderservice.dto.request.CreateOrderRequest;
@@ -59,19 +58,19 @@ public class OrderService {
 
 	private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
-	private final EmailClient emailClient;
+	private final EmailEventPublisher emailEventPublisher;
 
 	private final OrderMapper orderMapper;
 
 	public OrderService(ProductClient productClient, PaymentClient paymentClient, OrderRepository orderRepository,
 			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
-			EmailClient emailClient, OrderMapper orderMapper) {
+			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper) {
 		this.productClient = productClient;
 		this.paymentClient = paymentClient;
 		this.orderRepository = orderRepository;
 		this.orderItemRepository = orderItemRepository;
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
-		this.emailClient = emailClient;
+		this.emailEventPublisher = emailEventPublisher;
 		this.orderMapper = orderMapper;
 	}
 
@@ -229,8 +228,8 @@ public class OrderService {
 
 	private void notifyOrderStatus(Order order) {
 		try {
-			emailClient.sendOrderStatus(new OrderStatusEmailRequest(order.getCustomerEmail(), order.getId(),
-					order.getStatus(), order.getCurrency(), order.getTotalCents()));
+			emailEventPublisher.publishOrderStatus(order.getCustomerEmail(), order.getId(), order.getStatus(),
+					order.getCurrency(), order.getTotalCents());
 		} catch (Exception ex) {
 			log.warn("Unable to send order status email for order {}", order.getId(), ex);
 		}

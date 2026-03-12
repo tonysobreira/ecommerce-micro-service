@@ -16,6 +16,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
 eureka:
   client:
@@ -38,6 +45,11 @@ feign:
 product-service:
   # Use discovery by default with name "product-service" (lb://)
   name: product-service
+
+app:
+  kafka:
+    topics:
+      order-status-email: ${KAFKA_TOPIC_ORDER_STATUS_EMAIL:email.order-status.requested}
 
 management:
   endpoints:
