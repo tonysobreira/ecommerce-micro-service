@@ -29,7 +29,6 @@ public class SecurityConfig {
 						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
 						.permitAll().anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
-
 		return http.build();
 	}
 

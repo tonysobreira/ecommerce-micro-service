@@ -57,16 +57,15 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtVerifier verifier) throws Exception {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource())).csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/auth/register", "/auth/login", "/auth/activate", "/auth/activation/resend",
-								"/auth/password/forgot", "/auth/password/reset", "/actuator/health",
-								"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-						.permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(
+						auth -> auth
+								.requestMatchers("/auth/register", "/auth/login", "/auth/activate",
+										"/auth/activation/resend", "/auth/password/forgot", "/auth/password/reset",
+										"/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+								.permitAll().anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class)
 				.httpBasic(Customizer.withDefaults());
-
 		http.exceptionHandling(eh -> eh.authenticationEntryPoint(authenticationEntryPoint()));
-
 		return http.build();
 	}
 

@@ -31,7 +31,6 @@ public class SecurityConfig {
 						.permitAll().requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
-
 		return http.build();
 	}
 
