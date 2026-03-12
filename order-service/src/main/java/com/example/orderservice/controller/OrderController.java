@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.UpdateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
-import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.security.UserPrincipal;
 import com.example.orderservice.service.OrderService;
 
@@ -48,18 +47,13 @@ public class OrderController {
 	@GetMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
+		return ResponseEntity.ok(service.get(p.getUserId(), orderId));
 	}
 
 	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-
-		if (!p.isAdmin()) {
-			throw new ForbiddenException("Admin only");
-		}
-
 		return ResponseEntity.ok(service.update(p.getUserId(), orderId, req));
 	}
 

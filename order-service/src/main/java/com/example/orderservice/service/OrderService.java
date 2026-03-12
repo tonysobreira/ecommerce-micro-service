@@ -15,9 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.client.PaymentClient;
-import com.example.orderservice.messaging.EmailEventPublisher;
+import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.dto.request.AddressRequest;
 import com.example.orderservice.dto.request.CreateOrderItemRequest;
 import com.example.orderservice.dto.request.CreateOrderRequest;
@@ -30,9 +29,9 @@ import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.QuoteItemResponse;
 import com.example.orderservice.dto.response.QuoteResponse;
 import com.example.orderservice.exception.BadRequestException;
-import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.exception.NotFoundException;
 import com.example.orderservice.mapper.OrderMapper;
+import com.example.orderservice.messaging.EmailEventPublisher;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.model.OrderItem;
 import com.example.orderservice.model.OrderStatus;
@@ -176,8 +175,8 @@ public class OrderService {
 
 		orderStatusHistoryRepository.save(new OrderStatusHistory(order.getId(), OrderStatus.CREATED, userId));
 
-		paymentClient.createPendingPayment(new CreatePaymentRequest(order.getId(), userId,
-				MoneyUtils.centsToAmount(total), pm));
+		paymentClient.createPendingPayment(
+				new CreatePaymentRequest(order.getId(), userId, MoneyUtils.centsToAmount(total), pm));
 
 		notifyOrderStatus(order);
 
@@ -196,13 +195,8 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public OrderResponse get(UUID requester, boolean isAdmin, UUID orderId) {
+	public OrderResponse get(UUID requester, UUID orderId) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
-
-		if (!isAdmin && !o.getUserId().equals(requester)) {
-			throw new ForbiddenException("Not allowed");
-		}
-
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
@@ -224,7 +218,6 @@ public class OrderService {
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
 	}
-
 
 	private void notifyOrderStatus(Order order) {
 		try {
