@@ -23,6 +23,7 @@ import com.example.paymentservice.exception.BadRequestException;
 import com.example.paymentservice.exception.NotFoundException;
 import com.example.paymentservice.exception.PaymentNotFoundException;
 import com.example.paymentservice.mapper.PaymentMapper;
+import com.example.paymentservice.model.OrderStatus;
 import com.example.paymentservice.model.Payment;
 import com.example.paymentservice.model.PaymentStatus;
 import com.example.paymentservice.repository.PaymentRepository;
@@ -181,7 +182,7 @@ public class PaymentService {
 			throw new BadRequestException("Request user does not match the order owner.");
 		}
 
-		if ("PAID".equalsIgnoreCase(order.status()) || "CANCELLED".equalsIgnoreCase(order.status())) {
+		if (!OrderStatus.CREATED.name().equalsIgnoreCase(order.status())) {
 			throw new BadRequestException("Order status does not allow payment: " + order.status());
 		}
 
@@ -199,7 +200,7 @@ public class PaymentService {
 			throw new BadRequestException("Payment owner does not match order owner.");
 		}
 
-		if ("PAID".equalsIgnoreCase(order.status()) || "CANCELLED".equalsIgnoreCase(order.status())) {
+		if (!OrderStatus.CREATED.name().equalsIgnoreCase(order.status())) {
 			throw new BadRequestException("Order status does not allow payment: " + order.status());
 		}
 
