@@ -80,9 +80,9 @@ services:
     networks:
       - ecommerce-net
 
-  eureka-server:
-    build: ./eureka-server
-    container_name: eureka-server
+  discovery-server:
+    build: ./infra/discovery-server
+    container_name: discovery-server
     environment:
       SPRING_PROFILES_ACTIVE: docker
     ports:
@@ -98,11 +98,11 @@ services:
       retries: 30
 
   api-gateway:
-    build: ./api-gateway
+    build: ./infra/api-gateway
     container_name: api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
     ports:
@@ -110,15 +110,15 @@ services:
     networks:
       - ecommerce-net
     depends_on:
-      eureka-server:
+      discovery-server:
         condition: service_healthy
 
   auth-service:
-    build: ./auth-service
+    build: ./services/auth-service
     container_name: auth-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
@@ -133,19 +133,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
-      email-service:
+      notification-service:
         condition: service_started
       kafka:
         condition: service_started
 
-  email-service:
-    build: ./email-service
-    container_name: email-service
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
       MAIL_SMTP_AUTH: "false"
@@ -157,7 +157,7 @@ services:
     networks:
       - ecommerce-net
     depends_on:
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       mailhog:
         condition: service_started
@@ -165,11 +165,11 @@ services:
         condition: service_started
 
   user-service:
-    build: ./user-service
+    build: ./services/user-service
     container_name: user-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
@@ -179,16 +179,16 @@ services:
       - "8082"
     depends_on:
       - postgres
-      - eureka-server
+      - discovery-server
     networks:
       - ecommerce-net
 
   product-service:
-    build: ./product-service
+    build: ./services/product-service
     container_name: product-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/productdb
@@ -201,15 +201,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
 
   order-service:
-    build: ./order-service
+    build: ./services/order-service
     container_name: order-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orderdb
@@ -225,21 +225,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       product-service:
         condition: service_started
-      email-service:
+      notification-service:
         condition: service_started
       kafka:
         condition: service_started
 
   payment-service:
-    build: ./payment-service
+    build: ./services/payment-service
     container_name: payment-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paymentdb
@@ -254,19 +254,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       product-service:
         condition: service_started
-      email-service:
+      notification-service:
         condition: service_started
 
   cart-service:
-    build: ./cart-service
+    build: ./services/cart-service
     container_name: cart-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/cartdb
@@ -275,7 +275,7 @@ services:
     networks:
       - ecommerce-net
     depends_on:
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       mongodb:
         condition: service_started

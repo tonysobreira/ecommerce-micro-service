@@ -1,13 +1,35 @@
 # E-commerce Microservices (Spring Boot + Eureka + Gateway)
 
+## Project layout
+
+```text
+infra/
+ ├─ api-gateway
+ ├─ discovery-server
+ └─ config-server
+
+services/
+ ├─ auth-service
+ ├─ user-service
+ ├─ product-service
+ ├─ inventory-service
+ ├─ cart-service
+ ├─ order-service
+ ├─ payment-service
+ ├─ shipping-service
+ └─ notification-service
+```
+
+See full responsibilities and database recommendations in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
 ## Services & Ports
 
 ### Host-exposed ports (Docker)
 - api-gateway: http://localhost:8080
-- eureka-server: http://localhost:8761
+- discovery-server: http://localhost:8761
 - postgres: localhost:5432 (optional for debugging)
 - mailhog ui: http://localhost:8025
-- mongodb: localhost:27017 (cart database)
+- mongodb: localhost:27017 (notification templates/logs)
 - pgadmin: http://localhost:8090
 
 ### Internal-only (Docker network)
@@ -16,8 +38,8 @@
 - product-service: 8083
 - order-service: 8084
 - payment-service: 8085
-- email-service: 8086
-- cart-service: 8087 (MongoDB)
+- notification-service: 8086
+- cart-service: 8087
 
 > Internal endpoints like `/internal/**` are NOT routed by the gateway.
 
@@ -33,7 +55,7 @@ Each service default `application.yml` uses:
 ### Docker
 Compose sets:
 - `SPRING_PROFILES_ACTIVE=docker`
-- `EUREKA_URL=http://eureka-server:8761/eureka`
+- `EUREKA_URL=http://discovery-server:8761/eureka`
 - `SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/<db>`
 - Mail SMTP: `smtp.gmail.com:587` (configure `MAIL_USERNAME`, `MAIL_PASSWORD`, and optionally `MAIL_FROM`)
 
@@ -45,17 +67,15 @@ From repo root:
 
 ```bash
 docker compose up --build
-
 ```
 
 ## Architecture Diagram
 
 ![Services architecture](docs/services-architecture.svg)
 
-
 ## Swagger / OpenAPI
 
-Swagger is now centralized in the API Gateway, aggregating docs from all backend services in one UI.
+Swagger is centralized in the API Gateway.
 
 - Unified UI: `http://localhost:8080/swagger-ui.html`
 - Aggregated docs endpoints exposed by gateway:
@@ -64,9 +84,5 @@ Swagger is now centralized in the API Gateway, aggregating docs from all backend
   - `/v3/api-docs/product`
   - `/v3/api-docs/order`
   - `/v3/api-docs/payment`
-  - `/v3/api-docs/email`
+  - `/v3/api-docs/notification`
   - `/v3/api-docs/cart`
-
-Notes:
-- Product internal endpoints (`/internal/products/quote`, `/internal/products/stock/reserve`, `/internal/products/stock/release`) stay internal and are excluded from OpenAPI.
-- Services may still expose local `/swagger-ui.html`, but the recommended entry point is the gateway UI.
