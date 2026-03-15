@@ -1,9 +1,9 @@
-package com.example.orderservice.dto.response;
+package com.example.inventoryservice.dto.response;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record QuoteItemResponse(
+public record InventoryQuoteItemResponse(
 	UUID productId,
 	boolean exists,
 	boolean active,
@@ -12,5 +12,4 @@ public record QuoteItemResponse(
 	int availableQuantity,
 	int reservedQuantity
 ) {
-
 }

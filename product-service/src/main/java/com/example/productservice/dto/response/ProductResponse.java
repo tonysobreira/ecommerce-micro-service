@@ -19,8 +19,6 @@ public record ProductResponse(
 
 	String currency,
 
-	int stock,
-
 	boolean active,
 
 	Instant createdAt,

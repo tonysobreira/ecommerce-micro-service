@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.PaymentClient;
-import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.dto.request.AddressRequest;
 import com.example.orderservice.dto.request.CreateOrderItemRequest;
 import com.example.orderservice.dto.request.CreateOrderRequest;
@@ -47,9 +47,9 @@ public class OrderService {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
-	private final ProductClient productClient;
-
 	private final PaymentClient paymentClient;
+
+	private final InventoryClient inventoryClient;
 
 	private final OrderRepository orderRepository;
 
@@ -61,11 +61,12 @@ public class OrderService {
 
 	private final OrderMapper orderMapper;
 
-	public OrderService(ProductClient productClient, PaymentClient paymentClient, OrderRepository orderRepository,
-			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
-			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper) {
-		this.productClient = productClient;
+	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient,
+			OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+			OrderStatusHistoryRepository orderStatusHistoryRepository, EmailEventPublisher emailEventPublisher,
+			OrderMapper orderMapper) {
 		this.paymentClient = paymentClient;
+		this.inventoryClient = inventoryClient;
 		this.orderRepository = orderRepository;
 		this.orderItemRepository = orderItemRepository;
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
@@ -87,7 +88,7 @@ public class OrderService {
 		List<UUID> productIds = req.items().stream().map(CreateOrderItemRequest::productId).distinct().toList();
 		String idsCsv = productIds.stream().map(UUID::toString).collect(Collectors.joining(","));
 
-		QuoteResponse quote = productClient.quote(idsCsv);
+		QuoteResponse quote = inventoryClient.quote(idsCsv);
 		Map<UUID, QuoteItemResponse> quoteMap = quote.items().stream()
 				.collect(Collectors.toMap(QuoteItemResponse::productId, Function.identity(), (a, b) -> a));
 
@@ -106,9 +107,10 @@ public class OrderService {
 				throw new BadRequestException("Product inactive: " + i.productId());
 			}
 
-			if (qi.stock() < i.quantity()) {
+			if (qi.availableQuantity() < i.quantity()) {
 				throw new BadRequestException("Insufficient stock: " + i.productId());
 			}
+
 
 			if (currency == null) {
 				currency = qi.currency();
@@ -126,17 +128,18 @@ public class OrderService {
 		}
 
 		// Reserve stock before local DB write
-		StockReserveRequest reserveReq = new StockReserveRequest(
+		UUID orderReservationId = UUID.randomUUID();
+		StockReserveRequest reserveReq = new StockReserveRequest(orderReservationId,
 				req.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
 
-		productClient.reserve(reserveReq);
+		inventoryClient.reserve(reserveReq);
 
 		try {
 			return persistOrder(userId, email, req, quoteMap, currency, subtotal);
 		} catch (RuntimeException ex) {
 			// Best-effort compensation: release
 			try {
-				productClient.release(new StockReleaseRequest(reserveReq.items()));
+				inventoryClient.release(new StockReleaseRequest(orderReservationId, reserveReq.items()));
 			} catch (Exception ignore) {
 				// log in real-world
 			}

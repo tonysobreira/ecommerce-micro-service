@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 public record ProductUpdateRequest(
@@ -21,9 +20,6 @@ public record ProductUpdateRequest(
 
 	@Size(max = 10)
 	String currency,
-
-	@Min(0)
-	Integer stock,
 
 	Boolean active
 ) {

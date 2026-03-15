@@ -12,9 +12,7 @@ public record QuoteItemResponse(
 
 	BigDecimal priceCents,
 
-	String currency,
-
-	int stock
+	String currency
 ) {
 
 }

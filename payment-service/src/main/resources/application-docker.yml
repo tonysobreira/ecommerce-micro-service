@@ -46,6 +46,9 @@ order-service:
 product-service:
   # Use discovery by default with name "product-service" (lb://)
   name: product-service
+inventory-service:
+  name: inventory-service
+
 
 management:
   endpoints:
