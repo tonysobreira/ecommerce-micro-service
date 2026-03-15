@@ -1,4 +1,4 @@
-package com.example.cartservice.dto.response;
+package com.example.inventoryservice.dto.response;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -10,5 +10,4 @@ public record ProductQuoteItemResponse(
 	BigDecimal priceCents,
 	String currency
 ) {
-
 }

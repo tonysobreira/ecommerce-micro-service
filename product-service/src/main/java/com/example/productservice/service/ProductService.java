@@ -24,7 +24,6 @@ import com.example.productservice.repository.ProductRepository;
 public class ProductService {
 
 	private final ProductRepository productRepository;
-
 	private final CategoryService categoryService;
 
 	public ProductService(ProductRepository productRepository, CategoryService categoryService) {
@@ -45,13 +44,12 @@ public class ProductService {
 	@Transactional
 	public Product create(ProductCreateRequest req) {
 		Category category = null;
-
 		if (req.categoryId() != null) {
 			category = categoryService.get(req.categoryId());
 		}
 
 		Product p = new Product(UUID.randomUUID(), req.categoryId(), category, req.name().trim(), req.description(),
-				req.priceCents(), req.currency().trim(), req.stock(), req.active() != null ? req.active() : true);
+				req.priceCents(), req.currency().trim(), req.active() != null ? req.active() : true);
 		return productRepository.save(p);
 	}
 
@@ -63,30 +61,11 @@ public class ProductService {
 			categoryService.get(req.categoryId());
 			p.setCategoryId(req.categoryId());
 		}
-
-		if (req.name() != null) {
-			p.setName(req.name().trim());
-		}
-
-		if (req.description() != null) {
-			p.setDescription(req.description());
-		}
-
-		if (req.priceCents() != null) {
-			p.setPriceCents(req.priceCents());
-		}
-
-		if (req.currency() != null) {
-			p.setCurrency(req.currency().trim());
-		}
-
-		if (req.stock() != null) {
-			p.setStock(req.stock());
-		}
-
-		if (req.active() != null) {
-			p.setActive(req.active());
-		}
+		if (req.name() != null) p.setName(req.name().trim());
+		if (req.description() != null) p.setDescription(req.description());
+		if (req.priceCents() != null) p.setPriceCents(req.priceCents());
+		if (req.currency() != null) p.setCurrency(req.currency().trim());
+		if (req.active() != null) p.setActive(req.active());
 
 		return productRepository.save(p);
 	}
@@ -105,18 +84,15 @@ public class ProductService {
 				.collect(Collectors.toMap(Product::getId, p -> p));
 
 		List<QuoteItemResponse> items = new ArrayList<>();
-
 		for (UUID id : productIds) {
 			Product p = found.get(id);
 			if (p == null) {
-				items.add(new QuoteItemResponse(id, false, false, BigDecimal.ZERO, null, 0));
+				items.add(new QuoteItemResponse(id, false, false, BigDecimal.ZERO, null));
 			} else {
-				items.add(new QuoteItemResponse(id, true, p.isActive(), p.getPriceCents(), p.getCurrency(),
-						p.getStock()));
+				items.add(new QuoteItemResponse(id, true, p.isActive(), p.getPriceCents(), p.getCurrency()));
 			}
 		}
 
 		return new QuoteResponse(items);
 	}
-
 }

@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT NULL,
   price_cents NUMERIC(19,2) NOT NULL,
   currency TEXT NOT NULL,
-  stock INT NOT NULL,
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NULL

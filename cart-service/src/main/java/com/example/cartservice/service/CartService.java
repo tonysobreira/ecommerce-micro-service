@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.cartservice.client.InventoryClient;
 import com.example.cartservice.client.OrderClient;
 import com.example.cartservice.client.ProductClient;
 import com.example.cartservice.dto.request.AddCartItemRequest;
@@ -23,6 +24,7 @@ import com.example.cartservice.dto.request.UpdateCartItemRequest;
 import com.example.cartservice.dto.response.CartItemResponse;
 import com.example.cartservice.dto.response.CartResponse;
 import com.example.cartservice.dto.response.CheckoutResponse;
+import com.example.cartservice.dto.response.InventoryAvailabilityResponse;
 import com.example.cartservice.dto.response.OrderResponse;
 import com.example.cartservice.dto.response.ProductQuoteItemResponse;
 import com.example.cartservice.dto.response.ProductQuoteResponse;
@@ -41,11 +43,15 @@ public class CartService {
 
 	private final ProductClient productClient;
 
+	private final InventoryClient inventoryClient;
+
 	private final OrderClient orderClient;
 
-	public CartService(CartRepository repository, ProductClient productClient, OrderClient orderClient) {
+	public CartService(CartRepository repository, ProductClient productClient, InventoryClient inventoryClient,
+			OrderClient orderClient) {
 		this.repository = repository;
 		this.productClient = productClient;
+		this.inventoryClient = inventoryClient;
 		this.orderClient = orderClient;
 	}
 
@@ -56,7 +62,7 @@ public class CartService {
 
 	public CartResponse addItem(UUID userId, AddCartItemRequest req) {
 		ProductQuoteItemResponse quoted = quoteSingle(req.productId());
-		validateProductForCart(quoted, req.quantity());
+		validateProductForCart(quoted, req.quantity(), availableForProduct(req.productId()));
 
 		CartDocument cart = repository.findByUserId(userId).orElseGet(() -> emptyCart(userId));
 		CartItem item = cart.getItems().stream().filter(i -> req.productId().equals(i.getProductId())).findFirst()
@@ -84,7 +90,7 @@ public class CartService {
 				.orElseThrow(() -> new NotFoundException("Cart not found for user"));
 
 		ProductQuoteItemResponse quoted = quoteSingle(productId);
-		validateProductForCart(quoted, req.quantity());
+		validateProductForCart(quoted, req.quantity(), availableForProduct(productId));
 
 		CartItem existing = cart.getItems().stream().filter(i -> productId.equals(i.getProductId())).findFirst()
 				.orElseThrow(() -> new NotFoundException("Item not found in cart"));
@@ -145,7 +151,7 @@ public class CartService {
 			if (quoted == null) {
 				throw new BadRequestException("Some products in cart are no longer available");
 			}
-			validateProductForCart(quoted, item.getQuantity());
+			validateProductForCart(quoted, item.getQuantity(), availableForProduct(item.getProductId()));
 			item.setUnitPrice(quoted.priceCents().setScale(2, RoundingMode.HALF_UP));
 			item.setCurrency(quoted.currency());
 		}
@@ -160,16 +166,24 @@ public class CartService {
 		return quote.items().get(0);
 	}
 
-	private void validateProductForCart(ProductQuoteItemResponse quoted, Integer quantity) {
+	private void validateProductForCart(ProductQuoteItemResponse quoted, Integer quantity, int availableQuantity) {
 		if (!quoted.exists()) {
 			throw new NotFoundException("Product not found");
 		}
 		if (!quoted.active()) {
 			throw new BadRequestException("Product is inactive");
 		}
-		if (quoted.stock() < quantity) {
+		if (availableQuantity < quantity) {
 			throw new BadRequestException("Insufficient stock for product " + quoted.productId());
 		}
+	}
+
+	private int availableForProduct(UUID productId) {
+		List<InventoryAvailabilityResponse> availability = inventoryClient.availability(productId.toString());
+		if (availability == null || availability.isEmpty()) {
+			return 0;
+		}
+		return availability.get(0).availableQuantity();
 	}
 
 	private CartDocument emptyCart(UUID userId) {

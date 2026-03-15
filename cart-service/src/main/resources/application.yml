@@ -17,6 +17,9 @@ feign:
 
 product-service:
   name: product-service
+inventory-service:
+  name: inventory-service
+
 
 order-service:
   name: order-service

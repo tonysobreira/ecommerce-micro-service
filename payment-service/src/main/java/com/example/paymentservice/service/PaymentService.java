@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.paymentservice.client.InventoryClient;
 import com.example.paymentservice.client.OrderClient;
-import com.example.paymentservice.client.ProductClient;
 import com.example.paymentservice.client.UserClient;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
 import com.example.paymentservice.dto.request.StockReleaseRequest;
@@ -44,15 +44,15 @@ public class PaymentService {
 
 	private final OrderClient orderClient;
 
-	private final ProductClient productClient;
+	private final InventoryClient inventoryClient;
 
 	public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, UserClient userClient,
-			OrderClient orderClient, ProductClient productClient) {
+			OrderClient orderClient, InventoryClient inventoryClient) {
 		this.paymentRepository = paymentRepository;
 		this.paymentMapper = paymentMapper;
 		this.userClient = userClient;
 		this.orderClient = orderClient;
-		this.productClient = productClient;
+		this.inventoryClient = inventoryClient;
 	}
 
 	@Transactional
@@ -141,10 +141,10 @@ public class PaymentService {
 
 		OrderResponse order = fetchOrder(payment.getOrderId());
 
-		StockReleaseRequest releaseReq = new StockReleaseRequest(
+		StockReleaseRequest releaseReq = new StockReleaseRequest(order.id(),
 				order.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
 
-		productClient.release(releaseReq);
+		inventoryClient.release(releaseReq);
 		orderClient.update(order.id(), new UpdateOrderRequest("CANCELLED"));
 
 		payment.setStatus(PaymentStatus.REFUNDED);

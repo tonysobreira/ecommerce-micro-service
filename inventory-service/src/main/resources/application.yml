@@ -24,3 +24,14 @@ management:
     web:
       exposure:
         include: health,info
+
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 8000
+
+product-service:
+  name: product-service

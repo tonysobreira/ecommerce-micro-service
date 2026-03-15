@@ -1,14 +1,10 @@
 package com.example.orderservice.dto.response;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
-public record QuoteItemResponse(
+public record InventoryAvailabilityResponse(
 	UUID productId,
 	boolean exists,
-	boolean active,
-	BigDecimal priceCents,
-	String currency,
 	int availableQuantity,
 	int reservedQuantity
 ) {
