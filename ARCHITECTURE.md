@@ -1,47 +1,29 @@
-# Project Structure and Service Responsibilities
+# Arquitetura de serviços
 
-## Folder layout
+Todos os serviços ficam no diretório raiz do projeto.
 
-```text
-infra/
- ├─ api-gateway
- ├─ discovery-server
- └─ config-server
+## Serviços e bancos recomendados
 
-services/
- ├─ auth-service
- ├─ user-service
- ├─ product-service
- ├─ inventory-service
- ├─ cart-service
- ├─ order-service
- ├─ payment-service
- ├─ shipping-service
- └─ notification-service
-```
-
-## Service responsibilities and database recommendation
-
-| Service | Responsibility | Recommended DB |
+| Service | Responsabilidade | Banco |
 |---|---|---|
-| auth-service | Authentication (login, refresh token, JWT, roles/permissions) | PostgreSQL |
-| user-service | User profile and addresses | PostgreSQL |
-| product-service | Product catalog, categories, prices and images | PostgreSQL |
-| inventory-service | Stock quantities, reservations and stock movements | PostgreSQL |
-| cart-service | Temporary shopping cart and subtotal | Redis |
-| order-service | Order lifecycle and order history | PostgreSQL |
-| payment-service | Payment processing and transaction records | PostgreSQL |
-| shipping-service | Freight calculation, shipment and tracking | PostgreSQL |
-| notification-service | Email notifications, templates and send logs | MongoDB |
-| api-gateway | Routing, auth and rate limit | No DB |
-| discovery-server | Service registry (Eureka) | No DB |
-| config-server | Centralized configuration | Git-backed |
+| auth-service | autenticação, JWT, roles/permissions | PostgreSQL |
+| user-service | usuários, perfil, endereços | PostgreSQL |
+| product-service | catálogo de produtos | PostgreSQL |
+| inventory-service | estoque, reserva e movimentação | PostgreSQL |
+| cart-service | carrinho temporário | Redis |
+| order-service | pedidos e histórico | PostgreSQL |
+| payment-service | pagamentos e transações | PostgreSQL |
+| shipping-service | frete, envio e rastreamento | PostgreSQL |
+| notification-service | envio de email e logs | MongoDB |
+| api-gateway | roteamento/auth/rate limit | sem banco |
+| discovery-server | service discovery (Eureka) | sem banco |
+| config-server | configuração centralizada | Git |
 
-## Async communication
+## Eventos assíncronos (broker)
 
-Use a message broker (Kafka or RabbitMQ) for events such as:
-- `OrderCreated`
-- `PaymentApproved`
-- `StockReserved`
-- `ShipmentCreated`
-- `EmailSent`
+Kafka ou RabbitMQ para eventos como:
+- OrderCreated
+- PaymentApproved
+- StockReserved
+- ShipmentCreated
+- EmailSent
