@@ -11,4 +11,5 @@ public interface ProductClient {
 
 	@GetMapping("/internal/products/quote")
 	ProductQuoteResponse quote(@RequestParam("ids") String idsCsv);
+
 }

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.inventoryservice.client.ProductClient;
+import com.example.inventoryservice.dto.request.StockItemRequest;
+import com.example.inventoryservice.dto.response.AvailabilityItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteResponse;
 import com.example.inventoryservice.dto.response.ProductQuoteItemResponse;
@@ -24,9 +26,13 @@ import com.example.inventoryservice.repository.StockReservationRepository;
 
 @Service
 public class InventoryService {
+
 	private final InventoryRepository inventoryRepository;
+
 	private final StockReservationRepository reservationRepository;
+
 	private final StockMovementRepository movementRepository;
+
 	private final ProductClient productClient;
 
 	public InventoryService(InventoryRepository inventoryRepository, StockReservationRepository reservationRepository,
@@ -38,7 +44,7 @@ public class InventoryService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<AvailabilityItem> availability(String idsCsv) {
+	public List<AvailabilityItemResponse> availability(String idsCsv) {
 		List<UUID> productIds = Arrays.stream(idsCsv.split(",")).filter(s -> !s.isBlank()).map(String::trim)
 				.map(UUID::fromString).toList();
 		Map<UUID, Inventory> inventories = inventoryRepository.findByProductIdIn(productIds).stream()
@@ -47,23 +53,23 @@ public class InventoryService {
 		return productIds.stream().map(productId -> {
 			Inventory inventory = inventories.get(productId);
 			if (inventory == null) {
-				return new AvailabilityItem(productId, false, 0, 0);
+				return new AvailabilityItemResponse(productId, false, 0, 0);
 			}
-			return new AvailabilityItem(productId, true, inventory.getAvailableQuantity(), inventory.getReservedQuantity());
+			return new AvailabilityItemResponse(productId, true, inventory.getAvailableQuantity(),
+					inventory.getReservedQuantity());
 		}).toList();
 	}
-
 
 	@Transactional(readOnly = true)
 	public InventoryQuoteResponse quote(String idsCsv) {
 		List<ProductQuoteItemResponse> productItems = Objects.requireNonNullElse(productClient.quote(idsCsv).items(),
 				List.of());
 
-		Map<UUID, AvailabilityItem> availabilityByProduct = availability(idsCsv).stream()
-				.collect(Collectors.toMap(AvailabilityItem::productId, Function.identity(), (a, b) -> a));
+		Map<UUID, AvailabilityItemResponse> availabilityByProduct = availability(idsCsv).stream()
+				.collect(Collectors.toMap(AvailabilityItemResponse::productId, Function.identity(), (a, b) -> a));
 
 		List<InventoryQuoteItemResponse> items = productItems.stream().map(p -> {
-			AvailabilityItem availability = availabilityByProduct.get(p.productId());
+			AvailabilityItemResponse availability = availabilityByProduct.get(p.productId());
 			int availableQuantity = availability == null ? 0 : availability.availableQuantity();
 			int reservedQuantity = availability == null ? 0 : availability.reservedQuantity();
 			return new InventoryQuoteItemResponse(p.productId(), p.exists(), p.active(), p.priceCents(), p.currency(),
@@ -78,15 +84,16 @@ public class InventoryService {
 		Inventory inventory = inventoryRepository.findByProductId(productId).orElseGet(Inventory::new);
 		inventory.setProductId(productId);
 		inventory.setAvailableQuantity(availableQuantity);
-		if (inventory.getReservedQuantity() == null) inventory.setReservedQuantity(0);
+		if (inventory.getReservedQuantity() == null)
+			inventory.setReservedQuantity(0);
 		return inventoryRepository.save(inventory);
 	}
 
 	@Transactional
-	public void reserve(UUID orderId, List<StockItem> items) {
-		for (StockItem item : items) {
-			Inventory inventory = inventoryRepository.findByProductId(item.productId())
-					.orElseThrow(() -> new IllegalArgumentException("Inventory not found for product " + item.productId()));
+	public void reserve(UUID orderId, List<StockItemRequest> items) {
+		for (StockItemRequest item : items) {
+			Inventory inventory = inventoryRepository.findByProductId(item.productId()).orElseThrow(
+					() -> new IllegalArgumentException("Inventory not found for product " + item.productId()));
 			if (inventory.getAvailableQuantity() < item.quantity()) {
 				throw new IllegalArgumentException("Insufficient stock for product " + item.productId());
 			}
@@ -111,10 +118,10 @@ public class InventoryService {
 	}
 
 	@Transactional
-	public void release(UUID orderId, List<StockItem> items) {
-		for (StockItem item : items) {
-			Inventory inventory = inventoryRepository.findByProductId(item.productId())
-					.orElseThrow(() -> new IllegalArgumentException("Inventory not found for product " + item.productId()));
+	public void release(UUID orderId, List<StockItemRequest> items) {
+		for (StockItemRequest item : items) {
+			Inventory inventory = inventoryRepository.findByProductId(item.productId()).orElseThrow(
+					() -> new IllegalArgumentException("Inventory not found for product " + item.productId()));
 
 			int reservedToRelease = Math.min(item.quantity(), inventory.getReservedQuantity());
 			inventory.setReservedQuantity(inventory.getReservedQuantity() - reservedToRelease);
@@ -137,6 +144,4 @@ public class InventoryService {
 		}
 	}
 
-	public record AvailabilityItem(UUID productId, boolean exists, int availableQuantity, int reservedQuantity) {}
-	public record StockItem(UUID productId, Integer quantity) {}
 }

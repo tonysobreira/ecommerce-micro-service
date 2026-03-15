@@ -1,7 +1,6 @@
 package com.example.inventoryservice.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,28 +11,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.inventoryservice.model.Inventory;
 import com.example.inventoryservice.dto.request.StockReleaseRequest;
 import com.example.inventoryservice.dto.request.StockReserveRequest;
+import com.example.inventoryservice.dto.request.UpsertStockRequest;
+import com.example.inventoryservice.dto.response.AvailabilityItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteResponse;
+import com.example.inventoryservice.model.Inventory;
 import com.example.inventoryservice.service.InventoryService;
-import com.example.inventoryservice.service.InventoryService.AvailabilityItem;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/inventory")
 public class InventoryController {
+
 	private final InventoryService inventoryService;
 
 	public InventoryController(InventoryService inventoryService) {
 		this.inventoryService = inventoryService;
 	}
-
-	record UpsertStockRequest(@NotNull UUID productId, @NotNull @Min(0) Integer availableQuantity) {}
 
 	@PostMapping("/stock")
 	public Inventory upsertStock(@RequestBody UpsertStockRequest request) {
@@ -42,7 +39,7 @@ public class InventoryController {
 
 	@Hidden
 	@GetMapping("/internal/availability")
-	public ResponseEntity<List<AvailabilityItem>> availability(@RequestParam("ids") String ids) {
+	public ResponseEntity<List<AvailabilityItemResponse>> availability(@RequestParam("ids") String ids) {
 		return ResponseEntity.ok(inventoryService.availability(ids));
 	}
 
@@ -55,14 +52,15 @@ public class InventoryController {
 	@Hidden
 	@PostMapping("/internal/stock/reserve")
 	public ResponseEntity<Void> reserve(@Valid @RequestBody StockReserveRequest request) {
-		inventoryService.reserve(request.orderId(), request.toStockItems());
+		inventoryService.reserve(request.orderId(), request.items());
 		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 
 	@Hidden
 	@PostMapping("/internal/stock/release")
 	public ResponseEntity<Void> release(@Valid @RequestBody StockReleaseRequest request) {
-		inventoryService.release(request.orderId(), request.toStockItems());
+		inventoryService.release(request.orderId(), request.items());
 		return ResponseEntity.noContent().build();
 	}
+
 }

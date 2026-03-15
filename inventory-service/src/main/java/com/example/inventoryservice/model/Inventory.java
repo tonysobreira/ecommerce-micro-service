@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "inventory")
 public class Inventory {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -25,11 +26,36 @@ public class Inventory {
 	@Column(nullable = false)
 	private Integer reservedQuantity;
 
-	public Long getId() { return id; }
-	public UUID getProductId() { return productId; }
-	public void setProductId(UUID productId) { this.productId = productId; }
-	public Integer getAvailableQuantity() { return availableQuantity; }
-	public void setAvailableQuantity(Integer availableQuantity) { this.availableQuantity = availableQuantity; }
-	public Integer getReservedQuantity() { return reservedQuantity; }
-	public void setReservedQuantity(Integer reservedQuantity) { this.reservedQuantity = reservedQuantity; }
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public UUID getProductId() {
+		return productId;
+	}
+
+	public void setProductId(UUID productId) {
+		this.productId = productId;
+	}
+
+	public Integer getAvailableQuantity() {
+		return availableQuantity;
+	}
+
+	public void setAvailableQuantity(Integer availableQuantity) {
+		this.availableQuantity = availableQuantity;
+	}
+
+	public Integer getReservedQuantity() {
+		return reservedQuantity;
+	}
+
+	public void setReservedQuantity(Integer reservedQuantity) {
+		this.reservedQuantity = reservedQuantity;
+	}
+
 }

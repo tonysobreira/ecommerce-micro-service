@@ -14,7 +14,9 @@ public class FeignConfig {
 	public RequestInterceptor correlationForwarder() {
 		return template -> {
 			ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-			if (attrs == null) return;
+			if (attrs == null) {
+				return;
+			}
 			HttpServletRequest req = attrs.getRequest();
 			String cid = req.getHeader("X-Correlation-Id");
 			if (cid != null && !cid.isBlank()) {
@@ -22,4 +24,5 @@ public class FeignConfig {
 			}
 		};
 	}
+
 }
