@@ -19,12 +19,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/shipping")
 public class ShippingController {
+
 	private final ShippingService shippingService;
 
 	public ShippingController(ShippingService shippingService) {
 		this.shippingService = shippingService;
 	}
-
 
 	@PostMapping("/methods")
 	public ShippingMethod createMethod(@RequestBody CreateMethodRequest request) {
@@ -45,4 +45,5 @@ public class ShippingController {
 	public List<Tracking> trackingTimeline(@PathVariable Long shipmentId) {
 		return shippingService.trackingTimeline(shipmentId);
 	}
+
 }

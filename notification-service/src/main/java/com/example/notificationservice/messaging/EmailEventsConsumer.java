@@ -1,14 +1,14 @@
-package com.example.emailservice.messaging;
+package com.example.notificationservice.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.example.emailservice.dto.request.ActivationEmailRequest;
-import com.example.emailservice.dto.request.OrderStatusEmailRequest;
-import com.example.emailservice.dto.request.PasswordResetEmailRequest;
-import com.example.emailservice.service.EmailSenderService;
+import com.example.notificationservice.dto.request.ActivationEmailRequest;
+import com.example.notificationservice.dto.request.OrderStatusEmailRequest;
+import com.example.notificationservice.dto.request.PasswordResetEmailRequest;
+import com.example.notificationservice.service.EmailSenderService;
 
 @Component
 public class EmailEventsConsumer {
@@ -22,7 +22,7 @@ public class EmailEventsConsumer {
 	}
 
 	@KafkaListener(topics = "${app.kafka.topics.activation-email:email.activation.requested}", groupId = "${spring.kafka.consumer.group-id:notification-service}", properties = {
-			"spring.json.value.default.type=com.example.emailservice.messaging.ActivationEmailEvent" })
+			"spring.json.value.default.type=com.example.notificationservice.messaging.ActivationEmailEvent" })
 	public void consumeActivation(ActivationEmailEvent event) {
 		emailSenderService
 				.sendActivation(new ActivationEmailRequest(event.email(), event.activationLink(), event.expiresInMinutes()));
@@ -30,7 +30,7 @@ public class EmailEventsConsumer {
 	}
 
 	@KafkaListener(topics = "${app.kafka.topics.password-reset-email:email.password-reset.requested}", groupId = "${spring.kafka.consumer.group-id:notification-service}", properties = {
-			"spring.json.value.default.type=com.example.emailservice.messaging.PasswordResetEmailEvent" })
+			"spring.json.value.default.type=com.example.notificationservice.messaging.PasswordResetEmailEvent" })
 	public void consumePasswordReset(PasswordResetEmailEvent event) {
 		emailSenderService
 				.sendPasswordReset(new PasswordResetEmailRequest(event.email(), event.resetLink(), event.expiresInMinutes()));
@@ -38,7 +38,7 @@ public class EmailEventsConsumer {
 	}
 
 	@KafkaListener(topics = "${app.kafka.topics.order-status-email:email.order-status.requested}", groupId = "${spring.kafka.consumer.group-id:notification-service}", properties = {
-			"spring.json.value.default.type=com.example.emailservice.messaging.OrderStatusEmailEvent" })
+			"spring.json.value.default.type=com.example.notificationservice.messaging.OrderStatusEmailEvent" })
 	public void consumeOrderStatus(OrderStatusEmailEvent event) {
 		emailSenderService.sendOrderStatus(
 				new OrderStatusEmailRequest(event.email(), event.orderId(), event.status(), event.currency(), event.totalCents()));

@@ -26,4 +26,5 @@ public class InternalProductController {
 	public ResponseEntity<QuoteResponse> quote(@RequestParam("ids") String ids) {
 		return ResponseEntity.ok(productService.quote(ids));
 	}
+
 }

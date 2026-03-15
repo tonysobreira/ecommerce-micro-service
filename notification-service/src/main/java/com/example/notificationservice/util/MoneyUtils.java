@@ -1,4 +1,4 @@
-package com.example.emailservice.util;
+package com.example.notificationservice.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

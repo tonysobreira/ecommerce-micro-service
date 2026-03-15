@@ -1,4 +1,4 @@
-package com.example.emailservice;
+package com.example.notificationservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,9 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-public class EmailServiceApplication {
+public class NotificationServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(EmailServiceApplication.class, args);
+		SpringApplication.run(NotificationServiceApplication.class, args);
 	}
+
 }

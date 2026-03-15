@@ -1,9 +1,9 @@
-package com.example.emailservice.controller;
+package com.example.notificationservice.controller;
 
-import com.example.emailservice.dto.request.ActivationEmailRequest;
-import com.example.emailservice.dto.request.OrderStatusEmailRequest;
-import com.example.emailservice.dto.request.PasswordResetEmailRequest;
-import com.example.emailservice.service.EmailSenderService;
+import com.example.notificationservice.dto.request.ActivationEmailRequest;
+import com.example.notificationservice.dto.request.OrderStatusEmailRequest;
+import com.example.notificationservice.dto.request.PasswordResetEmailRequest;
+import com.example.notificationservice.service.EmailSenderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

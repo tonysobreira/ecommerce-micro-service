@@ -61,10 +61,9 @@ public class OrderService {
 
 	private final OrderMapper orderMapper;
 
-	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient,
-			OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-			OrderStatusHistoryRepository orderStatusHistoryRepository, EmailEventPublisher emailEventPublisher,
-			OrderMapper orderMapper) {
+	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient, OrderRepository orderRepository,
+			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
+			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper) {
 		this.paymentClient = paymentClient;
 		this.inventoryClient = inventoryClient;
 		this.orderRepository = orderRepository;
@@ -110,7 +109,6 @@ public class OrderService {
 			if (qi.availableQuantity() < i.quantity()) {
 				throw new BadRequestException("Insufficient stock: " + i.productId());
 			}
-
 
 			if (currency == null) {
 				currency = qi.currency();

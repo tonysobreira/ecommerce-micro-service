@@ -1,4 +1,4 @@
-package com.example.emailservice.dto.request;
+package com.example.notificationservice.dto.request;
 
 import java.math.BigDecimal;
 import java.util.UUID;

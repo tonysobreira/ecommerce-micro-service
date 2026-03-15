@@ -9,8 +9,11 @@ import java.util.List;
 
 @Service
 public class ShippingService {
+
 	private final ShippingMethodRepository methodRepository;
+
 	private final ShipmentRepository shipmentRepository;
+
 	private final TrackingRepository trackingRepository;
 
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
@@ -55,4 +58,5 @@ public class ShippingService {
 	public List<Tracking> trackingTimeline(Long shipmentId) {
 		return trackingRepository.findByShipmentIdOrderByEventAtDesc(shipmentId);
 	}
+
 }

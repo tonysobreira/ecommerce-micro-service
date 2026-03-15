@@ -1,4 +1,4 @@
-package com.example.emailservice.infra;
+package com.example.notificationservice.infra;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -22,4 +22,5 @@ public interface InventoryClient {
 
 	@PostMapping("/inventory/internal/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
+
 }

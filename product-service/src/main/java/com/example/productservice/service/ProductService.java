@@ -24,6 +24,7 @@ import com.example.productservice.repository.ProductRepository;
 public class ProductService {
 
 	private final ProductRepository productRepository;
+
 	private final CategoryService categoryService;
 
 	public ProductService(ProductRepository productRepository, CategoryService categoryService) {
@@ -61,11 +62,16 @@ public class ProductService {
 			categoryService.get(req.categoryId());
 			p.setCategoryId(req.categoryId());
 		}
-		if (req.name() != null) p.setName(req.name().trim());
-		if (req.description() != null) p.setDescription(req.description());
-		if (req.priceCents() != null) p.setPriceCents(req.priceCents());
-		if (req.currency() != null) p.setCurrency(req.currency().trim());
-		if (req.active() != null) p.setActive(req.active());
+		if (req.name() != null)
+			p.setName(req.name().trim());
+		if (req.description() != null)
+			p.setDescription(req.description());
+		if (req.priceCents() != null)
+			p.setPriceCents(req.priceCents());
+		if (req.currency() != null)
+			p.setCurrency(req.currency().trim());
+		if (req.active() != null)
+			p.setActive(req.active());
 
 		return productRepository.save(p);
 	}

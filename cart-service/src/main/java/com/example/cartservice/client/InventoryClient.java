@@ -14,4 +14,5 @@ public interface InventoryClient {
 
 	@GetMapping("/inventory/internal/availability")
 	List<InventoryAvailabilityResponse> availability(@RequestParam("ids") String idsCsv);
+
 }

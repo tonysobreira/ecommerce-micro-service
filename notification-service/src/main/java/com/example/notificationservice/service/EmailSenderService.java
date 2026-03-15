@@ -1,4 +1,4 @@
-package com.example.emailservice.service;
+package com.example.notificationservice.service;
 
 
 import org.slf4j.Logger;
@@ -9,10 +9,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.example.emailservice.dto.request.ActivationEmailRequest;
-import com.example.emailservice.dto.request.OrderStatusEmailRequest;
-import com.example.emailservice.dto.request.PasswordResetEmailRequest;
-import com.example.emailservice.util.MoneyUtils;
+import com.example.notificationservice.dto.request.ActivationEmailRequest;
+import com.example.notificationservice.dto.request.OrderStatusEmailRequest;
+import com.example.notificationservice.dto.request.PasswordResetEmailRequest;
+import com.example.notificationservice.util.MoneyUtils;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
