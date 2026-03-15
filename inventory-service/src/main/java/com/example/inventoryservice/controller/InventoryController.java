@@ -13,15 +13,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.inventoryservice.model.Inventory;
+import com.example.inventoryservice.dto.request.StockReleaseRequest;
+import com.example.inventoryservice.dto.request.StockReserveRequest;
 import com.example.inventoryservice.dto.response.InventoryQuoteResponse;
 import com.example.inventoryservice.service.InventoryService;
 import com.example.inventoryservice.service.InventoryService.AvailabilityItem;
-import com.example.inventoryservice.service.InventoryService.StockItem;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
@@ -55,28 +55,14 @@ public class InventoryController {
 	@Hidden
 	@PostMapping("/internal/stock/reserve")
 	public ResponseEntity<Void> reserve(@Valid @RequestBody StockReserveRequest request) {
-		inventoryService.reserve(request.orderId(), request.items());
+		inventoryService.reserve(request.orderId(), request.toStockItems());
 		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 
 	@Hidden
 	@PostMapping("/internal/stock/release")
 	public ResponseEntity<Void> release(@Valid @RequestBody StockReleaseRequest request) {
-		inventoryService.release(request.orderId(), request.items());
+		inventoryService.release(request.orderId(), request.toStockItems());
 		return ResponseEntity.noContent().build();
 	}
-
-	record StockReserveRequest(@NotNull UUID orderId, @NotEmpty List<@Valid StockItemRequest> items) {
-		List<StockItem> items() {
-			return items.stream().map(i -> new StockItem(i.productId(), i.quantity())).toList();
-		}
-	}
-
-	record StockReleaseRequest(@NotNull UUID orderId, @NotEmpty List<@Valid StockItemRequest> items) {
-		List<StockItem> items() {
-			return items.stream().map(i -> new StockItem(i.productId(), i.quantity())).toList();
-		}
-	}
-
-	record StockItemRequest(@NotNull UUID productId, @NotNull @Min(1) Integer quantity) {}
 }
