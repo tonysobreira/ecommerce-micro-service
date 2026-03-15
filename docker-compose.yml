@@ -80,9 +80,9 @@ services:
     networks:
       - ecommerce-net
 
-  eureka-server:
-    build: ./eureka-server
-    container_name: eureka-server
+  discovery-server:
+    build: ./discovery-server
+    container_name: discovery-server
     environment:
       SPRING_PROFILES_ACTIVE: docker
     ports:
@@ -102,7 +102,7 @@ services:
     container_name: api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
     ports:
@@ -110,7 +110,7 @@ services:
     networks:
       - ecommerce-net
     depends_on:
-      eureka-server:
+      discovery-server:
         condition: service_healthy
 
   auth-service:
@@ -118,7 +118,7 @@ services:
     container_name: auth-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authdb
@@ -133,19 +133,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
-      email-service:
+      notification-service:
         condition: service_started
       kafka:
         condition: service_started
 
-  email-service:
-    build: ./email-service
-    container_name: email-service
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
       MAIL_SMTP_AUTH: "false"
@@ -157,7 +157,7 @@ services:
     networks:
       - ecommerce-net
     depends_on:
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       mailhog:
         condition: service_started
@@ -169,7 +169,7 @@ services:
     container_name: user-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
@@ -179,7 +179,7 @@ services:
       - "8082"
     depends_on:
       - postgres
-      - eureka-server
+      - discovery-server
     networks:
       - ecommerce-net
 
@@ -188,7 +188,7 @@ services:
     container_name: product-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/productdb
@@ -201,7 +201,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
 
   order-service:
@@ -209,7 +209,7 @@ services:
     container_name: order-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orderdb
@@ -225,11 +225,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       product-service:
         condition: service_started
-      email-service:
+      notification-service:
         condition: service_started
       kafka:
         condition: service_started
@@ -239,7 +239,7 @@ services:
     container_name: payment-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paymentdb
@@ -254,11 +254,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       product-service:
         condition: service_started
-      email-service:
+      notification-service:
         condition: service_started
 
   cart-service:
@@ -266,7 +266,7 @@ services:
     container_name: cart-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_URL: http://discovery-server:8761/eureka
       JWT_SECRET: "dev-jwt-secret-32-bytes-long-123456"
       JWT_ISSUER: ecommerce-ms
       SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/cartdb
@@ -275,7 +275,7 @@ services:
     networks:
       - ecommerce-net
     depends_on:
-      eureka-server:
+      discovery-server:
         condition: service_healthy
       mongodb:
         condition: service_started
@@ -283,6 +283,45 @@ services:
         condition: service_started
       order-service:
         condition: service_started
+
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://discovery-server:8761/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventorydb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8088"
+    networks:
+      - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+
+  shipping-service:
+    build: ./shipping-service
+    container_name: shipping-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_URL: http://discovery-server:8761/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shippingdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    expose:
+      - "8089"
+    networks:
+      - ecommerce-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
 
 networks:
   ecommerce-net:

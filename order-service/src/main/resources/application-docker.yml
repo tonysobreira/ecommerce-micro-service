@@ -27,7 +27,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://eureka-server:8761/eureka}
+      defaultZone: ${EUREKA_URL:http://discovery-server:8761/eureka}
 
 security:
   jwt:

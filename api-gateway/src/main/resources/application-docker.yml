@@ -35,8 +35,23 @@ spring:
           predicates:
             - Path=/payments/**
 
-        - id: email-service
-          uri: lb://email-service
+        - id: inventory-service
+          uri: lb://inventory-service
+          predicates:
+            - Path=/inventory/**
+
+        - id: shipping-service
+          uri: lb://shipping-service
+          predicates:
+            - Path=/shipping/**
+
+        - id: cart-service
+          uri: lb://cart-service
+          predicates:
+            - Path=/cart/**
+
+        - id: notification-service
+          uri: lb://notification-service
           predicates:
             - Path=/emails/**
 
@@ -76,10 +91,31 @@ spring:
           filters:
             - SetPath=/v3/api-docs
 
-        - id: email-service-docs
-          uri: lb://email-service
+        - id: inventory-service-docs
+          uri: lb://inventory-service
           predicates:
-            - Path=/v3/api-docs/email
+            - Path=/v3/api-docs/inventory
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: shipping-service-docs
+          uri: lb://shipping-service
+          predicates:
+            - Path=/v3/api-docs/shipping
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: notification-service-docs
+          uri: lb://notification-service
+          predicates:
+            - Path=/v3/api-docs/notification
+          filters:
+            - SetPath=/v3/api-docs
+
+        - id: cart-service-docs
+          uri: lb://cart-service
+          predicates:
+            - Path=/v3/api-docs/cart
           filters:
             - SetPath=/v3/api-docs
 
@@ -97,13 +133,19 @@ springdoc:
         url: /v3/api-docs/order
       - name: payment-service
         url: /v3/api-docs/payment
-      - name: email-service
-        url: /v3/api-docs/email
+      - name: inventory-service
+        url: /v3/api-docs/inventory
+      - name: shipping-service
+        url: /v3/api-docs/shipping
+      - name: notification-service
+        url: /v3/api-docs/notification
+      - name: cart-service
+        url: /v3/api-docs/cart
 
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-server:8761/eureka
+      defaultZone: http://discovery-server:8761/eureka
 
 security:
   jwt:

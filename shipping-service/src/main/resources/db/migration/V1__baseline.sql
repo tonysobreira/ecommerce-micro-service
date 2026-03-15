@@ -1,0 +1,22 @@
+CREATE TABLE shipping_method (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  base_cost NUMERIC(12,2) NOT NULL
+);
+
+CREATE TABLE shipment (
+  id BIGSERIAL PRIMARY KEY,
+  order_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  destination_address VARCHAR(255) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE tracking (
+  id BIGSERIAL PRIMARY KEY,
+  shipment_id BIGINT NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  location VARCHAR(150),
+  event_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
