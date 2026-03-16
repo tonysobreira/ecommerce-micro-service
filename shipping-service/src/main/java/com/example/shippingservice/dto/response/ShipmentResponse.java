@@ -6,6 +6,8 @@ import java.util.UUID;
 import com.example.shippingservice.model.ShipmentStatus;
 
 public record ShipmentResponse(
+	UUID id,
+
 	UUID orderId,
 
 	UUID userId,
