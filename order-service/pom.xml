@@ -8,6 +8,7 @@
 	<artifactId>order-service</artifactId>
 	<version>1.0.0</version>
 	<name>order-service</name>
+	<description>Order Service</description>
 
 	<properties>
 		<java.version>21</java.version>
@@ -134,7 +135,6 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -182,4 +182,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
