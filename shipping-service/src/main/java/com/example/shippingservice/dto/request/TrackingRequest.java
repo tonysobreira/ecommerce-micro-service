@@ -1,10 +1,12 @@
 package com.example.shippingservice.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import com.example.shippingservice.model.ShipmentStatus;
+
+import jakarta.validation.constraints.NotNull;
 
 public record TrackingRequest(
-	@NotBlank
-	String status,
+	@NotNull
+	ShipmentStatus status,
 
 	String location
 ) {

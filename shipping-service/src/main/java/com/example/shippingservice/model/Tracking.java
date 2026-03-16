@@ -7,6 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,7 +26,8 @@ public class Tracking {
 	private UUID shipmentId;
 
 	@Column(name = "status", nullable = false)
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private ShipmentStatus status;
 
 	@Column(name = "location")
 	private String location;
@@ -36,7 +39,7 @@ public class Tracking {
 	public Tracking() {
 	}
 
-	public Tracking(UUID shipmentId, String status, String location) {
+	public Tracking(UUID shipmentId, ShipmentStatus status, String location) {
 		this.shipmentId = shipmentId;
 		this.status = status;
 		this.location = location;
@@ -58,11 +61,11 @@ public class Tracking {
 		this.shipmentId = shipmentId;
 	}
 
-	public String getStatus() {
+	public ShipmentStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(ShipmentStatus status) {
 		this.status = status;
 	}
 
