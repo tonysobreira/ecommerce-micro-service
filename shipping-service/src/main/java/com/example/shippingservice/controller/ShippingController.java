@@ -36,14 +36,13 @@ public class ShippingController {
 
 	@PostMapping("/shipments")
 	public ResponseEntity<ShipmentResponse> createShipment(@RequestBody CreateShipmentRequest request) {
-		return ResponseEntity
-				.ok(shippingService.createShipment(request.orderId(), request.userId(), request.destinationAddress()));
+		return ResponseEntity.ok(shippingService.createShipment(request));
 	}
 
 	@PostMapping("/shipments/{shipmentId}/tracking")
 	public ResponseEntity<TrackingResponse> addTracking(@PathVariable UUID shipmentId,
 			@RequestBody TrackingRequest request) {
-		return ResponseEntity.ok(shippingService.addTracking(shipmentId, request.status(), request.location()));
+		return ResponseEntity.ok(shippingService.addTracking(shipmentId, request));
 	}
 
 	@GetMapping("/shipments/{shipmentId}/tracking")

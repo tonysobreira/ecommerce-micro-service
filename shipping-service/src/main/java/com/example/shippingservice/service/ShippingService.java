@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.shippingservice.dto.request.CreateShipmentRequest;
+import com.example.shippingservice.dto.request.TrackingRequest;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.dto.response.ShippingMethodResponse;
 import com.example.shippingservice.dto.response.TrackingResponse;
@@ -37,14 +39,15 @@ public class ShippingService {
 		this.mapper = mapper;
 	}
 
+	@Transactional
 	public ShippingMethodResponse createMethod(String name, BigDecimal baseCost) {
 		ShippingMethod method = new ShippingMethod(name, baseCost);
 		return mapper.toResponse(methodRepository.save(method));
 	}
 
 	@Transactional
-	public ShipmentResponse createShipment(UUID orderId, UUID userId, String destinationAddress) {
-		Shipment shipment = new Shipment(orderId, userId, "CREATED", destinationAddress);
+	public ShipmentResponse createShipment(CreateShipmentRequest request) {
+		Shipment shipment = new Shipment(request.orderId(), request.userId(), "CREATED", request.destinationAddress());
 		shipment = shipmentRepository.save(shipment);
 
 		Tracking tracking = new Tracking(shipment.getId(), "CREATED", "WAREHOUSE");
@@ -53,11 +56,13 @@ public class ShippingService {
 		return mapper.toResponse(shipment);
 	}
 
-	public TrackingResponse addTracking(UUID shipmentId, String status, String location) {
-		Tracking tracking = new Tracking(shipmentId, status, location);
+	@Transactional
+	public TrackingResponse addTracking(UUID shipmentId, TrackingRequest request) {
+		Tracking tracking = new Tracking(shipmentId, request.status(), request.location());
 		return mapper.toResponse(trackingRepository.save(tracking));
 	}
 
+	@Transactional(readOnly = true)
 	public List<TrackingResponse> trackingTimeline(UUID shipmentId) {
 		List<Tracking> list = trackingRepository.findByShipmentIdOrderByEventAtDesc(shipmentId);
 		return list.stream().map(mapper::toResponse).toList();
