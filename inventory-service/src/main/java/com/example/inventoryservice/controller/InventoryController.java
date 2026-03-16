@@ -16,7 +16,8 @@ import com.example.inventoryservice.dto.request.StockReserveRequest;
 import com.example.inventoryservice.dto.request.UpsertStockRequest;
 import com.example.inventoryservice.dto.response.AvailabilityItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteResponse;
-import com.example.inventoryservice.model.Inventory;
+import com.example.inventoryservice.dto.response.InventoryResponse;
+import com.example.inventoryservice.mapper.InventoryMapper;
 import com.example.inventoryservice.service.InventoryService;
 
 import io.swagger.v3.oas.annotations.Hidden;
@@ -28,13 +29,13 @@ public class InventoryController {
 
 	private final InventoryService inventoryService;
 
-	public InventoryController(InventoryService inventoryService) {
+	public InventoryController(InventoryService inventoryService, InventoryMapper mapper) {
 		this.inventoryService = inventoryService;
 	}
 
 	@PostMapping("/stock")
-	public Inventory upsertStock(@RequestBody UpsertStockRequest request) {
-		return inventoryService.upsertStock(request.productId(), request.availableQuantity());
+	public ResponseEntity<InventoryResponse> upsertStock(@RequestBody UpsertStockRequest request) {
+		return ResponseEntity.ok().body(inventoryService.upsertStock(request.productId(), request.availableQuantity()));
 	}
 
 	@Hidden

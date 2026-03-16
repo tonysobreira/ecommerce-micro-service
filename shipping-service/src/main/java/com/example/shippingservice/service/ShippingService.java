@@ -1,11 +1,22 @@
 package com.example.shippingservice.service;
 
-import com.example.shippingservice.model.*;
-import com.example.shippingservice.repository.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.shippingservice.dto.response.ShipmentResponse;
+import com.example.shippingservice.dto.response.ShippingMethodResponse;
+import com.example.shippingservice.dto.response.TrackingResponse;
+import com.example.shippingservice.mapper.ShippingMapper;
+import com.example.shippingservice.model.Shipment;
+import com.example.shippingservice.model.ShippingMethod;
+import com.example.shippingservice.model.Tracking;
+import com.example.shippingservice.repository.ShipmentRepository;
+import com.example.shippingservice.repository.ShippingMethodRepository;
+import com.example.shippingservice.repository.TrackingRepository;
 
 @Service
 public class ShippingService {
@@ -16,47 +27,40 @@ public class ShippingService {
 
 	private final TrackingRepository trackingRepository;
 
+	private final ShippingMapper mapper;
+
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
-			TrackingRepository trackingRepository) {
+			TrackingRepository trackingRepository, ShippingMapper mapper) {
 		this.methodRepository = methodRepository;
 		this.shipmentRepository = shipmentRepository;
 		this.trackingRepository = trackingRepository;
+		this.mapper = mapper;
 	}
 
-	public ShippingMethod createMethod(String name, BigDecimal baseCost) {
-		ShippingMethod method = new ShippingMethod();
-		method.setName(name);
-		method.setBaseCost(baseCost);
-		return methodRepository.save(method);
+	public ShippingMethodResponse createMethod(String name, BigDecimal baseCost) {
+		ShippingMethod method = new ShippingMethod(name, baseCost);
+		return mapper.toResponse(methodRepository.save(method));
 	}
 
 	@Transactional
-	public Shipment createShipment(Long orderId, Long userId, String destinationAddress) {
-		Shipment shipment = new Shipment();
-		shipment.setOrderId(orderId);
-		shipment.setUserId(userId);
-		shipment.setDestinationAddress(destinationAddress);
-		shipment.setStatus("CREATED");
+	public ShipmentResponse createShipment(UUID orderId, UUID userId, String destinationAddress) {
+		Shipment shipment = new Shipment(orderId, userId, "CREATED", destinationAddress);
 		shipment = shipmentRepository.save(shipment);
 
-		Tracking tracking = new Tracking();
-		tracking.setShipmentId(shipment.getId());
-		tracking.setStatus("CREATED");
-		tracking.setLocation("WAREHOUSE");
+		Tracking tracking = new Tracking(shipment.getId(), "CREATED", "WAREHOUSE");
 		trackingRepository.save(tracking);
-		return shipment;
+
+		return mapper.toResponse(shipment);
 	}
 
-	public Tracking addTracking(Long shipmentId, String status, String location) {
-		Tracking tracking = new Tracking();
-		tracking.setShipmentId(shipmentId);
-		tracking.setStatus(status);
-		tracking.setLocation(location);
-		return trackingRepository.save(tracking);
+	public TrackingResponse addTracking(UUID shipmentId, String status, String location) {
+		Tracking tracking = new Tracking(shipmentId, status, location);
+		return mapper.toResponse(trackingRepository.save(tracking));
 	}
 
-	public List<Tracking> trackingTimeline(Long shipmentId) {
-		return trackingRepository.findByShipmentIdOrderByEventAtDesc(shipmentId);
+	public List<TrackingResponse> trackingTimeline(UUID shipmentId) {
+		List<Tracking> list = trackingRepository.findByShipmentIdOrderByEventAtDesc(shipmentId);
+		return list.stream().map(mapper::toResponse).toList();
 	}
 
 }

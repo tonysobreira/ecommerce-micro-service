@@ -1,27 +1,42 @@
 package com.example.shippingservice.model;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "shipping_method")
 public class ShippingMethod {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-	@Column(nullable = false, unique = true)
+	@Column(name = "name", nullable = false, unique = true)
 	private String name;
 
-	@Column(nullable = false)
+	@Column(name = "base_cost", nullable = false)
 	private BigDecimal baseCost;
 
-	public Long getId() {
+	public ShippingMethod() {
+	}
+
+	public ShippingMethod(String name, BigDecimal baseCost) {
+		this.name = name;
+		this.baseCost = baseCost;
+	}
+
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

@@ -16,7 +16,9 @@ import com.example.inventoryservice.dto.request.StockItemRequest;
 import com.example.inventoryservice.dto.response.AvailabilityItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteResponse;
+import com.example.inventoryservice.dto.response.InventoryResponse;
 import com.example.inventoryservice.dto.response.ProductQuoteItemResponse;
+import com.example.inventoryservice.mapper.InventoryMapper;
 import com.example.inventoryservice.model.Inventory;
 import com.example.inventoryservice.model.StockMovement;
 import com.example.inventoryservice.model.StockReservation;
@@ -35,12 +37,15 @@ public class InventoryService {
 
 	private final ProductClient productClient;
 
+	private final InventoryMapper inventoryMapper;
+
 	public InventoryService(InventoryRepository inventoryRepository, StockReservationRepository reservationRepository,
-			StockMovementRepository movementRepository, ProductClient productClient) {
+			StockMovementRepository movementRepository, ProductClient productClient, InventoryMapper inventoryMapper) {
 		this.inventoryRepository = inventoryRepository;
 		this.reservationRepository = reservationRepository;
 		this.movementRepository = movementRepository;
 		this.productClient = productClient;
+		this.inventoryMapper = inventoryMapper;
 	}
 
 	@Transactional(readOnly = true)
@@ -52,9 +57,11 @@ public class InventoryService {
 
 		return productIds.stream().map(productId -> {
 			Inventory inventory = inventories.get(productId);
+
 			if (inventory == null) {
 				return new AvailabilityItemResponse(productId, false, 0, 0);
 			}
+
 			return new AvailabilityItemResponse(productId, true, inventory.getAvailableQuantity(),
 					inventory.getReservedQuantity());
 		}).toList();
@@ -62,8 +69,9 @@ public class InventoryService {
 
 	@Transactional(readOnly = true)
 	public InventoryQuoteResponse quote(String idsCsv) {
-		List<ProductQuoteItemResponse> productItems = Objects.requireNonNullElse(productClient.quote(idsCsv).items(),
-				List.of());
+		List<ProductQuoteItemResponse> productQuoteItems = productClient.quote(idsCsv).items();
+
+		List<ProductQuoteItemResponse> productItems = Objects.requireNonNullElse(productQuoteItems, List.of());
 
 		Map<UUID, AvailabilityItemResponse> availabilityByProduct = availability(idsCsv).stream()
 				.collect(Collectors.toMap(AvailabilityItemResponse::productId, Function.identity(), (a, b) -> a));
@@ -80,13 +88,17 @@ public class InventoryService {
 	}
 
 	@Transactional
-	public Inventory upsertStock(UUID productId, Integer availableQuantity) {
+	public InventoryResponse upsertStock(UUID productId, Integer availableQuantity) {
 		Inventory inventory = inventoryRepository.findByProductId(productId).orElseGet(Inventory::new);
+
 		inventory.setProductId(productId);
 		inventory.setAvailableQuantity(availableQuantity);
-		if (inventory.getReservedQuantity() == null)
+
+		if (inventory.getReservedQuantity() == null) {
 			inventory.setReservedQuantity(0);
-		return inventoryRepository.save(inventory);
+		}
+
+		return inventoryMapper.toResponse(inventoryRepository.save(inventory));
 	}
 
 	@Transactional
@@ -94,25 +106,20 @@ public class InventoryService {
 		for (StockItemRequest item : items) {
 			Inventory inventory = inventoryRepository.findByProductId(item.productId()).orElseThrow(
 					() -> new IllegalArgumentException("Inventory not found for product " + item.productId()));
+
 			if (inventory.getAvailableQuantity() < item.quantity()) {
 				throw new IllegalArgumentException("Insufficient stock for product " + item.productId());
 			}
+
 			inventory.setAvailableQuantity(inventory.getAvailableQuantity() - item.quantity());
 			inventory.setReservedQuantity(inventory.getReservedQuantity() + item.quantity());
 			inventoryRepository.save(inventory);
 
-			StockReservation reservation = new StockReservation();
-			reservation.setOrderId(orderId);
-			reservation.setProductId(item.productId());
-			reservation.setQuantity(item.quantity());
-			reservation.setStatus("RESERVED");
+			StockReservation reservation = new StockReservation(orderId, item.productId(), item.quantity(), "RESERVED");
 			reservationRepository.save(reservation);
 
-			StockMovement movement = new StockMovement();
-			movement.setProductId(item.productId());
-			movement.setQuantity(item.quantity());
-			movement.setType("RESERVE");
-			movement.setReason("order:" + orderId);
+			StockMovement movement = new StockMovement(item.productId(), item.quantity(), "RESERVE",
+					"Order: " + orderId);
 			movementRepository.save(movement);
 		}
 	}
@@ -128,18 +135,12 @@ public class InventoryService {
 			inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservedToRelease);
 			inventoryRepository.save(inventory);
 
-			StockReservation reservation = new StockReservation();
-			reservation.setOrderId(orderId);
-			reservation.setProductId(item.productId());
-			reservation.setQuantity(reservedToRelease);
-			reservation.setStatus("RELEASED");
+			StockReservation reservation = new StockReservation(orderId, item.productId(), reservedToRelease,
+					"RELEASED");
 			reservationRepository.save(reservation);
 
-			StockMovement movement = new StockMovement();
-			movement.setProductId(item.productId());
-			movement.setQuantity(reservedToRelease);
-			movement.setType("RELEASE");
-			movement.setReason("order:" + orderId);
+			StockMovement movement = new StockMovement(item.productId(), reservedToRelease, "RELEASE",
+					"Order: " + orderId);
 			movementRepository.save(movement);
 		}
 	}

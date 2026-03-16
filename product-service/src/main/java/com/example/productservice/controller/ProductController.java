@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.productservice.dto.request.ProductCreateRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
 import com.example.productservice.dto.response.ProductResponse;
-import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.service.ProductService;
 
 import jakarta.validation.Valid;
@@ -28,32 +27,28 @@ public class ProductController {
 
 	private final ProductService productService;
 
-
-	private final ProductMapper mapper;
-
-	public ProductController(ProductService productService, ProductMapper mapper) {
+	public ProductController(ProductService productService) {
 		this.productService = productService;
-		this.mapper = mapper;
 	}
 
 	@GetMapping
 	public ResponseEntity<List<ProductResponse>> list() {
-		return ResponseEntity.ok(productService.listPublic().stream().map(mapper::toResponse).toList());
+		return ResponseEntity.ok(productService.listPublic());
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ProductResponse> get(@PathVariable("id") UUID id) {
-		return ResponseEntity.ok(mapper.toResponse(productService.get(id)));
+		return ResponseEntity.ok(productService.get(id));
 	}
 
 	@PostMapping
 	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest req) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(productService.create(req)));
+		return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(req));
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @Valid @RequestBody ProductUpdateRequest req) {
-		return ResponseEntity.ok(mapper.toResponse(productService.update(id, req)));
+		return ResponseEntity.ok(productService.update(id, req));
 	}
 
 	@DeleteMapping("/{id}")
@@ -61,6 +56,5 @@ public class ProductController {
 		productService.delete(id);
 		return ResponseEntity.noContent().build();
 	}
-
 
 }

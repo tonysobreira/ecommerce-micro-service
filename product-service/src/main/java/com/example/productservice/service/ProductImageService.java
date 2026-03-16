@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.productservice.dto.request.ProductImageCreateRequest;
+import com.example.productservice.dto.response.ProductImageResponse;
 import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.model.ProductImage;
 import com.example.productservice.repository.ProductImageRepository;
 
@@ -18,23 +20,29 @@ public class ProductImageService {
 
 	private final ProductService productService;
 
-	public ProductImageService(ProductImageRepository productImageRepository, ProductService productService) {
+	private final ProductMapper mapper;
+
+	public ProductImageService(ProductImageRepository productImageRepository, ProductService productService,
+			ProductMapper mapper) {
 		this.productImageRepository = productImageRepository;
 		this.productService = productService;
+		this.mapper = mapper;
 	}
 
 	@Transactional(readOnly = true)
-	public List<ProductImage> listByProduct(UUID productId) {
-		return productImageRepository.findByProductIdOrderBySortOrderAsc(productId);
+	public List<ProductImageResponse> listByProduct(UUID productId) {
+		return productImageRepository.findByProductIdOrderBySortOrderAsc(productId).stream().map(mapper::toResponse)
+				.toList();
 	}
 
 	@Transactional
-	public ProductImage create(ProductImageCreateRequest req) {
-		productService.get(req.productId()); // validate exists
+	public ProductImageResponse create(ProductImageCreateRequest req) {
+		// validate exists
+		productService.findById(req.productId());
 		int sortOrder = req.sortOrder() != null ? req.sortOrder() : 0;
 		ProductImage img = new ProductImage(UUID.randomUUID(), req.productId(), req.url().trim(), req.altText(),
 				sortOrder);
-		return productImageRepository.save(img);
+		return mapper.toResponse(productImageRepository.save(img));
 	}
 
 	@Transactional

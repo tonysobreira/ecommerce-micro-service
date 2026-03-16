@@ -21,7 +21,6 @@ import com.example.cartservice.dto.request.CheckoutRequest;
 import com.example.cartservice.dto.request.CreateOrderItemRequest;
 import com.example.cartservice.dto.request.CreateOrderRequest;
 import com.example.cartservice.dto.request.UpdateCartItemRequest;
-import com.example.cartservice.dto.response.CartItemResponse;
 import com.example.cartservice.dto.response.CartResponse;
 import com.example.cartservice.dto.response.CheckoutResponse;
 import com.example.cartservice.dto.response.InventoryAvailabilityResponse;
@@ -30,6 +29,7 @@ import com.example.cartservice.dto.response.ProductQuoteItemResponse;
 import com.example.cartservice.dto.response.ProductQuoteResponse;
 import com.example.cartservice.exception.BadRequestException;
 import com.example.cartservice.exception.NotFoundException;
+import com.example.cartservice.mapper.CartMapper;
 import com.example.cartservice.model.CartDocument;
 import com.example.cartservice.model.CartItem;
 import com.example.cartservice.repository.CartRepository;
@@ -47,17 +47,20 @@ public class CartService {
 
 	private final OrderClient orderClient;
 
+	private final CartMapper mapper;
+
 	public CartService(CartRepository repository, ProductClient productClient, InventoryClient inventoryClient,
-			OrderClient orderClient) {
+			OrderClient orderClient, CartMapper mapper) {
 		this.repository = repository;
 		this.productClient = productClient;
 		this.inventoryClient = inventoryClient;
 		this.orderClient = orderClient;
+		this.mapper = mapper;
 	}
 
 	public CartResponse getCart(UUID userId) {
 		CartDocument cart = repository.findByUserId(userId).orElseGet(() -> emptyCart(userId));
-		return toResponse(cart);
+		return mapper.toResponse(cart);
 	}
 
 	public CartResponse addItem(UUID userId, AddCartItemRequest req) {
@@ -82,7 +85,7 @@ public class CartService {
 
 		refreshTotalsAndTtl(cart);
 		repository.save(cart);
-		return toResponse(cart);
+		return mapper.toResponse(cart);
 	}
 
 	public CartResponse updateItem(UUID userId, UUID productId, UpdateCartItemRequest req) {
@@ -98,9 +101,10 @@ public class CartService {
 		existing.setQuantity(req.quantity());
 		existing.setUnitPrice(quoted.priceCents().setScale(2, RoundingMode.HALF_UP));
 		existing.setCurrency(quoted.currency());
+
 		refreshTotalsAndTtl(cart);
 		repository.save(cart);
-		return toResponse(cart);
+		return mapper.toResponse(cart);
 	}
 
 	public CartResponse removeItem(UUID userId, UUID productId) {
@@ -114,7 +118,7 @@ public class CartService {
 
 		refreshTotalsAndTtl(cart);
 		repository.save(cart);
-		return toResponse(cart);
+		return mapper.toResponse(cart);
 	}
 
 	public void clear(UUID userId) {
@@ -170,9 +174,11 @@ public class CartService {
 		if (!quoted.exists()) {
 			throw new NotFoundException("Product not found");
 		}
+
 		if (!quoted.active()) {
 			throw new BadRequestException("Product is inactive");
 		}
+
 		if (availableQuantity < quantity) {
 			throw new BadRequestException("Insufficient stock for product " + quoted.productId());
 		}
@@ -180,17 +186,16 @@ public class CartService {
 
 	private int availableForProduct(UUID productId) {
 		List<InventoryAvailabilityResponse> availability = inventoryClient.availability(productId.toString());
+
 		if (availability == null || availability.isEmpty()) {
 			return 0;
 		}
+
 		return availability.get(0).availableQuantity();
 	}
 
 	private CartDocument emptyCart(UUID userId) {
-		CartDocument cart = new CartDocument();
-		cart.setId("cart_" + userId);
-		cart.setUserId(userId);
-		cart.setItems(new ArrayList<>());
+		CartDocument cart = new CartDocument("cart_" + userId, userId, new ArrayList<>());
 		refreshTotalsAndTtl(cart);
 		return cart;
 	}
@@ -198,26 +203,23 @@ public class CartService {
 	private void refreshTotalsAndTtl(CartDocument cart) {
 		BigDecimal subtotal = BigDecimal.ZERO;
 		String currency = null;
+
 		for (CartItem item : cart.getItems()) {
 			if (item.getUnitPrice() == null || item.getQuantity() == null) {
 				continue;
 			}
+
 			subtotal = subtotal.add(item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+
 			if (currency == null) {
 				currency = item.getCurrency();
 			}
 		}
+
 		cart.setSubtotal(subtotal.setScale(2, RoundingMode.HALF_UP));
 		cart.setCurrency(currency == null ? "USD" : currency);
 		cart.setUpdatedAt(Instant.now());
 		cart.setExpiresAt(Instant.now().plus(CART_TTL_DAYS, ChronoUnit.DAYS));
-	}
-
-	private CartResponse toResponse(CartDocument cart) {
-		List<CartItemResponse> items = cart.getItems().stream().map(i -> new CartItemResponse(i.getProductId(),
-				i.getQuantity(), i.getUnitPrice(), i.getCurrency(), i.getNameSnapshot())).toList();
-		return new CartResponse(cart.getUserId(), items, cart.getSubtotal(), cart.getCurrency(), cart.getUpdatedAt(),
-				cart.getExpiresAt());
 	}
 
 }

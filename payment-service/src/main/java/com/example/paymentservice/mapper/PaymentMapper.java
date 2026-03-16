@@ -7,5 +7,7 @@ import com.example.paymentservice.model.Payment;
 
 @Mapper(componentModel = "spring")
 public interface PaymentMapper {
+
 	PaymentResponse toResponse(Payment payment);
+
 }

@@ -14,8 +14,8 @@ import jakarta.persistence.Table;
 public class Inventory {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
 	@Column(nullable = false, unique = true)
 	private UUID productId;
@@ -26,11 +26,14 @@ public class Inventory {
 	@Column(nullable = false)
 	private Integer reservedQuantity;
 
-	public Long getId() {
+	public Inventory() {
+	}
+
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

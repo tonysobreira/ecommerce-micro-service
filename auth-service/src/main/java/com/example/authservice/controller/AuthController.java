@@ -1,17 +1,33 @@
 package com.example.authservice.controller;
 
-import com.example.authservice.model.UserAccount;
-import com.example.authservice.dto.request.*;
-import com.example.authservice.dto.response.*;
-import com.example.authservice.mapper.AuthMapper;
-import com.example.authservice.security.UserPrincipal;
-import com.example.authservice.service.AuthService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.authservice.dto.request.ForgotPasswordRequest;
+import com.example.authservice.dto.request.LoginRequest;
+import com.example.authservice.dto.request.LogoutRequest;
+import com.example.authservice.dto.request.RefreshRequest;
+import com.example.authservice.dto.request.RegisterRequest;
+import com.example.authservice.dto.request.ResendActivationRequest;
+import com.example.authservice.dto.request.ResetPasswordRequest;
+import com.example.authservice.dto.request.ValidateRequest;
+import com.example.authservice.dto.response.AuthResponse;
+import com.example.authservice.dto.response.MeResponse;
+import com.example.authservice.dto.response.RegisterResponse;
+import com.example.authservice.dto.response.ValidateResponse;
+import com.example.authservice.security.UserPrincipal;
+import com.example.authservice.service.AuthService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
@@ -19,11 +35,8 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	private final AuthMapper authMapper;
-
-	public AuthController(AuthService authService, AuthMapper authMapper) {
+	public AuthController(AuthService authService) {
 		this.authService = authService;
-		this.authMapper = authMapper;
 	}
 
 	@PostMapping("/register")
@@ -60,8 +73,7 @@ public class AuthController {
 	@GetMapping("/me")
 	public ResponseEntity<MeResponse> me(Authentication authentication) {
 		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-		UserAccount u = authService.getUser(principal.getUserId());
-		return ResponseEntity.ok(authMapper.toMeResponse(u));
+		return ResponseEntity.ok(authService.getUser(principal.getUserId()));
 	}
 
 	@PostMapping("/refresh")

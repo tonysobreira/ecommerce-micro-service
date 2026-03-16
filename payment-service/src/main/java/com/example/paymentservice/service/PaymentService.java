@@ -38,26 +38,27 @@ public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
 
-	private final PaymentMapper paymentMapper;
-
 	private final UserClient userClient;
 
 	private final OrderClient orderClient;
 
 	private final InventoryClient inventoryClient;
 
-	public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, UserClient userClient,
-			OrderClient orderClient, InventoryClient inventoryClient) {
+	private final PaymentMapper mapper;
+
+	public PaymentService(PaymentRepository paymentRepository, UserClient userClient, OrderClient orderClient,
+			InventoryClient inventoryClient, PaymentMapper mapper) {
 		this.paymentRepository = paymentRepository;
-		this.paymentMapper = paymentMapper;
 		this.userClient = userClient;
 		this.orderClient = orderClient;
 		this.inventoryClient = inventoryClient;
+		this.mapper = mapper;
 	}
 
 	@Transactional
 	public PaymentResponse createPendingPayment(UUID authenticatedUserId, CreatePaymentRequest request) {
 		UserResponse user = fetchUser(authenticatedUserId);
+
 		if (user == null) {
 			throw new NotFoundException("User not found.");
 		}
@@ -72,7 +73,7 @@ public class PaymentService {
 		Payment payment = new Payment(request.orderId(), request.userId(), request.amount(), request.paymentMethod());
 		payment = paymentRepository.save(payment);
 		log.info("Pending payment created: {}", payment.getId());
-		return paymentMapper.toResponse(payment);
+		return mapper.toResponse(payment);
 	}
 
 	@Transactional
@@ -110,24 +111,24 @@ public class PaymentService {
 			paymentRepository.save(payment);
 		}
 
-		return paymentMapper.toResponse(payment);
+		return mapper.toResponse(payment);
 	}
 
 	@Transactional(readOnly = true)
 	public PaymentResponse getPaymentById(UUID id) {
-		return paymentRepository.findById(id).map(paymentMapper::toResponse)
+		return paymentRepository.findById(id).map(mapper::toResponse)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + id));
 	}
 
 	@Transactional(readOnly = true)
 	public PaymentResponse getPaymentByOrderId(UUID orderId) {
-		return paymentRepository.findByOrderId(orderId).map(paymentMapper::toResponse)
+		return paymentRepository.findByOrderId(orderId).map(mapper::toResponse)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found for order: " + orderId));
 	}
 
 	@Transactional(readOnly = true)
 	public List<PaymentResponse> getPaymentsByUserId(UUID userId) {
-		return paymentRepository.findByUserId(userId).stream().map(paymentMapper::toResponse).toList();
+		return paymentRepository.findByUserId(userId).stream().map(mapper::toResponse).toList();
 	}
 
 	@Transactional
@@ -149,7 +150,7 @@ public class PaymentService {
 
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);
-		return paymentMapper.toResponse(paymentRepository.save(payment));
+		return mapper.toResponse(paymentRepository.save(payment));
 	}
 
 	private UserResponse fetchUser(UUID userId) {

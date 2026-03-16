@@ -1,12 +1,9 @@
 package com.example.shippingservice.controller;
 
-import com.example.shippingservice.dto.request.CreateMethodRequest;
-import com.example.shippingservice.dto.request.CreateShipmentRequest;
-import com.example.shippingservice.dto.request.TrackingRequest;
-import com.example.shippingservice.model.Shipment;
-import com.example.shippingservice.model.ShippingMethod;
-import com.example.shippingservice.model.Tracking;
-import com.example.shippingservice.service.ShippingService;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.example.shippingservice.dto.request.CreateMethodRequest;
+import com.example.shippingservice.dto.request.CreateShipmentRequest;
+import com.example.shippingservice.dto.request.TrackingRequest;
+import com.example.shippingservice.dto.response.ShipmentResponse;
+import com.example.shippingservice.dto.response.ShippingMethodResponse;
+import com.example.shippingservice.dto.response.TrackingResponse;
+import com.example.shippingservice.service.ShippingService;
 
 @RestController
 @RequestMapping("/shipping")
@@ -27,23 +30,25 @@ public class ShippingController {
 	}
 
 	@PostMapping("/methods")
-	public ShippingMethod createMethod(@RequestBody CreateMethodRequest request) {
-		return shippingService.createMethod(request.name(), request.baseCost());
+	public ResponseEntity<ShippingMethodResponse> createMethod(@RequestBody CreateMethodRequest request) {
+		return ResponseEntity.ok(shippingService.createMethod(request.name(), request.baseCost()));
 	}
 
 	@PostMapping("/shipments")
-	public Shipment createShipment(@RequestBody CreateShipmentRequest request) {
-		return shippingService.createShipment(request.orderId(), request.userId(), request.destinationAddress());
+	public ResponseEntity<ShipmentResponse> createShipment(@RequestBody CreateShipmentRequest request) {
+		return ResponseEntity
+				.ok(shippingService.createShipment(request.orderId(), request.userId(), request.destinationAddress()));
 	}
 
 	@PostMapping("/shipments/{shipmentId}/tracking")
-	public Tracking addTracking(@PathVariable Long shipmentId, @RequestBody TrackingRequest request) {
-		return shippingService.addTracking(shipmentId, request.status(), request.location());
+	public ResponseEntity<TrackingResponse> addTracking(@PathVariable UUID shipmentId,
+			@RequestBody TrackingRequest request) {
+		return ResponseEntity.ok(shippingService.addTracking(shipmentId, request.status(), request.location()));
 	}
 
 	@GetMapping("/shipments/{shipmentId}/tracking")
-	public List<Tracking> trackingTimeline(@PathVariable Long shipmentId) {
-		return shippingService.trackingTimeline(shipmentId);
+	public ResponseEntity<List<TrackingResponse>> trackingTimeline(@PathVariable UUID shipmentId) {
+		return ResponseEntity.ok(shippingService.trackingTimeline(shipmentId));
 	}
 
 }

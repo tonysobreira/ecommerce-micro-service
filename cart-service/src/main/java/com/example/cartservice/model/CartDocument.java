@@ -30,6 +30,15 @@ public class CartDocument {
 	@Indexed(name = "cart_expiration_ttl", expireAfterSeconds = 0)
 	private Instant expiresAt;
 
+	public CartDocument() {
+	}
+
+	public CartDocument(String id, UUID userId, List<CartItem> items) {
+		this.id = id;
+		this.userId = userId;
+		this.items = items;
+	}
+
 	public String getId() {
 		return id;
 	}

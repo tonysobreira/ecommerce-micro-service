@@ -19,11 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.authservice.client.UserClient;
 import com.example.authservice.dto.response.AuthResponse;
+import com.example.authservice.dto.response.MeResponse;
 import com.example.authservice.dto.response.RegisterResponse;
 import com.example.authservice.dto.user.CreateUserProfileRequest;
 import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
 import com.example.authservice.exception.UnauthorizedException;
+import com.example.authservice.mapper.AuthMapper;
 import com.example.authservice.model.PasswordResetToken;
 import com.example.authservice.model.RefreshToken;
 import com.example.authservice.model.Role;
@@ -68,13 +70,15 @@ public class AuthService {
 
 	private final long passwordResetTtlMinutes;
 
+	private final AuthMapper authMapper;
+
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
 			PasswordResetTokenRepository passwordResetTokenRepository, RoleRepository roleRepository,
 			AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService, PasswordResetEmailService passwordResetEmailService,
 			UserClient userClient, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes,
-			@Value("${security.password-reset.ttl-minutes:30}") long passwordResetTtlMinutes) {
+			@Value("${security.password-reset.ttl-minutes:30}") long passwordResetTtlMinutes, AuthMapper authMapper) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
 		this.passwordResetTokenRepository = passwordResetTokenRepository;
@@ -89,6 +93,7 @@ public class AuthService {
 		this.refreshTtlDays = refreshTtlDays;
 		this.activationTtlMinutes = activationTtlMinutes;
 		this.passwordResetTtlMinutes = passwordResetTtlMinutes;
+		this.authMapper = authMapper;
 	}
 
 	@Transactional
@@ -259,8 +264,10 @@ public class AuthService {
 		});
 	}
 
-	public UserAccount getUser(UUID userId) {
-		return userAccountRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+	public MeResponse getUser(UUID userId) {
+		UserAccount user = userAccountRepository.findById(userId)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+		return authMapper.toMeResponse(user);
 	}
 
 	public AuthResponse issueTokens(UserAccount account) {
@@ -281,7 +288,8 @@ public class AuthService {
 	}
 
 	private void sendActivationEmail(UserAccount account) {
-		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(), activationTtlMinutes * 60L);
+		String activationRaw = issuer.issueActivationToken(account.getId(), account.getEmail(),
+				activationTtlMinutes * 60L);
 		activationEmailService.sendActivationEmail(account.getEmail(), activationRaw);
 	}
 

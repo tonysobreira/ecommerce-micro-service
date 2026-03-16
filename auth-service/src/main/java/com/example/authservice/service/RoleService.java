@@ -11,6 +11,7 @@ import com.example.authservice.dto.request.UpdateRoleRequest;
 import com.example.authservice.dto.response.RoleResponse;
 import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
+import com.example.authservice.mapper.RoleMapper;
 import com.example.authservice.model.Role;
 import com.example.authservice.repository.RoleRepository;
 
@@ -19,30 +20,35 @@ public class RoleService {
 
 	private final RoleRepository roleRepository;
 
-	public RoleService(RoleRepository roleRepository) {
+	private final RoleMapper roleMapper;
+
+	public RoleService(RoleRepository roleRepository, RoleMapper roleMapper) {
 		this.roleRepository = roleRepository;
+		this.roleMapper = roleMapper;
 	}
 
 	@Transactional(readOnly = true)
 	public List<RoleResponse> findAll() {
-		return roleRepository.findAll().stream().map(this::toResponse).toList();
+		return roleRepository.findAll().stream().map(roleMapper::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public RoleResponse findById(UUID id) {
 		Role role = roleRepository.findById(id).orElseThrow(() -> new NotFoundException("Role not found"));
-		return toResponse(role);
+		return roleMapper.toResponse(role);
 	}
 
 	@Transactional
 	public RoleResponse create(CreateRoleRequest request) {
 		String normalizedName = request.name().trim().toUpperCase();
+
 		if (roleRepository.findByName(normalizedName).isPresent()) {
 			throw new ConflictException("Role name already exists");
 		}
+
 		Role role = new Role(normalizedName);
 		roleRepository.save(role);
-		return toResponse(role);
+		return roleMapper.toResponse(role);
 	}
 
 	@Transactional
@@ -58,7 +64,7 @@ public class RoleService {
 
 		role.setName(normalizedName);
 		roleRepository.save(role);
-		return toResponse(role);
+		return roleMapper.toResponse(role);
 	}
 
 	@Transactional
@@ -71,10 +77,6 @@ public class RoleService {
 		}
 
 		roleRepository.delete(role);
-	}
-
-	private RoleResponse toResponse(Role role) {
-		return new RoleResponse(role.getId(), role.getName());
 	}
 
 }

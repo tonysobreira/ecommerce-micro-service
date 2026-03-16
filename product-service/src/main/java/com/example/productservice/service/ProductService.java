@@ -13,9 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.productservice.dto.request.ProductCreateRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
+import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.dto.response.QuoteItemResponse;
 import com.example.productservice.dto.response.QuoteResponse;
 import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.model.Category;
 import com.example.productservice.model.Product;
 import com.example.productservice.repository.ProductRepository;
@@ -27,58 +29,73 @@ public class ProductService {
 
 	private final CategoryService categoryService;
 
-	public ProductService(ProductRepository productRepository, CategoryService categoryService) {
+	private final ProductMapper mapper;
+
+	public ProductService(ProductRepository productRepository, CategoryService categoryService, ProductMapper mapper) {
 		this.productRepository = productRepository;
 		this.categoryService = categoryService;
+		this.mapper = mapper;
 	}
 
 	@Transactional(readOnly = true)
-	public List<Product> listPublic() {
-		return productRepository.findByActiveTrue();
+	public List<ProductResponse> listPublic() {
+		return productRepository.findByActiveTrue().stream().map(mapper::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
-	public Product get(UUID id) {
-		return productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
+	public ProductResponse get(UUID id) {
+		Product product = findById(id);
+		return mapper.toResponse(product);
 	}
 
 	@Transactional
-	public Product create(ProductCreateRequest req) {
+	public ProductResponse create(ProductCreateRequest req) {
 		Category category = null;
+
 		if (req.categoryId() != null) {
-			category = categoryService.get(req.categoryId());
+			category = categoryService.findById(req.categoryId());
 		}
 
 		Product p = new Product(UUID.randomUUID(), req.categoryId(), category, req.name().trim(), req.description(),
 				req.priceCents(), req.currency().trim(), req.active() != null ? req.active() : true);
-		return productRepository.save(p);
+		return mapper.toResponse(productRepository.save(p));
 	}
 
 	@Transactional
-	public Product update(UUID id, ProductUpdateRequest req) {
-		Product p = get(id);
+	public ProductResponse update(UUID id, ProductUpdateRequest req) {
+		Product p = findById(id);
 
 		if (req.categoryId() != null) {
-			categoryService.get(req.categoryId());
+			categoryService.findById(req.categoryId());
 			p.setCategoryId(req.categoryId());
 		}
-		if (req.name() != null)
-			p.setName(req.name().trim());
-		if (req.description() != null)
-			p.setDescription(req.description());
-		if (req.priceCents() != null)
-			p.setPriceCents(req.priceCents());
-		if (req.currency() != null)
-			p.setCurrency(req.currency().trim());
-		if (req.active() != null)
-			p.setActive(req.active());
 
-		return productRepository.save(p);
+		if (req.name() != null) {
+			p.setName(req.name().trim());
+		}
+
+		if (req.description() != null) {
+			p.setDescription(req.description());
+		}
+
+		if (req.priceCents() != null) {
+			p.setPriceCents(req.priceCents());
+		}
+
+		if (req.currency() != null) {
+			p.setCurrency(req.currency().trim());
+		}
+
+		if (req.active() != null) {
+			p.setActive(req.active());
+		}
+
+		return mapper.toResponse(productRepository.save(p));
 	}
 
 	@Transactional
 	public void delete(UUID id) {
-		Product p = get(id);
+		Product p = findById(id);
 		productRepository.delete(p);
 	}
 
@@ -101,4 +118,9 @@ public class ProductService {
 
 		return new QuoteResponse(items);
 	}
+
+	public Product findById(UUID id) {
+		return productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
+	}
+
 }

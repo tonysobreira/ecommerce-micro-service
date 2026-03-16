@@ -8,8 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.productservice.dto.request.CategoryCreateRequest;
 import com.example.productservice.dto.request.CategoryUpdateRequest;
+import com.example.productservice.dto.response.CategoryResponse;
 import com.example.productservice.exception.ConflictException;
 import com.example.productservice.exception.NotFoundException;
+import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.model.Category;
 import com.example.productservice.repository.CategoryRepository;
 
@@ -18,33 +20,37 @@ public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
 
-	public CategoryService(CategoryRepository categoryRepository) {
+	private final ProductMapper mapper;
+
+	public CategoryService(CategoryRepository categoryRepository, ProductMapper mapper) {
 		this.categoryRepository = categoryRepository;
+		this.mapper = mapper;
 	}
 
 	@Transactional(readOnly = true)
-	public List<Category> list() {
-		return categoryRepository.findAll();
+	public List<CategoryResponse> list() {
+		return categoryRepository.findAll().stream().map(mapper::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
-	public Category get(UUID id) {
-		return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
+	public CategoryResponse get(UUID id) {
+		Category category = findById(id);
+		return mapper.toResponse(category);
 	}
 
 	@Transactional
-	public Category create(CategoryCreateRequest req) {
+	public CategoryResponse create(CategoryCreateRequest req) {
 		categoryRepository.findByNameIgnoreCase(req.name()).ifPresent(c -> {
 			throw new ConflictException("Category name already exists");
 		});
 
 		Category c = new Category(UUID.randomUUID(), req.name().trim());
-		return categoryRepository.save(c);
+		return mapper.toResponse(categoryRepository.save(c));
 	}
 
 	@Transactional
-	public Category update(UUID id, CategoryUpdateRequest req) {
-		Category c = get(id);
+	public CategoryResponse update(UUID id, CategoryUpdateRequest req) {
+		Category c = findById(id);
 
 		categoryRepository.findByNameIgnoreCase(req.name()).ifPresent(other -> {
 			if (!other.getId().equals(id)) {
@@ -53,13 +59,17 @@ public class CategoryService {
 		});
 
 		c.setName(req.name().trim());
-		return categoryRepository.save(c);
+		return mapper.toResponse(categoryRepository.save(c));
 	}
 
 	@Transactional
 	public void delete(UUID id) {
-		Category c = get(id);
+		Category c = findById(id);
 		categoryRepository.delete(c);
+	}
+
+	public Category findById(UUID id) {
+		return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
 	}
 
 }

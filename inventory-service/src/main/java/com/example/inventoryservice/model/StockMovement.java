@@ -3,6 +3,8 @@ package com.example.inventoryservice.model;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,28 +17,40 @@ import jakarta.persistence.Table;
 public class StockMovement {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-	@Column(nullable = false)
+	@Column(name = "product_id", nullable = false)
 	private UUID productId;
 
-	@Column(nullable = false)
+	@Column(name = "quantity", nullable = false)
 	private Integer quantity;
 
-	@Column(nullable = false)
+	@Column(name = "type", nullable = false)
 	private String type;
 
+	@Column(name = "reason")
 	private String reason;
 
-	@Column(nullable = false)
-	private Instant createdAt = Instant.now();
+	@CreationTimestamp
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private Instant createdAt;
 
-	public Long getId() {
+	public StockMovement() {
+	}
+
+	public StockMovement(UUID productId, Integer quantity, String type, String reason) {
+		this.productId = productId;
+		this.quantity = quantity;
+		this.type = type;
+		this.reason = reason;
+	}
+
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 
