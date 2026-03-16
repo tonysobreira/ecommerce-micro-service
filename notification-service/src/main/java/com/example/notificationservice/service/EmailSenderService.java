@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.example.notificationservice.dto.request.ActivationEmailRequest;
 import com.example.notificationservice.dto.request.OrderStatusEmailRequest;
 import com.example.notificationservice.dto.request.PasswordResetEmailRequest;
+import com.example.notificationservice.dto.request.ShippingEmailRequest;
 import com.example.notificationservice.util.MoneyUtils;
 
 import jakarta.mail.MessagingException;
@@ -76,6 +77,18 @@ public class EmailSenderService {
 				""".formatted(request.orderId(), status, request.currency(), MoneyUtils.centsToAmount(request.totalCents()));
 
 		send(request.email(), "Order " + request.orderId() + " is " + status, body);
+	}
+
+	public void sendShippingUpdate(ShippingEmailRequest request) {
+		String eventType = request.eventType().trim().toUpperCase();
+		String body = """
+				<h2>Shipping update for your order</h2>
+				<p>Order: <b>%s</b></p>
+				<p>Event: <b>%s</b></p>
+				<p>Details: %s</p>
+				""".formatted(request.orderId(), eventType, request.details());
+
+		send(request.email(), "Shipping update for order " + request.orderId(), body);
 	}
 
 	private void send(String to, String subject, String body) {

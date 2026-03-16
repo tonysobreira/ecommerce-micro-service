@@ -132,7 +132,7 @@ public class InventoryService {
 
 			int reservedToRelease = Math.min(item.quantity(), inventory.getReservedQuantity());
 			inventory.setReservedQuantity(inventory.getReservedQuantity() - reservedToRelease);
-			inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservedToRelease);
+			inventory.setAvailableQuantity(inventory.getAvailableQuantity() + item.quantity());
 			inventoryRepository.save(inventory);
 
 			StockReservation reservation = new StockReservation(orderId, item.productId(), reservedToRelease,
@@ -141,6 +141,25 @@ public class InventoryService {
 
 			StockMovement movement = new StockMovement(item.productId(), reservedToRelease, "RELEASE",
 					"Order: " + orderId);
+			movementRepository.save(movement);
+		}
+	}
+
+	@Transactional
+	public void commit(UUID orderId, List<StockItemRequest> items) {
+		for (StockItemRequest item : items) {
+			Inventory inventory = inventoryRepository.findByProductId(item.productId()).orElseThrow(
+					() -> new IllegalArgumentException("Inventory not found for product " + item.productId()));
+
+			int reservedToCommit = Math.min(item.quantity(), inventory.getReservedQuantity());
+			inventory.setReservedQuantity(inventory.getReservedQuantity() - reservedToCommit);
+			inventoryRepository.save(inventory);
+
+			StockReservation reservation = new StockReservation(orderId, item.productId(), reservedToCommit,
+					"COMMITTED");
+			reservationRepository.save(reservation);
+
+			StockMovement movement = new StockMovement(item.productId(), reservedToCommit, "COMMIT", "Order: " + orderId);
 			movementRepository.save(movement);
 		}
 	}

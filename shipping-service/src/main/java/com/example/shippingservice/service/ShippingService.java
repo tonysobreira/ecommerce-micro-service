@@ -7,12 +7,15 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.shippingservice.client.OrderClient;
 import com.example.shippingservice.dto.request.CreateShipmentRequest;
+import com.example.shippingservice.dto.response.OrderResponse;
 import com.example.shippingservice.dto.request.TrackingRequest;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.dto.response.ShippingMethodResponse;
 import com.example.shippingservice.dto.response.TrackingResponse;
 import com.example.shippingservice.mapper.ShippingMapper;
+import com.example.shippingservice.messaging.EmailEventPublisher;
 import com.example.shippingservice.model.Shipment;
 import com.example.shippingservice.model.ShippingMethod;
 import com.example.shippingservice.model.Tracking;
@@ -29,13 +32,20 @@ public class ShippingService {
 
 	private final TrackingRepository trackingRepository;
 
+	private final OrderClient orderClient;
+
+	private final EmailEventPublisher emailEventPublisher;
+
 	private final ShippingMapper mapper;
 
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
-			TrackingRepository trackingRepository, ShippingMapper mapper) {
+			TrackingRepository trackingRepository, OrderClient orderClient, EmailEventPublisher emailEventPublisher,
+			ShippingMapper mapper) {
 		this.methodRepository = methodRepository;
 		this.shipmentRepository = shipmentRepository;
 		this.trackingRepository = trackingRepository;
+		this.orderClient = orderClient;
+		this.emailEventPublisher = emailEventPublisher;
 		this.mapper = mapper;
 	}
 
@@ -53,13 +63,26 @@ public class ShippingService {
 		Tracking tracking = new Tracking(shipment.getId(), "CREATED", "WAREHOUSE");
 		trackingRepository.save(tracking);
 
+		notifyShippingEvent(request.orderId(), "SHIPMENT_CREATED", "Shipment created with id " + shipment.getId());
+
 		return mapper.toResponse(shipment);
 	}
 
 	@Transactional
 	public TrackingResponse addTracking(UUID shipmentId, TrackingRequest request) {
 		Tracking tracking = new Tracking(shipmentId, request.status(), request.location());
+		Shipment shipment = shipmentRepository.findById(shipmentId)
+				.orElseThrow(() -> new IllegalArgumentException("Shipment not found: " + shipmentId));
+
+		notifyShippingEvent(shipment.getOrderId(), "TRACKING_CREATED",
+				"Tracking update: " + request.status() + " at " + request.location());
+
 		return mapper.toResponse(trackingRepository.save(tracking));
+	}
+
+	private void notifyShippingEvent(UUID orderId, String eventType, String details) {
+		OrderResponse order = orderClient.getById(orderId);
+		emailEventPublisher.publishShippingUpdate(order.customerEmail(), order.id(), eventType, details);
 	}
 
 	@Transactional(readOnly = true)

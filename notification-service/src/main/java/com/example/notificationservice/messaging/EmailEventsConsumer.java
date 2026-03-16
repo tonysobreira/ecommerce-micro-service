@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.example.notificationservice.dto.request.ActivationEmailRequest;
 import com.example.notificationservice.dto.request.OrderStatusEmailRequest;
 import com.example.notificationservice.dto.request.PasswordResetEmailRequest;
+import com.example.notificationservice.dto.request.ShippingEmailRequest;
 import com.example.notificationservice.service.EmailSenderService;
 
 @Component
@@ -43,6 +44,14 @@ public class EmailEventsConsumer {
 		emailSenderService.sendOrderStatus(
 				new OrderStatusEmailRequest(event.email(), event.orderId(), event.status(), event.currency(), event.totalCents()));
 		log.info("Order status email consumed for order {}", event.orderId());
+	}
+
+	@KafkaListener(topics = "${app.kafka.topics.shipping-email:email.shipping.requested}", groupId = "${spring.kafka.consumer.group-id:notification-service}", properties = {
+			"spring.json.value.default.type=com.example.notificationservice.messaging.ShippingEmailEvent" })
+	public void consumeShipping(ShippingEmailEvent event) {
+		emailSenderService
+				.sendShippingUpdate(new ShippingEmailRequest(event.email(), event.orderId(), event.eventType(), event.details()));
+		log.info("Shipping email consumed for order {}", event.orderId());
 	}
 
 }

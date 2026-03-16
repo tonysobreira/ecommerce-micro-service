@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: shipping-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/shippingdb}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -24,3 +26,11 @@ management:
     web:
       exposure:
         include: health,info
+
+order-service:
+  name: ${ORDER_SERVICE_NAME:order-service}
+
+app:
+  kafka:
+    topics:
+      shipping-email: ${KAFKA_TOPIC_SHIPPING_EMAIL:email.shipping.requested}
