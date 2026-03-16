@@ -10,6 +10,8 @@ public record OrderResponse(
 
 	UUID userId,
 
+	String customerEmail,
+
 	String status,
 
 	String paymentMethod,

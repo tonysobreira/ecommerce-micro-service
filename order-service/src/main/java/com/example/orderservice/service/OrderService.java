@@ -206,6 +206,11 @@ public class OrderService {
 	@Transactional
 	public OrderResponse update(UUID adminId, UUID orderId, UpdateOrderRequest req) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		OrderStatus previousStatus = o.statusEnum();
+
+		if (previousStatus != req.status()) {
+			syncInventoryByStatusTransition(o, req.status());
+		}
 
 		o.setStatus(req.status());
 
@@ -218,6 +223,25 @@ public class OrderService {
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
+	}
+
+	private void syncInventoryByStatusTransition(Order order, OrderStatus newStatus) {
+		List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+		if (items.isEmpty()) {
+			return;
+		}
+
+		StockReleaseRequest request = new StockReleaseRequest(order.getId(),
+				items.stream().map(i -> new StockReserveItem(i.getProductId(), i.getQuantity())).toList());
+
+		if (newStatus == OrderStatus.PAID) {
+			inventoryClient.commit(request);
+			return;
+		}
+
+		if (newStatus == OrderStatus.CANCELLED) {
+			inventoryClient.release(request);
+		}
 	}
 
 	private void notifyOrderStatus(Order order) {

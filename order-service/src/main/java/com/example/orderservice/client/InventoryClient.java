@@ -23,4 +23,7 @@ public interface InventoryClient {
 	@PostMapping("/inventory/internal/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
 
+	@PostMapping("/inventory/internal/stock/commit")
+	void commit(@RequestBody StockReleaseRequest req);
+
 }

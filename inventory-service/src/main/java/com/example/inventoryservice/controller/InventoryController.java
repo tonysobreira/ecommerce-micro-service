@@ -64,4 +64,11 @@ public class InventoryController {
 		return ResponseEntity.noContent().build();
 	}
 
+	@Hidden
+	@PostMapping("/internal/stock/commit")
+	public ResponseEntity<Void> commit(@Valid @RequestBody StockReleaseRequest request) {
+		inventoryService.commit(request.orderId(), request.items());
+		return ResponseEntity.noContent().build();
+	}
+
 }
