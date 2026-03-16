@@ -37,17 +37,19 @@ feign:
 
 user-service:
   # Use discovery by default with name "user-service" (lb://)
-  name: user-service
+  name: ${USER_SERVICE_NAME:user-service}
 
 order-service:
   # Use discovery by default with name "order-service" (lb://)
-  name: order-service
+  name: ${ORDER_SERVICE_NAME:order-service}
 
 product-service:
   # Use discovery by default with name "product-service" (lb://)
-  name: product-service
+  name: ${PRODUCT_SERVICE_NAME:product-service}
+
 inventory-service:
-  name: inventory-service
+  # Use discovery by default with name "product-service" (lb://)
+  name: ${INVENTORY_SERVICE_NAME:inventory-service}
 
 management:
   endpoints:

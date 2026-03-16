@@ -45,7 +45,6 @@ feign:
 inventory-service:
   name: inventory-service
 
-
 app:
   kafka:
     topics:

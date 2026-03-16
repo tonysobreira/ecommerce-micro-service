@@ -37,4 +37,5 @@ springdoc:
   paths-to-exclude: /internal/**
 
 inventory-service:
-  name: inventory-service
+  # Use discovery by default with name "product-service" (lb://)
+  name: ${INVENTORY_SERVICE_NAME:inventory-service}

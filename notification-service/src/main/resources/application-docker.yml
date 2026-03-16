@@ -44,6 +44,7 @@ app:
       activation-email: ${KAFKA_TOPIC_ACTIVATION_EMAIL:email.activation.requested}
       password-reset-email: ${KAFKA_TOPIC_PASSWORD_RESET_EMAIL:email.password-reset.requested}
       order-status-email: ${KAFKA_TOPIC_ORDER_STATUS_EMAIL:email.order-status.requested}
+      shipping-email: ${KAFKA_TOPIC_SHIPPING_EMAIL:email.shipping.requested}
 
 management:
   endpoints:

@@ -33,7 +33,6 @@ management:
       exposure:
         include: health,info
 
-
 springdoc:
   paths-to-exclude: /internal/**
 
