@@ -12,18 +12,22 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class FeignConfig {
 
 	@Bean
-	public RequestInterceptor correlationForwarder() {
+	public RequestInterceptor headersForwardingInterceptor() {
 		return template -> {
 			ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
 			if (attrs == null) {
 				return;
 			}
-			HttpServletRequest req = attrs.getRequest();
-			String cid = req.getHeader("X-Correlation-Id");
-			String auth = req.getHeader(HttpHeaders.AUTHORIZATION);
+
+			HttpServletRequest request = attrs.getRequest();
+			String cid = request.getHeader("X-Correlation-Id");
+			String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+
 			if (cid != null && !cid.isBlank()) {
 				template.header("X-Correlation-Id", cid);
 			}
+
 			if (auth != null && !auth.isBlank()) {
 				template.header(HttpHeaders.AUTHORIZATION, auth);
 			}

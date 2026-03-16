@@ -16,7 +16,9 @@ public class FeignConfig {
 	@Bean
 	public RequestInterceptor headersForwardingInterceptor() {
 		return template -> {
+			// Forward correlation id from MDC (set by servlet filter)
 			String cid = MDC.get("correlationId");
+
 			if (cid != null && !cid.isBlank()) {
 				template.header("X-Correlation-Id", cid);
 			}
@@ -27,11 +29,14 @@ public class FeignConfig {
 	public RequestInterceptor authHeaderForwardInterceptor() {
 		return template -> {
 			ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
 			if (attrs == null) {
 				return;
 			}
+
 			HttpServletRequest request = attrs.getRequest();
 			String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+
 			if (auth != null && !auth.isBlank()) {
 				template.header(HttpHeaders.AUTHORIZATION, auth);
 			}

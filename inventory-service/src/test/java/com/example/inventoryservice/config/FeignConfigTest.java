@@ -23,7 +23,7 @@ class FeignConfigTest {
 	@Test
 	void correlationAndAuthorizationHeadersShouldBeForwarded() {
 		FeignConfig feignConfig = new FeignConfig();
-		RequestInterceptor interceptor = feignConfig.correlationForwarder();
+		RequestInterceptor interceptor = feignConfig.headersForwardingInterceptor();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader("X-Correlation-Id", "cid-123");
 		request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
@@ -39,7 +39,7 @@ class FeignConfigTest {
 	@Test
 	void shouldNotFailWhenNoServletContextExists() {
 		FeignConfig feignConfig = new FeignConfig();
-		RequestInterceptor interceptor = feignConfig.correlationForwarder();
+		RequestInterceptor interceptor = feignConfig.headersForwardingInterceptor();
 		RequestTemplate template = new RequestTemplate();
 
 		interceptor.apply(template);

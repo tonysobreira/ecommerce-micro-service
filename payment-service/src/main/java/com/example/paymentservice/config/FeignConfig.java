@@ -22,14 +22,6 @@ public class FeignConfig {
 			if (cid != null && !cid.isBlank()) {
 				template.header("X-Correlation-Id", cid);
 			}
-
-			// Forward Authorization if present in current request (stored by servlet
-			// container in a ThreadLocal is not safe to assume)
-			// Instead of trying to read HttpServletRequest here, we rely on the fact that
-			// internal endpoints can also accept
-			// gateway/service auth. If you want strict forward, we can implement a custom
-			// interceptor reading RequestContextHolder.
-			// For now, we keep only correlation-id.
 		};
 	}
 
