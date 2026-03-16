@@ -30,6 +30,10 @@ management:
 order-service:
   name: ${ORDER_SERVICE_NAME:order-service}
 
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
+
 app:
   kafka:
     topics:

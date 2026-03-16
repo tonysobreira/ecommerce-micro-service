@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,14 +15,17 @@ import com.example.shippingservice.dto.request.TrackingRequest;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.dto.response.ShippingMethodResponse;
 import com.example.shippingservice.dto.response.TrackingResponse;
+import com.example.shippingservice.exception.ShipmentNotFoundException;
 import com.example.shippingservice.mapper.ShippingMapper;
 import com.example.shippingservice.messaging.EmailEventPublisher;
 import com.example.shippingservice.model.Shipment;
+import com.example.shippingservice.model.ShipmentStatus;
 import com.example.shippingservice.model.ShippingMethod;
 import com.example.shippingservice.model.Tracking;
 import com.example.shippingservice.repository.ShipmentRepository;
 import com.example.shippingservice.repository.ShippingMethodRepository;
 import com.example.shippingservice.repository.TrackingRepository;
+import com.example.shippingservice.security.UserPrincipal;
 
 @Service
 public class ShippingService {
@@ -55,12 +59,18 @@ public class ShippingService {
 		return mapper.toResponse(methodRepository.save(method));
 	}
 
+	@Transactional(readOnly = true)
+	public List<ShippingMethodResponse> listMethods() {
+		return methodRepository.findAll().stream().map(mapper::toResponse).toList();
+	}
+
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request) {
-		Shipment shipment = new Shipment(request.orderId(), request.userId(), "CREATED", request.destinationAddress());
+		Shipment shipment = new Shipment(request.orderId(), request.userId(), ShipmentStatus.CREATED,
+				request.destinationAddress());
 		shipment = shipmentRepository.save(shipment);
 
-		Tracking tracking = new Tracking(shipment.getId(), "CREATED", "WAREHOUSE");
+		Tracking tracking = new Tracking(shipment.getId(), ShipmentStatus.CREATED, "WAREHOUSE");
 		trackingRepository.save(tracking);
 
 		notifyShippingEvent(request.orderId(), "SHIPMENT_CREATED", "Shipment created with id " + shipment.getId());
@@ -89,6 +99,18 @@ public class ShippingService {
 	public List<TrackingResponse> trackingTimeline(UUID shipmentId) {
 		List<Tracking> list = trackingRepository.findByShipmentIdOrderByEventAtDesc(shipmentId);
 		return list.stream().map(mapper::toResponse).toList();
+	}
+
+	@Transactional(readOnly = true)
+	public ShipmentResponse getShipmentByOrderId(UUID orderId, UserPrincipal principal) {
+		Shipment shipment = shipmentRepository.findFirstByOrderIdOrderByCreatedAtDesc(orderId)
+				.orElseThrow(() -> new ShipmentNotFoundException("Shipment not found for order id: " + orderId));
+
+		if (!principal.isAdmin() && !shipment.getUserId().equals(principal.getUserId())) {
+			throw new AccessDeniedException("You are not allowed to view this shipment");
+		}
+
+		return mapper.toResponse(shipment);
 	}
 
 }

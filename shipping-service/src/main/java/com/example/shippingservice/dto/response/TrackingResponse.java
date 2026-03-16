@@ -3,10 +3,12 @@ package com.example.shippingservice.dto.response;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.example.shippingservice.model.ShipmentStatus;
+
 public record TrackingResponse(
 	UUID shipmentId,
 
-	String status,
+	ShipmentStatus status,
 
 	String location,
 

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -93,6 +94,17 @@ public class GlobalExceptionHandler {
 		pd.setTitle("Not found");
 		pd.setDetail(ex.getMessage());
 		pd.setType(URI.create("https://example.com/problems/not-found"));
+		pd.setProperty("timestamp", Instant.now());
+		pd.setProperty("correlationId", MDC.get("correlationId"));
+		return pd;
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
+		ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+		pd.setTitle("Forbidden");
+		pd.setDetail(ex.getMessage());
+		pd.setType(URI.create("https://example.com/problems/forbidden"));
 		pd.setProperty("timestamp", Instant.now());
 		pd.setProperty("correlationId", MDC.get("correlationId"));
 		return pd;
