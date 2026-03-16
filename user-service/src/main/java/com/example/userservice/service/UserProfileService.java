@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.userservice.dto.request.UserUpdateRequest;
+import com.example.userservice.dto.response.UserResponse;
 import com.example.userservice.exception.ConflictException;
 import com.example.userservice.exception.NotFoundException;
+import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.model.UserProfile;
 import com.example.userservice.repository.UserProfileRepository;
 import com.example.userservice.security.UserPrincipal;
@@ -19,27 +21,35 @@ public class UserProfileService {
 
 	private final UserProfileRepository userProfileRepository;
 
-	public UserProfileService(UserProfileRepository userProfileRepository) {
+	private final UserMapper mapper;
+
+	public UserProfileService(UserProfileRepository userProfileRepository, UserMapper mapper) {
 		this.userProfileRepository = userProfileRepository;
+		this.mapper = mapper;
 	}
 
 	@Transactional(readOnly = true)
-	public List<UserProfile> listAllActive() {
-		return userProfileRepository.findAll().stream().filter(p -> p.getDeletedAt() == null).toList();
+	public List<UserResponse> listAllActive() {
+		List<UserProfile> list = userProfileRepository.findAll().stream().filter(p -> p.getDeletedAt() == null)
+				.toList();
+
+		return list.stream().map(mapper::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
-	public UserProfile getActive(UUID id) {
-		UserProfile p = userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+	public UserResponse getActive(UUID id) {
+		UserProfile p = findByIdActive(id);
+
 		if (p.getDeletedAt() != null) {
 			throw new NotFoundException("User not found");
 		}
-		return p;
+
+		return mapper.toResponse(p);
 	}
 
 	@Transactional
-	public UserProfile update(UUID id, UserUpdateRequest req) {
-		UserProfile p = getActive(id);
+	public UserResponse update(UUID id, UserUpdateRequest req) {
+		UserProfile p = findByIdActive(id);
 
 		if (req.email() != null && !req.email().isBlank()) {
 			userProfileRepository.findByEmailIgnoreCase(req.email()).ifPresent(other -> {
@@ -62,12 +72,12 @@ public class UserProfileService {
 			p.setPhone(req.phone());
 		}
 
-		return userProfileRepository.save(p);
+		return mapper.toResponse(userProfileRepository.save(p));
 	}
 
 	@Transactional
 	public void softDelete(UUID id) {
-		UserProfile p = getActive(id);
+		UserProfile p = findByIdActive(id);
 		p.setDeletedAt(Instant.now());
 		userProfileRepository.save(p);
 	}
@@ -77,23 +87,34 @@ public class UserProfileService {
 	 * activation.
 	 */
 	@Transactional
-	public UserProfile createIfMissing(UserPrincipal principal) {
-		return userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
+	public UserResponse createIfMissing(UserPrincipal principal) {
+		UserProfile userProfile = userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
 			UserProfile p = new UserProfile(principal.getUserId(), principal.getEmail());
 			return userProfileRepository.save(p);
 		});
+		return mapper.toResponse(userProfile);
+	}
+
+	@Transactional
+	public UserResponse createIfMissing(UUID id, String email) {
+		UserProfile userProfile = userProfileRepository.findById(id).orElseGet(() -> {
+			UserProfile p = new UserProfile(id, email.trim().toLowerCase());
+			return userProfileRepository.save(p);
+		});
+		return mapper.toResponse(userProfile);
+	}
+
+	public UserResponse getById(UUID id) {
+		return mapper.toResponse(findById(id));
 	}
 
 	public UserProfile findById(UUID id) {
 		return userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
-	@Transactional
-	public UserProfile createIfMissing(UUID id, String email) {
-		return userProfileRepository.findById(id).orElseGet(() -> {
-			UserProfile p = new UserProfile(id, email.trim().toLowerCase());
-			return userProfileRepository.save(p);
-		});
+	public UserProfile findByIdActive(UUID id) {
+		return userProfileRepository.findById(id).filter(p -> p.getDeletedAt() == null)
+				.orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 }

@@ -13,11 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.userservice.model.UserProfile;
-import com.example.userservice.dto.response.UserResponse;
 import com.example.userservice.dto.request.UserUpdateRequest;
+import com.example.userservice.dto.response.UserResponse;
 import com.example.userservice.exception.ForbiddenException;
-import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.security.UserPrincipal;
 import com.example.userservice.service.UserProfileService;
 
@@ -29,16 +27,13 @@ public class UserController {
 
 	private final UserProfileService service;
 
-	private final UserMapper mapper;
-
-	public UserController(UserProfileService service, UserMapper mapper) {
+	public UserController(UserProfileService service) {
 		this.service = service;
-		this.mapper = mapper;
 	}
 
 	@GetMapping
 	public ResponseEntity<List<UserResponse>> listAll() {
-		return ResponseEntity.ok(service.listAllActive().stream().map(mapper::toResponse).toList());
+		return ResponseEntity.ok(service.listAllActive());
 	}
 
 	@GetMapping("/{id}")
@@ -49,21 +44,20 @@ public class UserController {
 			throw new ForbiddenException("Not allowed");
 		}
 
-		UserProfile profile = service.createIfMissing(p);
-		return ResponseEntity.ok(mapper.toResponse(profile));
+		return ResponseEntity.ok(service.createIfMissing(p));
 	}
 
 	@GetMapping("/me")
 	public ResponseEntity<UserResponse> me(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(mapper.toResponse(service.createIfMissing(p)));
+		return ResponseEntity.ok(service.createIfMissing(p));
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<UserResponse> update(@PathVariable("id") UUID id, @Valid @RequestBody UserUpdateRequest req,
 			Authentication auth) {
 		assertOwnerOrAdmin(id, auth);
-		return ResponseEntity.ok(mapper.toResponse(service.update(id, req)));
+		return ResponseEntity.ok(service.update(id, req));
 	}
 
 	@DeleteMapping("/{id}")
@@ -75,7 +69,7 @@ public class UserController {
 
 	@GetMapping("/user/{id}")
 	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID id) {
-		return ResponseEntity.ok(mapper.toResponse(service.findById(id)));
+		return ResponseEntity.ok(service.getById(id));
 	}
 
 	private void assertOwnerOrAdmin(UUID targetUserId, Authentication auth) {
