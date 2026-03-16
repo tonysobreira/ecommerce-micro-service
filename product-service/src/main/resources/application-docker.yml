@@ -36,3 +36,6 @@ management:
 
 springdoc:
   paths-to-exclude: /internal/**
+
+inventory-service:
+  name: inventory-service

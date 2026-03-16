@@ -11,7 +11,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.productservice.client.InventoryClient;
 import com.example.productservice.dto.request.ProductCreateRequest;
+import com.example.productservice.dto.request.UpsertStockRequest;
 import com.example.productservice.dto.request.ProductUpdateRequest;
 import com.example.productservice.dto.response.ProductResponse;
 import com.example.productservice.dto.response.QuoteItemResponse;
@@ -31,10 +33,14 @@ public class ProductService {
 
 	private final ProductMapper mapper;
 
-	public ProductService(ProductRepository productRepository, CategoryService categoryService, ProductMapper mapper) {
+	private final InventoryClient inventoryClient;
+
+	public ProductService(ProductRepository productRepository, CategoryService categoryService, ProductMapper mapper,
+			InventoryClient inventoryClient) {
 		this.productRepository = productRepository;
 		this.categoryService = categoryService;
 		this.mapper = mapper;
+		this.inventoryClient = inventoryClient;
 	}
 
 	@Transactional(readOnly = true)
@@ -58,7 +64,9 @@ public class ProductService {
 
 		Product p = new Product(UUID.randomUUID(), req.categoryId(), category, req.name().trim(), req.description(),
 				req.priceCents(), req.currency().trim(), req.active() != null ? req.active() : true);
-		return mapper.toResponse(productRepository.save(p));
+		Product saved = productRepository.save(p);
+		inventoryClient.upsertStock(new UpsertStockRequest(saved.getId(), 0));
+		return mapper.toResponse(saved);
 	}
 
 	@Transactional
