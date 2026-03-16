@@ -43,8 +43,7 @@ feign:
         readTimeout: 8000
 
 inventory-service:
-  name: inventory-service
-
+  name: ${INVENTORY_SERVICE_NAME:inventory-service}
 
 app:
   kafka:

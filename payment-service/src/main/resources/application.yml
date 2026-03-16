@@ -49,7 +49,6 @@ product-service:
 inventory-service:
   name: inventory-service
 
-
 management:
   endpoints:
     web:

@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: shipping-service
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   datasource:
     url: jdbc:postgresql://localhost:5432/shippingdb
     username: postgres
@@ -13,28 +11,47 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092,kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
+    issuer: ${JWT_ISSUER:ecommerce-ms}
+
+# Feign + correlation header forwarding
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 8000
+
+order-service:
+  name: ${ORDER_SERVICE_NAME:order-service}
+
+app:
+  kafka:
+    topics:
+      shipping-email: ${KAFKA_TOPIC_SHIPPING_EMAIL:email.shipping.requested}
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-
-order-service:
-  name: ${ORDER_SERVICE_NAME:order-service}
-
-security:
-  jwt:
-    secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
-
-app:
-  kafka:
-    topics:
-      shipping-email: ${KAFKA_TOPIC_SHIPPING_EMAIL:email.shipping.requested}
