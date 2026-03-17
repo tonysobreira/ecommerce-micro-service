@@ -323,6 +323,18 @@ services:
       discovery-server:
         condition: service_healthy
 
+  frontend-sakai-ng:
+    build: ./frontend-sakai-ng
+    container_name: frontend-sakai-ng
+    env_file:
+      - ./frontend-sakai-ng/.env.docker
+    ports:
+      - "4200:4200"
+    networks:
+      - ecommerce-net
+    depends_on:
+      - api-gateway
+
 networks:
   ecommerce-net:
 

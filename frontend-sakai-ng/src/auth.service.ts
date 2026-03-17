@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode'; // ← import this
+import { environment } from './environments/environment';
 
 export interface LoginResponse {
     accessToken: string;
@@ -21,7 +22,7 @@ export interface JwtPayload {
     providedIn: 'root'
 })
 export class AuthService {
-    private api = 'http://localhost:8080/auth';
+    private api = `${environment.apiUrl}/auth`;
 
     // Signals for current user state
     currentUser = signal<JwtPayload | null>(null);
