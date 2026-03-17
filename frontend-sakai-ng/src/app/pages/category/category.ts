@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 import { Table, TableModule } from 'primeng/table';
 
@@ -23,7 +24,7 @@ export class Category implements OnInit {
   }
 
   ngOnInit() {
-    this.http.get<Category[]>('http://localhost:8080/categories')
+    this.http.get<Category[]>(`${environment.apiUrl}/categories`)
       .subscribe((categories) => {
         this.categories.set(categories);
       });

@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 import { Table, TableModule } from 'primeng/table';
 
@@ -31,7 +32,7 @@ export class Product implements OnInit {
   }
 
   ngOnInit() {
-    this.http.get<Product[]>('http://localhost:8080/products')
+    this.http.get<Product[]>(`${environment.apiUrl}/products`)
       .subscribe((products) => {
         this.products.set(products);
       });
