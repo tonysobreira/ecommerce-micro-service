@@ -132,7 +132,7 @@ public class InventoryService {
 
 			int reservedToRelease = Math.min(item.quantity(), inventory.getReservedQuantity());
 			inventory.setReservedQuantity(inventory.getReservedQuantity() - reservedToRelease);
-			inventory.setAvailableQuantity(inventory.getAvailableQuantity() + item.quantity());
+			inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservedToRelease);
 			inventoryRepository.save(inventory);
 
 			StockReservation reservation = new StockReservation(orderId, item.productId(), reservedToRelease,

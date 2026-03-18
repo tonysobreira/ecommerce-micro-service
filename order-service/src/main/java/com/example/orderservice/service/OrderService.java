@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.QuoteItemResponse;
 import com.example.orderservice.dto.response.QuoteResponse;
 import com.example.orderservice.exception.BadRequestException;
+import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.exception.NotFoundException;
 import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.messaging.EmailEventPublisher;
@@ -61,9 +63,12 @@ public class OrderService {
 
 	private final OrderMapper orderMapper;
 
+	private final String internalToken;
+
 	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient, OrderRepository orderRepository,
 			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
-			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper) {
+			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper,
+			@Value("${app.internal.token}") String internalToken) {
 		this.paymentClient = paymentClient;
 		this.inventoryClient = inventoryClient;
 		this.orderRepository = orderRepository;
@@ -71,6 +76,7 @@ public class OrderService {
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
 		this.emailEventPublisher = emailEventPublisher;
 		this.orderMapper = orderMapper;
+		this.internalToken = internalToken;
 	}
 
 	/**
@@ -196,8 +202,11 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public OrderResponse get(UUID requester, UUID orderId) {
+	public OrderResponse get(UUID requester, boolean admin, UUID orderId) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		if (!admin && !o.getUserId().equals(requester)) {
+			throw new ForbiddenException("You are not allowed to access this order");
+		}
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
@@ -225,6 +234,13 @@ public class OrderService {
 		return orderMapper.toResponse(o, items, history);
 	}
 
+	@Transactional
+	public OrderResponse updateInternal(String providedToken, UUID orderId, UpdateOrderRequest req) {
+		validateInternalToken(providedToken);
+		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		return update(o.getUserId(), orderId, req);
+	}
+
 	private void syncInventoryByStatusTransition(Order order, OrderStatus newStatus) {
 		List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
 		if (items.isEmpty()) {
@@ -250,6 +266,12 @@ public class OrderService {
 					order.getCurrency(), order.getTotalCents());
 		} catch (Exception ex) {
 			log.warn("Unable to send order status email for order {}", order.getId(), ex);
+		}
+	}
+
+	private void validateInternalToken(String providedToken) {
+		if (providedToken == null || !providedToken.equals(internalToken)) {
+			throw new ForbiddenException("Invalid internal token");
 		}
 	}
 

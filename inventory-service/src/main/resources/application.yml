@@ -5,9 +5,9 @@ spring:
   application:
     name: inventory-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/inventorydb
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/inventorydb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -17,7 +17,12 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
+    issuer: ${JWT_ISSUER:ecommerce-ms}
 
 management:
   endpoints:
@@ -33,4 +38,4 @@ feign:
         readTimeout: 8000
 
 product-service:
-  name: product-service
+  name: ${PRODUCT_SERVICE_NAME:product-service}

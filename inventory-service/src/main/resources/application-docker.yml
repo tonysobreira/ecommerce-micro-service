@@ -19,6 +19,11 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_URL:http://discovery-server:8761/eureka}
 
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
+    issuer: ${JWT_ISSUER:ecommerce-ms}
+
 management:
   endpoints:
     web:
@@ -33,4 +38,4 @@ feign:
         readTimeout: 8000
 
 product-service:
-  name: product-service
+  name: ${PRODUCT_SERVICE_NAME:product-service}

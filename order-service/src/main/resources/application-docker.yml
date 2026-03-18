@@ -46,6 +46,8 @@ inventory-service:
   name: inventory-service
 
 app:
+  internal:
+    token: ${INTERNAL_SERVICE_TOKEN:dev-internal-token}
   kafka:
     topics:
       order-status-email: ${KAFKA_TOPIC_ORDER_STATUS_EMAIL:email.order-status.requested}
