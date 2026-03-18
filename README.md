@@ -42,6 +42,8 @@
 docker compose up --build
 ```
 
+> `config-server` is currently a placeholder module and is not part of the runnable stack yet.
+
 ## Swagger / OpenAPI (via gateway)
 
 - `http://localhost:8080/swagger-ui.html`

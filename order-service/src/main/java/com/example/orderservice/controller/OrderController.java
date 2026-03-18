@@ -11,15 +11,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.UpdateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
+import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.security.UserPrincipal;
 import com.example.orderservice.service.OrderService;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 
 @RestController
@@ -47,14 +50,24 @@ public class OrderController {
 	@GetMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.get(p.getUserId(), orderId));
+		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
 	}
 
 	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
+		if (!p.isAdmin()) {
+			throw new ForbiddenException("Admin role required to update orders");
+		}
 		return ResponseEntity.ok(service.update(p.getUserId(), orderId, req));
+	}
+
+	@Hidden
+	@PutMapping("/internal/{orderId}")
+	public ResponseEntity<OrderResponse> updateInternal(@PathVariable("orderId") UUID orderId,
+			@Valid @RequestBody UpdateOrderRequest req, @RequestHeader("X-Internal-Token") String internalToken) {
+		return ResponseEntity.ok(service.updateInternal(internalToken, orderId, req));
 	}
 
 }

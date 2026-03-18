@@ -6,15 +6,13 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.paymentservice.client.InventoryClient;
 import com.example.paymentservice.client.OrderClient;
 import com.example.paymentservice.client.UserClient;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
-import com.example.paymentservice.dto.request.StockReleaseRequest;
-import com.example.paymentservice.dto.request.StockReserveItem;
 import com.example.paymentservice.dto.request.UpdateOrderRequest;
 import com.example.paymentservice.dto.response.OrderResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
@@ -42,17 +40,17 @@ public class PaymentService {
 
 	private final OrderClient orderClient;
 
-	private final InventoryClient inventoryClient;
-
 	private final PaymentMapper mapper;
 
+	private final String internalToken;
+
 	public PaymentService(PaymentRepository paymentRepository, UserClient userClient, OrderClient orderClient,
-			InventoryClient inventoryClient, PaymentMapper mapper) {
+			PaymentMapper mapper, @Value("${app.internal.token}") String internalToken) {
 		this.paymentRepository = paymentRepository;
 		this.userClient = userClient;
 		this.orderClient = orderClient;
-		this.inventoryClient = inventoryClient;
 		this.mapper = mapper;
+		this.internalToken = internalToken;
 	}
 
 	@Transactional
@@ -93,7 +91,7 @@ public class PaymentService {
 		validateProcessPaymentRequest(order, payment);
 
 		try {
-			orderClient.update(order.id(), new UpdateOrderRequest("PAID"));
+			orderClient.updateInternal(internalToken, order.id(), new UpdateOrderRequest("PAID"));
 			payment.setStatus(PaymentStatus.COMPLETED);
 			payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
 			log.info("Payment processed successfully: {}", payment.getId());
@@ -141,12 +139,7 @@ public class PaymentService {
 		}
 
 		OrderResponse order = fetchOrder(payment.getOrderId());
-
-		StockReleaseRequest releaseReq = new StockReleaseRequest(order.id(),
-				order.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
-
-		inventoryClient.release(releaseReq);
-		orderClient.update(order.id(), new UpdateOrderRequest("CANCELLED"));
+		orderClient.updateInternal(internalToken, order.id(), new UpdateOrderRequest("CANCELLED"));
 
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);
