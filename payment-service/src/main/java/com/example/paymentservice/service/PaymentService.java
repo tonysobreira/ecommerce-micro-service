@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,15 +41,12 @@ public class PaymentService {
 
 	private final PaymentMapper mapper;
 
-	private final String internalToken;
-
 	public PaymentService(PaymentRepository paymentRepository, UserClient userClient, OrderClient orderClient,
 			PaymentMapper mapper) {
 		this.paymentRepository = paymentRepository;
 		this.userClient = userClient;
 		this.orderClient = orderClient;
 		this.mapper = mapper;
-		this.internalToken = internalToken;
 	}
 
 	@Transactional

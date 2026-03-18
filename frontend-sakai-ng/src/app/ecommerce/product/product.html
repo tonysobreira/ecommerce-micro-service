@@ -1,6 +1,6 @@
 <div class="card">
     <div class="font-semibold text-xl mb-4">Product List</div>
-    <p-table #dt1 [value]="products()" dataKey="id" responsiveLayout="scroll">
+    <p-table #dt1 [value]="products()" dataKey="id">
         <ng-template #header>
             <tr>
                 <th style="min-width: 12rem">
@@ -23,6 +23,11 @@
                         Category
                     </div>
                 </th>
+                <th style="min-width: 12rem">
+                    <div class="flex justify-between items-center">
+                        Price
+                    </div>
+                </th>
             </tr>
         </ng-template>
         <ng-template #body let-product>
@@ -38,6 +43,9 @@
                 </td>
                 <td>
                     {{ product.category.name }}
+                </td>
+                <td>
+                    {{ product.priceCents }}
                 </td>
             </tr>
         </ng-template>

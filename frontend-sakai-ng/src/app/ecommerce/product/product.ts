@@ -7,14 +7,21 @@ import { Table, TableModule } from 'primeng/table';
 export interface Product {
   id: string;
   categoryId: string;
+  category: Category;
   name: string;
   description: string;
-  category: Category;
+  priceCents: number;
+  currency: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Category {
   id: string;
   name: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 @Component({
