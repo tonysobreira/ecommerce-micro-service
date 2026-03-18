@@ -29,6 +29,7 @@ import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.QuoteItemResponse;
 import com.example.orderservice.dto.response.QuoteResponse;
 import com.example.orderservice.exception.BadRequestException;
+import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.exception.NotFoundException;
 import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.messaging.EmailEventPublisher;
@@ -196,8 +197,11 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public OrderResponse get(UUID requester, UUID orderId) {
+	public OrderResponse get(UUID requester, boolean admin, UUID orderId) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		if (!admin && !o.getUserId().equals(requester)) {
+			throw new ForbiddenException("You are not allowed to access this order");
+		}
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
@@ -223,6 +227,12 @@ public class OrderService {
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
+	}
+
+	@Transactional
+	public OrderResponse updateInternal(UUID orderId, UpdateOrderRequest req) {
+		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		return update(o.getUserId(), orderId, req);
 	}
 
 	private void syncInventoryByStatusTransition(Order order, OrderStatus newStatus) {

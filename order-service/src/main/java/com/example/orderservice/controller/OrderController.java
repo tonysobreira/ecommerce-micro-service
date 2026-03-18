@@ -17,13 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.UpdateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
+import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.security.UserPrincipal;
 import com.example.orderservice.service.OrderService;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping
 public class OrderController {
 
 	private final OrderService service;
@@ -32,29 +34,39 @@ public class OrderController {
 		this.service = service;
 	}
 
-	@PostMapping
+	@PostMapping("/orders")
 	public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.status(HttpStatus.CREATED).body(service.create(p.getUserId(), p.getUsername(), req));
 	}
 
-	@GetMapping("/my")
+	@GetMapping("/orders/my")
 	public ResponseEntity<List<OrderResponse>> my(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.ok(service.listMy(p.getUserId()));
 	}
 
-	@GetMapping("/{orderId}")
+	@GetMapping("/orders/{orderId}")
 	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.get(p.getUserId(), orderId));
+		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
 	}
 
-	@PutMapping("/{orderId}")
+	@PutMapping("/orders/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
+		if (!p.isAdmin()) {
+			throw new ForbiddenException("Admin role required to update orders");
+		}
 		return ResponseEntity.ok(service.update(p.getUserId(), orderId, req));
+	}
+
+	@Hidden
+	@PutMapping("/internal/orders/{orderId}")
+	public ResponseEntity<OrderResponse> updateInternal(@PathVariable("orderId") UUID orderId,
+			@Valid @RequestBody UpdateOrderRequest req) {
+		return ResponseEntity.ok(service.updateInternal(orderId, req));
 	}
 
 }
