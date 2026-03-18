@@ -45,7 +45,7 @@ public class PaymentService {
 	private final String internalToken;
 
 	public PaymentService(PaymentRepository paymentRepository, UserClient userClient, OrderClient orderClient,
-			PaymentMapper mapper, @Value("${app.internal.token}") String internalToken) {
+			PaymentMapper mapper) {
 		this.paymentRepository = paymentRepository;
 		this.userClient = userClient;
 		this.orderClient = orderClient;
@@ -91,7 +91,7 @@ public class PaymentService {
 		validateProcessPaymentRequest(order, payment);
 
 		try {
-			orderClient.updateInternal(internalToken, order.id(), new UpdateOrderRequest("PAID"));
+			orderClient.updateInternal(order.id(), new UpdateOrderRequest("PAID"));
 			payment.setStatus(PaymentStatus.COMPLETED);
 			payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
 			log.info("Payment processed successfully: {}", payment.getId());
@@ -139,7 +139,7 @@ public class PaymentService {
 		}
 
 		OrderResponse order = fetchOrder(payment.getOrderId());
-		orderClient.updateInternal(internalToken, order.id(), new UpdateOrderRequest("CANCELLED"));
+		orderClient.updateInternal(order.id(), new UpdateOrderRequest("CANCELLED"));
 
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);

@@ -235,8 +235,7 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderResponse updateInternal(String providedToken, UUID orderId, UpdateOrderRequest req) {
-		validateInternalToken(providedToken);
+	public OrderResponse updateInternal(UUID orderId, UpdateOrderRequest req) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 		return update(o.getUserId(), orderId, req);
 	}

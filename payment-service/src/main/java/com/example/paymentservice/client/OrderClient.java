@@ -21,8 +21,7 @@ public interface OrderClient {
 	@GetMapping("/orders/{orderId}")
 	OrderResponse getById(@PathVariable("orderId") UUID orderId);
 
-	@PutMapping("/orders/internal/{orderId}")
-	OrderResponse updateInternal(@RequestHeader("X-Internal-Token") String internalToken,
-			@PathVariable("orderId") UUID orderId, @Valid @RequestBody UpdateOrderRequest req);
+	@PutMapping("/internal/orders/{orderId}")
+	OrderResponse updateInternal(@PathVariable("orderId") UUID orderId, @Valid @RequestBody UpdateOrderRequest req);
 
 }

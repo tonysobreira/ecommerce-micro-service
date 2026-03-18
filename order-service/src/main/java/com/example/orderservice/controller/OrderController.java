@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping
 public class OrderController {
 
 	private final OrderService service;
@@ -35,25 +35,25 @@ public class OrderController {
 		this.service = service;
 	}
 
-	@PostMapping
+	@PostMapping("/orders")
 	public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.status(HttpStatus.CREATED).body(service.create(p.getUserId(), p.getUsername(), req));
 	}
 
-	@GetMapping("/my")
+	@GetMapping("/orders/my")
 	public ResponseEntity<List<OrderResponse>> my(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.ok(service.listMy(p.getUserId()));
 	}
 
-	@GetMapping("/{orderId}")
+	@GetMapping("/orders/{orderId}")
 	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
 	}
 
-	@PutMapping("/{orderId}")
+	@PutMapping("/orders/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
@@ -64,10 +64,10 @@ public class OrderController {
 	}
 
 	@Hidden
-	@PutMapping("/internal/{orderId}")
+	@PutMapping("/internal/orders/{orderId}")
 	public ResponseEntity<OrderResponse> updateInternal(@PathVariable("orderId") UUID orderId,
-			@Valid @RequestBody UpdateOrderRequest req, @RequestHeader("X-Internal-Token") String internalToken) {
-		return ResponseEntity.ok(service.updateInternal(internalToken, orderId, req));
+			@Valid @RequestBody UpdateOrderRequest req) {
+		return ResponseEntity.ok(service.updateInternal(orderId, req));
 	}
 
 }
