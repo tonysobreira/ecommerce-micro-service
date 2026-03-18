@@ -51,6 +51,10 @@ inventory-service:
   # Use discovery by default with name "product-service" (lb://)
   name: inventory-service
 
+app:
+  internal:
+    token: ${INTERNAL_SERVICE_TOKEN:dev-internal-token}
+
 management:
   endpoints:
     web:

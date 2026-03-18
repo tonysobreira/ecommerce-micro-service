@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,9 +63,12 @@ public class OrderService {
 
 	private final OrderMapper orderMapper;
 
+	private final String internalToken;
+
 	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient, OrderRepository orderRepository,
 			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
-			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper) {
+			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper,
+			@Value("${app.internal.token}") String internalToken) {
 		this.paymentClient = paymentClient;
 		this.inventoryClient = inventoryClient;
 		this.orderRepository = orderRepository;
@@ -72,6 +76,7 @@ public class OrderService {
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
 		this.emailEventPublisher = emailEventPublisher;
 		this.orderMapper = orderMapper;
+		this.internalToken = internalToken;
 	}
 
 	/**
@@ -260,6 +265,12 @@ public class OrderService {
 					order.getCurrency(), order.getTotalCents());
 		} catch (Exception ex) {
 			log.warn("Unable to send order status email for order {}", order.getId(), ex);
+		}
+	}
+
+	private void validateInternalToken(String providedToken) {
+		if (providedToken == null || !providedToken.equals(internalToken)) {
+			throw new ForbiddenException("Invalid internal token");
 		}
 	}
 
