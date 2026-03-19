@@ -8,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +17,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -145,13 +148,39 @@ public class GlobalExceptionHandler {
 		return pd;
 	}
 
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
+		log.error("Constraint Violation exception", ex);
+
+		ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		pd.setTitle("Constraint Violation");
+		pd.setDetail(ex.getMessage());
+		pd.setType(URI.create("https://example.com/problems/constraint-violation"));
+		pd.setProperty("timestamp", Instant.now());
+		pd.setProperty("correlationId", MDC.get("correlationId"));
+		return pd;
+	}
+
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+		log.error("Data Integrity Violation Exception", ex);
+
+		ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		pd.setTitle("Data Integrity Violation");
+		pd.setDetail(ex.getMessage());
+		pd.setType(URI.create("https://example.com/problems/data-integrity-violation"));
+		pd.setProperty("timestamp", Instant.now());
+		pd.setProperty("correlationId", MDC.get("correlationId"));
+		return pd;
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ProblemDetail handleGeneric(Exception ex) {
 		log.error("Unhandled exception", ex);
 
 		ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		pd.setTitle("Internal Error");
-		pd.setDetail("Unexpected Error");
+		pd.setDetail(ex.getMessage());
 		pd.setType(URI.create("https://example.com/problems/internal"));
 		pd.setProperty("timestamp", Instant.now());
 		pd.setProperty("correlationId", MDC.get("correlationId"));
