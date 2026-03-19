@@ -19,7 +19,6 @@ import com.example.userservice.dto.request.CreateUserAddressRequest;
 import com.example.userservice.dto.request.UpdateUserAddressRequest;
 import com.example.userservice.dto.response.UserAddressResponse;
 import com.example.userservice.exception.ForbiddenException;
-import com.example.userservice.model.UserAddress;
 import com.example.userservice.security.UserPrincipal;
 import com.example.userservice.service.UserAddressService;
 
@@ -38,28 +37,28 @@ public class UserAddressController {
 	@GetMapping
 	public ResponseEntity<List<UserAddressResponse>> list(@PathVariable UUID userId, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.ok(userAddressService.listByUserId(userId).stream().map(this::toResponse).toList());
+		return ResponseEntity.ok(userAddressService.listByUserId(userId));
 	}
 
 	@GetMapping("/{addressId}")
 	public ResponseEntity<UserAddressResponse> get(@PathVariable UUID userId, @PathVariable UUID addressId,
 			Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.ok(toResponse(userAddressService.getById(userId, addressId)));
+		return ResponseEntity.ok(userAddressService.getById(userId, addressId));
 	}
 
 	@PostMapping
 	public ResponseEntity<UserAddressResponse> create(@PathVariable UUID userId,
 			@Valid @RequestBody CreateUserAddressRequest request, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(userAddressService.create(userId, request)));
+		return ResponseEntity.status(HttpStatus.CREATED).body(userAddressService.create(userId, request));
 	}
 
 	@PutMapping("/{addressId}")
 	public ResponseEntity<UserAddressResponse> update(@PathVariable UUID userId, @PathVariable UUID addressId,
 			@Valid @RequestBody UpdateUserAddressRequest request, Authentication auth) {
 		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.ok(toResponse(userAddressService.update(userId, addressId, request)));
+		return ResponseEntity.ok(userAddressService.update(userId, addressId, request));
 	}
 
 	@DeleteMapping("/{addressId}")
@@ -67,12 +66,6 @@ public class UserAddressController {
 		assertOwnerOrAdmin(userId, auth);
 		userAddressService.delete(userId, addressId);
 		return ResponseEntity.noContent().build();
-	}
-
-	private UserAddressResponse toResponse(UserAddress address) {
-		return new UserAddressResponse(address.getId(), address.getUserProfileId(), address.getLine1(), address.getLine2(),
-				address.getCity(), address.getState(), address.getZip(), address.getCountry(), address.getCreatedAt(),
-				address.getUpdatedAt());
 	}
 
 	private void assertOwnerOrAdmin(UUID targetUserId, Authentication auth) {
