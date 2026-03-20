@@ -12,6 +12,18 @@ public record OrderResponse(
 
 	String customerEmail,
 
+	String shipLine1,
+
+	String shipLine2,
+
+	String shipCity,
+
+	String shipState,
+
+	String shipZip,
+
+	String shipCountry,
+
 	String status,
 
 	String paymentMethod,

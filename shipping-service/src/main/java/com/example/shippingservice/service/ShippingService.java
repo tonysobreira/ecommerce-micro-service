@@ -18,9 +18,11 @@ import com.example.shippingservice.dto.response.PaymentResponse;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.dto.response.ShippingMethodResponse;
 import com.example.shippingservice.dto.response.TrackingResponse;
+import com.example.shippingservice.exception.BadRequestException;
 import com.example.shippingservice.exception.ShipmentNotFoundException;
 import com.example.shippingservice.mapper.ShippingMapper;
 import com.example.shippingservice.messaging.EmailEventPublisher;
+import com.example.shippingservice.model.PaymentStatus;
 import com.example.shippingservice.model.Shipment;
 import com.example.shippingservice.model.ShipmentStatus;
 import com.example.shippingservice.model.ShippingMethod;
@@ -76,6 +78,11 @@ public class ShippingService {
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request) {
 		PaymentResponse payment = paymentClient.getPaymentById(request.paymentId());
+
+		if (payment.status() != PaymentStatus.COMPLETED) {
+			throw new BadRequestException("Only completed payments can be shipped.");
+		}
+
 		OrderResponse order = orderClient.getById(payment.orderId());
 
 		String destinationAddress = formatAddress(order);
@@ -87,7 +94,8 @@ public class ShippingService {
 		Tracking tracking = new Tracking(shipment.getId(), ShipmentStatus.CREATED, "WAREHOUSE");
 		trackingRepository.save(tracking);
 
-		notifyShippingEvent(payment.orderId(), "SHIPMENT_CREATED", "Shipment created with id " + shipment.getId());
+		notifyShippingEvent(payment.orderId(), "SHIPMENT_CREATED",
+				"Shipment created with id " + shipment.getId() + " Address: " + destinationAddress);
 
 		return mapper.toResponse(shipment);
 	}
