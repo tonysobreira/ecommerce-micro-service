@@ -46,13 +46,16 @@ public class PaymentController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable UUID id) {
-		return ResponseEntity.ok(paymentService.getPaymentById(id));
+	public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable UUID id, Authentication authentication) {
+		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+		return ResponseEntity.ok(paymentService.getPaymentById(principal, id));
 	}
 
 	@GetMapping("/order/{orderId}")
-	public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable UUID orderId) {
-		return ResponseEntity.ok(paymentService.getPaymentByOrderId(orderId));
+	public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable UUID orderId,
+			Authentication authentication) {
+		UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+		return ResponseEntity.ok(paymentService.getPaymentByOrderId(principal, orderId));
 	}
 
 	@GetMapping("/my-payments")

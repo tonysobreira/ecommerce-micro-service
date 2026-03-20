@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import com.example.paymentservice.model.OrderStatus;
 import com.example.paymentservice.model.Payment;
 import com.example.paymentservice.model.PaymentStatus;
 import com.example.paymentservice.repository.PaymentRepository;
+import com.example.paymentservice.security.UserPrincipal;
 import com.example.paymentservice.util.MoneyUtils;
 
 import feign.FeignException;
@@ -109,15 +111,27 @@ public class PaymentService {
 	}
 
 	@Transactional(readOnly = true)
-	public PaymentResponse getPaymentById(UUID id) {
-		return paymentRepository.findById(id).map(mapper::toResponse)
+	public PaymentResponse getPaymentById(UserPrincipal principal, UUID id) {
+		PaymentResponse payment = paymentRepository.findById(id).map(mapper::toResponse)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + id));
+
+		if (!principal.isAdmin() && !payment.userId().equals(principal.getUserId())) {
+			throw new AccessDeniedException("You are not allowed to view this payment");
+		}
+
+		return payment;
 	}
 
 	@Transactional(readOnly = true)
-	public PaymentResponse getPaymentByOrderId(UUID orderId) {
-		return paymentRepository.findByOrderId(orderId).map(mapper::toResponse)
+	public PaymentResponse getPaymentByOrderId(UserPrincipal principal, UUID orderId) {
+		PaymentResponse payment = paymentRepository.findByOrderId(orderId).map(mapper::toResponse)
 				.orElseThrow(() -> new PaymentNotFoundException("Payment not found for order: " + orderId));
+
+		if (!principal.isAdmin() && !payment.userId().equals(principal.getUserId())) {
+			throw new AccessDeniedException("You are not allowed to view this payment");
+		}
+
+		return payment;
 	}
 
 	@Transactional(readOnly = true)
@@ -140,6 +154,12 @@ public class PaymentService {
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);
 		return mapper.toResponse(paymentRepository.save(payment));
+	}
+
+	@Transactional(readOnly = true)
+	public PaymentResponse getPaymentById(UUID id) {
+		return paymentRepository.findById(id).map(mapper::toResponse)
+				.orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + id));
 	}
 
 	private UserResponse fetchUser(UUID userId) {
