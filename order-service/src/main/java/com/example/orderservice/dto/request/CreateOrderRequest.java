@@ -1,9 +1,11 @@
 package com.example.orderservice.dto.request;
 
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 
 public record CreateOrderRequest(
 	@NotEmpty
@@ -11,8 +13,7 @@ public record CreateOrderRequest(
 	List<CreateOrderItemRequest> items,
 
 	@NotNull
-	@Valid
-	AddressRequest shippingAddress,
+	UUID userAddressId,
 
 	@NotNull
 	String paymentMethod

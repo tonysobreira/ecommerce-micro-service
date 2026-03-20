@@ -28,8 +28,9 @@ public class SecurityConfig {
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-						.permitAll().requestMatchers(HttpMethod.POST, "/internal/users/profiles").permitAll()
-						.requestMatchers("/users").hasRole("ADMIN").anyRequest().authenticated())
+						.permitAll().requestMatchers(HttpMethod.POST, "/internal/users/**").permitAll()
+						.requestMatchers(HttpMethod.GET, "/internal/users/**").permitAll().requestMatchers("/users")
+						.hasRole("ADMIN").anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}

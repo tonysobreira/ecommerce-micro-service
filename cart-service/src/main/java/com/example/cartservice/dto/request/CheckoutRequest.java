@@ -1,13 +1,13 @@
 package com.example.cartservice.dto.request;
 
-import jakarta.validation.Valid;
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CheckoutRequest(
 	@NotNull
-	@Valid
-	AddressRequest shippingAddress,
+	UUID userAddressId,
 
 	@NotBlank
 	String paymentMethod

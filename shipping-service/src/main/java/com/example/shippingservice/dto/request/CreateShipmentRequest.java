@@ -2,17 +2,10 @@ package com.example.shippingservice.dto.request;
 
 import java.util.UUID;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateShipmentRequest(
 	@NotNull
-	UUID orderId,
-
-	@NotNull
-	UUID userId,
-
-	@NotBlank
-	String destinationAddress
+	UUID paymentId
 ) {
 }

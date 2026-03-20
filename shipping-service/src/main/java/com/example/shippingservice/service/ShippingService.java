@@ -9,12 +9,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.shippingservice.client.OrderClient;
+import com.example.shippingservice.client.PaymentClient;
+import com.example.shippingservice.client.UserClient;
 import com.example.shippingservice.dto.request.CreateShipmentRequest;
-import com.example.shippingservice.dto.response.OrderResponse;
 import com.example.shippingservice.dto.request.TrackingRequest;
+import com.example.shippingservice.dto.response.OrderResponse;
+import com.example.shippingservice.dto.response.PaymentResponse;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.dto.response.ShippingMethodResponse;
 import com.example.shippingservice.dto.response.TrackingResponse;
+import com.example.shippingservice.dto.response.UserAddressResponse;
 import com.example.shippingservice.exception.ShipmentNotFoundException;
 import com.example.shippingservice.mapper.ShippingMapper;
 import com.example.shippingservice.messaging.EmailEventPublisher;
@@ -41,16 +45,22 @@ public class ShippingService {
 	private final EmailEventPublisher emailEventPublisher;
 
 	private final ShippingMapper mapper;
+	
+	private final PaymentClient paymentClient;
+	
+	private final UserClient userClient;
 
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
 			TrackingRepository trackingRepository, OrderClient orderClient, EmailEventPublisher emailEventPublisher,
-			ShippingMapper mapper) {
+			ShippingMapper mapper, PaymentClient paymentClient, UserClient userClient) {
 		this.methodRepository = methodRepository;
 		this.shipmentRepository = shipmentRepository;
 		this.trackingRepository = trackingRepository;
 		this.orderClient = orderClient;
 		this.emailEventPublisher = emailEventPublisher;
 		this.mapper = mapper;
+		this.paymentClient = paymentClient;
+		this.userClient = userClient;
 	}
 
 	@Transactional
@@ -66,14 +76,19 @@ public class ShippingService {
 
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request) {
-		Shipment shipment = new Shipment(request.orderId(), request.userId(), ShipmentStatus.CREATED,
-				request.destinationAddress());
+		PaymentResponse payment = paymentClient.getPaymentById(request.paymentId());
+		UserAddressResponse address = userClient.findByUserIdAndUserProfileId(payment.userId(), payment.orderId());
+		
+		String destinationAddress = ""; 
+				
+		Shipment shipment = new Shipment(payment.orderId(), payment.userId(), ShipmentStatus.CREATED,
+				destinationAddress);
 		shipment = shipmentRepository.save(shipment);
 
 		Tracking tracking = new Tracking(shipment.getId(), ShipmentStatus.CREATED, "WAREHOUSE");
 		trackingRepository.save(tracking);
 
-		notifyShippingEvent(request.orderId(), "SHIPMENT_CREATED", "Shipment created with id " + shipment.getId());
+		notifyShippingEvent(payment.orderId(), "SHIPMENT_CREATED", "Shipment created with id " + shipment.getId());
 
 		return mapper.toResponse(shipment);
 	}

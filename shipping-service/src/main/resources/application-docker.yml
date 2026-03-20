@@ -43,7 +43,13 @@ feign:
         readTimeout: 8000
 
 order-service:
-  name: order-service
+  name: ${ORDER_SERVICE_NAME:order-service}
+  
+payment-service:
+  name: ${PAYMENT_SERVICE_NAME:payment-service}
+
+user-service:
+  name: ${USER_SERVICE_NAME:user-service}
 
 app:
   kafka:

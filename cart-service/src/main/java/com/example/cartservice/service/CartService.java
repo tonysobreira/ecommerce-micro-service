@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.example.cartservice.client.InventoryClient;
 import com.example.cartservice.client.OrderClient;
 import com.example.cartservice.client.ProductClient;
+import com.example.cartservice.client.UserClient;
 import com.example.cartservice.dto.request.AddCartItemRequest;
 import com.example.cartservice.dto.request.CheckoutRequest;
 import com.example.cartservice.dto.request.CreateOrderItemRequest;
@@ -27,6 +28,7 @@ import com.example.cartservice.dto.response.InventoryAvailabilityResponse;
 import com.example.cartservice.dto.response.OrderResponse;
 import com.example.cartservice.dto.response.ProductQuoteItemResponse;
 import com.example.cartservice.dto.response.ProductQuoteResponse;
+import com.example.cartservice.dto.response.UserAddressResponse;
 import com.example.cartservice.exception.BadRequestException;
 import com.example.cartservice.exception.NotFoundException;
 import com.example.cartservice.mapper.CartMapper;
@@ -49,13 +51,16 @@ public class CartService {
 
 	private final CartMapper mapper;
 
+	private final UserClient userClient;
+
 	public CartService(CartRepository repository, ProductClient productClient, InventoryClient inventoryClient,
-			OrderClient orderClient, CartMapper mapper) {
+			OrderClient orderClient, CartMapper mapper, UserClient userClient) {
 		this.repository = repository;
 		this.productClient = productClient;
 		this.inventoryClient = inventoryClient;
 		this.orderClient = orderClient;
 		this.mapper = mapper;
+		this.userClient = userClient;
 	}
 
 	public CartResponse getCart(UUID userId) {
@@ -128,6 +133,7 @@ public class CartService {
 	public CheckoutResponse checkout(UUID userId, CheckoutRequest req) {
 		CartDocument cart = repository.findByUserId(userId)
 				.orElseThrow(() -> new NotFoundException("Cart not found for user"));
+
 		if (cart.getItems().isEmpty()) {
 			throw new BadRequestException("Cannot checkout an empty cart");
 		}
@@ -137,8 +143,10 @@ public class CartService {
 		List<CreateOrderItemRequest> orderItems = cart.getItems().stream()
 				.map(i -> new CreateOrderItemRequest(i.getProductId(), i.getQuantity())).toList();
 
-		OrderResponse order = orderClient
-				.createOrder(new CreateOrderRequest(orderItems, req.shippingAddress(), req.paymentMethod()));
+		UserAddressResponse a = userClient.findByUserIdAndUserProfileId(userId, req.userAddressId());
+
+		OrderResponse order = orderClient.createOrder(new CreateOrderRequest(orderItems, a.id(), req.paymentMethod()));
+
 		repository.deleteByUserId(userId);
 
 		return new CheckoutResponse(order.id(), order.status(), "Order created and cart cleared");

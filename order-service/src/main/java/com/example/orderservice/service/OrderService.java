@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.PaymentClient;
-import com.example.orderservice.dto.request.AddressRequest;
+import com.example.orderservice.client.UserClient;
 import com.example.orderservice.dto.request.CreateOrderItemRequest;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.CreatePaymentRequest;
@@ -28,6 +28,7 @@ import com.example.orderservice.dto.request.UpdateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.QuoteItemResponse;
 import com.example.orderservice.dto.response.QuoteResponse;
+import com.example.orderservice.dto.response.UserAddressResponse;
 import com.example.orderservice.exception.BadRequestException;
 import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.exception.NotFoundException;
@@ -62,9 +63,11 @@ public class OrderService {
 
 	private final OrderMapper orderMapper;
 
+	private final UserClient userClient;
+
 	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient, OrderRepository orderRepository,
 			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
-			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper) {
+			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper, UserClient userClient) {
 		this.paymentClient = paymentClient;
 		this.inventoryClient = inventoryClient;
 		this.orderRepository = orderRepository;
@@ -72,6 +75,7 @@ public class OrderService {
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
 		this.emailEventPublisher = emailEventPublisher;
 		this.orderMapper = orderMapper;
+		this.userClient = userClient;
 	}
 
 	/**
@@ -160,7 +164,7 @@ public class OrderService {
 			throw new BadRequestException("Unsupported paymentMethod: " + req.paymentMethod());
 		}
 
-		AddressRequest a = req.shippingAddress();
+		UserAddressResponse a = userClient.findByUserIdAndUserProfileId(userId, req.userAddressId());
 
 		Order order = new Order(userId, email, OrderStatus.CREATED, pm, a.line1(), a.line2(), a.city(), a.state(),
 				a.zip(), a.country(), currency, subtotal, shipping, total);

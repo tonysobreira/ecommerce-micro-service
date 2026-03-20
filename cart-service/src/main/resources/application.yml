@@ -16,13 +16,16 @@ feign:
         readTimeout: 8000
 
 product-service:
-  name: product-service
+  name: ${PRODUCT_SERVICE_NAME:product-service}
 
 inventory-service:
-  name: inventory-service
+  name: ${INVENTORY_SERVICE_NAME:inventory-service}
 
 order-service:
-  name: order-service
+  name: ${ORDER_SERVICE_NAME:order-service}
+
+user-service:
+  name: ${USER_SERVICE_NAME:user-service}
 
 eureka:
   client:

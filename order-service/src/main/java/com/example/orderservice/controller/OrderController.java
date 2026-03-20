@@ -21,11 +21,10 @@ import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.security.UserPrincipal;
 import com.example.orderservice.service.OrderService;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping
+@RequestMapping("/orders")
 public class OrderController {
 
 	private final OrderService service;
@@ -34,25 +33,25 @@ public class OrderController {
 		this.service = service;
 	}
 
-	@PostMapping("/orders")
+	@PostMapping
 	public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.status(HttpStatus.CREATED).body(service.create(p.getUserId(), p.getUsername(), req));
 	}
 
-	@GetMapping("/orders/my")
+	@GetMapping("/my")
 	public ResponseEntity<List<OrderResponse>> my(Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.ok(service.listMy(p.getUserId()));
 	}
 
-	@GetMapping("/orders/{orderId}")
+	@GetMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
 	}
 
-	@PutMapping("/orders/{orderId}")
+	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
 		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
@@ -60,13 +59,6 @@ public class OrderController {
 			throw new ForbiddenException("Admin role required to update orders");
 		}
 		return ResponseEntity.ok(service.update(p.getUserId(), orderId, req));
-	}
-
-	@Hidden
-	@PutMapping("/internal/orders/{orderId}")
-	public ResponseEntity<OrderResponse> updateInternal(@PathVariable("orderId") UUID orderId,
-			@Valid @RequestBody UpdateOrderRequest req) {
-		return ResponseEntity.ok(service.updateInternal(orderId, req));
 	}
 
 }
