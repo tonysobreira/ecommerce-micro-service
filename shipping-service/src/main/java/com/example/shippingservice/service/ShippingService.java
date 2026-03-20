@@ -18,7 +18,6 @@ import com.example.shippingservice.dto.response.PaymentResponse;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.dto.response.ShippingMethodResponse;
 import com.example.shippingservice.dto.response.TrackingResponse;
-import com.example.shippingservice.dto.response.UserAddressResponse;
 import com.example.shippingservice.exception.ShipmentNotFoundException;
 import com.example.shippingservice.mapper.ShippingMapper;
 import com.example.shippingservice.messaging.EmailEventPublisher;
@@ -45,9 +44,9 @@ public class ShippingService {
 	private final EmailEventPublisher emailEventPublisher;
 
 	private final ShippingMapper mapper;
-	
+
 	private final PaymentClient paymentClient;
-	
+
 	private final UserClient userClient;
 
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
@@ -77,10 +76,10 @@ public class ShippingService {
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request) {
 		PaymentResponse payment = paymentClient.getPaymentById(request.paymentId());
-		UserAddressResponse address = userClient.findByUserIdAndUserProfileId(payment.userId(), payment.orderId());
-		
-		String destinationAddress = ""; 
-				
+		OrderResponse order = orderClient.getById(payment.orderId());
+
+		String destinationAddress = formatAddress(order);
+
 		Shipment shipment = new Shipment(payment.orderId(), payment.userId(), ShipmentStatus.CREATED,
 				destinationAddress);
 		shipment = shipmentRepository.save(shipment);
@@ -126,6 +125,19 @@ public class ShippingService {
 		}
 
 		return mapper.toResponse(shipment);
+	}
+
+	private String formatAddress(OrderResponse order) {
+		StringBuilder address = new StringBuilder();
+		address.append(order.shipLine1());
+		if (order.shipLine2() != null && !order.shipLine2().isBlank()) {
+			address.append(" - " + order.shipLine2());
+		}
+		address.append(" - " + order.shipZip());
+		address.append(" - " + order.shipCity());
+		address.append(" - " + order.shipState());
+		address.append(" - " + order.shipCountry());
+		return address.toString();
 	}
 
 }
