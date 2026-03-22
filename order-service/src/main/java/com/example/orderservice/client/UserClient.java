@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.example.orderservice.config.FeignConfig;
 import com.example.orderservice.dto.response.UserAddressResponse;
 
-@FeignClient(name = "${user-service.name:user-service}", path = "/internal/users", configuration = FeignConfig.class)
+@FeignClient(name = "${user-service.name:user-service}", path = "/internal", configuration = FeignConfig.class)
 public interface UserClient {
 
-	@GetMapping("/{userId}/addresses/{addressId}")
+	@GetMapping("/users/{userId}/addresses/{addressId}")
 	UserAddressResponse findByUserIdAndUserProfileId(@PathVariable UUID userId, @PathVariable UUID addressId);
 
 }
