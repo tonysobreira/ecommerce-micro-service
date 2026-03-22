@@ -36,9 +36,9 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID id, Authentication auth) {
+	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID userId, Authentication auth) {
 		UserPrincipal princpical = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.createIfMissing(id, princpical));
+		return ResponseEntity.ok(service.createIfMissing(userId, princpical));
 	}
 
 	@GetMapping("/me")
@@ -48,22 +48,17 @@ public class UserController {
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<UserResponse> update(@PathVariable("id") UUID id, @Valid @RequestBody UserUpdateRequest req,
-			Authentication auth) {
+	public ResponseEntity<UserResponse> update(@PathVariable("id") UUID userId,
+			@Valid @RequestBody UserUpdateRequest req, Authentication auth) {
 		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.update(id, req, principal));
+		return ResponseEntity.ok(service.update(userId, req, principal));
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable("id") UUID id, Authentication auth) {
+	public ResponseEntity<Void> delete(@PathVariable("id") UUID userId, Authentication auth) {
 		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-		service.softDelete(id, principal);
+		service.softDelete(userId, principal);
 		return ResponseEntity.noContent().build();
-	}
-
-	@GetMapping("/user/{id}")
-	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID id) {
-		return ResponseEntity.ok(service.getById(id));
 	}
 
 }

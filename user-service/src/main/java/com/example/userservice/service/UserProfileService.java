@@ -49,13 +49,13 @@ public class UserProfileService {
 	}
 
 	@Transactional
-	public UserResponse update(UUID id, UserUpdateRequest req, UserPrincipal principal) {
-		assertOwnerOrAdmin(principal, id);
-		UserProfile p = findByIdActive(id);
+	public UserResponse update(UUID userId, UserUpdateRequest req, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
+		UserProfile p = findByIdActive(userId);
 
 		if (req.email() != null && !req.email().isBlank()) {
 			userProfileRepository.findByEmailIgnoreCase(req.email()).ifPresent(other -> {
-				if (!other.getId().equals(id)) {
+				if (!other.getId().equals(userId)) {
 					throw new ConflictException("Email already in use");
 				}
 			});
@@ -93,16 +93,16 @@ public class UserProfileService {
 	public UserResponse createIfMissing(UUID userId, UserPrincipal principal) {
 		assertOwnerOrAdmin(principal, userId);
 		UserProfile userProfile = userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
-			UserProfile p = new UserProfile(principal.getUserId(), principal.getEmail());
+			UserProfile p = new UserProfile(userId, principal.getEmail());
 			return userProfileRepository.save(p);
 		});
 		return mapper.toResponse(userProfile);
 	}
 
 	@Transactional
-	public UserResponse createIfMissing(UUID id, String email) {
-		UserProfile userProfile = userProfileRepository.findById(id).orElseGet(() -> {
-			UserProfile p = new UserProfile(id, email.trim().toLowerCase());
+	public UserResponse createIfMissing(UUID userId, String email) {
+		UserProfile userProfile = userProfileRepository.findById(userId).orElseGet(() -> {
+			UserProfile p = new UserProfile(userId, email.trim().toLowerCase());
 			return userProfileRepository.save(p);
 		});
 		return mapper.toResponse(userProfile);
