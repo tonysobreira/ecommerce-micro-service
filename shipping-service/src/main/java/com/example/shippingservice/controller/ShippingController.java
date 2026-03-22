@@ -52,15 +52,16 @@ public class ShippingController {
 		return ResponseEntity.ok(shippingService.addTracking(shipmentId, request));
 	}
 
-	@GetMapping("/shipments/{shipmentId}/tracking")
-	public ResponseEntity<List<TrackingResponse>> trackingTimeline(@PathVariable UUID shipmentId) {
-		return ResponseEntity.ok(shippingService.trackingTimeline(shipmentId));
-	}
-
 	@GetMapping("/shipments/order/{orderId}")
 	public ResponseEntity<ShipmentResponse> getShipmentByOrderId(@PathVariable UUID orderId, Authentication auth) {
 		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
 		return ResponseEntity.ok(shippingService.getShipmentByOrderId(orderId, principal));
+	}
+
+	@GetMapping("/shipments/{shipmentId}/tracking")
+	public ResponseEntity<List<TrackingResponse>> trackingTimeline(@PathVariable UUID shipmentId, Authentication auth) {
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(shippingService.trackingTimeline(shipmentId, principal));
 	}
 
 }

@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.userservice.dto.request.CreateUserProfileRequest;
 import com.example.userservice.service.UserProfileService;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 
+@Hidden
 @RestController
 @RequestMapping("/internal/users")
 public class InternalUserController {

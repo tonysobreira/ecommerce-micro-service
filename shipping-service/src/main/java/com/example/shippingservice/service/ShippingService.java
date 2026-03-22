@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.shippingservice.client.OrderClient;
 import com.example.shippingservice.client.PaymentClient;
-import com.example.shippingservice.client.UserClient;
 import com.example.shippingservice.dto.request.CreateShipmentRequest;
 import com.example.shippingservice.dto.request.TrackingRequest;
 import com.example.shippingservice.dto.response.OrderResponse;
@@ -49,11 +48,9 @@ public class ShippingService {
 
 	private final PaymentClient paymentClient;
 
-	private final UserClient userClient;
-
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
 			TrackingRepository trackingRepository, OrderClient orderClient, EmailEventPublisher emailEventPublisher,
-			ShippingMapper mapper, PaymentClient paymentClient, UserClient userClient) {
+			ShippingMapper mapper, PaymentClient paymentClient) {
 		this.methodRepository = methodRepository;
 		this.shipmentRepository = shipmentRepository;
 		this.trackingRepository = trackingRepository;
@@ -61,7 +58,6 @@ public class ShippingService {
 		this.emailEventPublisher = emailEventPublisher;
 		this.mapper = mapper;
 		this.paymentClient = paymentClient;
-		this.userClient = userClient;
 	}
 
 	@Transactional
@@ -118,7 +114,9 @@ public class ShippingService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<TrackingResponse> trackingTimeline(UUID shipmentId) {
+	public List<TrackingResponse> trackingTimeline(UUID shipmentId, UserPrincipal principal) {
+		Shipment s = findShipmentById(shipmentId);
+		assertOwnerOrAdmin(principal, s.getUserId());
 		List<Tracking> list = trackingRepository.findByShipmentIdOrderByEventAtDesc(shipmentId);
 		return list.stream().map(mapper::toResponse).toList();
 	}
@@ -128,11 +126,21 @@ public class ShippingService {
 		Shipment shipment = shipmentRepository.findFirstByOrderIdOrderByCreatedAtDesc(orderId)
 				.orElseThrow(() -> new ShipmentNotFoundException("Shipment not found for order id: " + orderId));
 
-		if (!principal.isAdmin() && !shipment.getUserId().equals(principal.getUserId())) {
-			throw new AccessDeniedException("You are not allowed to view this shipment");
-		}
+		assertOwnerOrAdmin(principal, shipment.getUserId());
 
 		return mapper.toResponse(shipment);
+	}
+
+	@Transactional(readOnly = true)
+	private Shipment findShipmentById(UUID id) {
+		return shipmentRepository.findById(id)
+				.orElseThrow(() -> new ShipmentNotFoundException("Shipment not found for id: " + id));
+	}
+
+	private void assertOwnerOrAdmin(UserPrincipal principal, UUID userId) {
+		if (!principal.isAdmin() && !principal.getUserId().equals(userId)) {
+			throw new AccessDeniedException("You are not allowed.");
+		}
 	}
 
 	private String formatAddress(OrderResponse order) {

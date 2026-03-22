@@ -227,7 +227,7 @@ public class AuthService {
 		account.activate();
 
 		userAccountRepository.save(account);
-		userClient.createProfileIfMissing(new CreateUserProfileRequest(account.getId(), account.getEmail()));
+		userClient.createUserProfile(new CreateUserProfileRequest(account.getId(), account.getEmail()));
 	}
 
 	@Transactional

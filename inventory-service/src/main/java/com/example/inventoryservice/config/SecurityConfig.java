@@ -27,10 +27,9 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-						.permitAll()
-						.requestMatchers(HttpMethod.GET, "/inventory/internal/**").authenticated()
-						.requestMatchers(HttpMethod.POST, "/inventory/internal/**").authenticated()
+						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers(HttpMethod.GET, "/internal/inventory/**").authenticated()
+						.requestMatchers(HttpMethod.POST, "/internal/inventory/**").authenticated()
 						.requestMatchers(HttpMethod.POST, "/inventory/stock").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);

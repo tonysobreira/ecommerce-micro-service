@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,6 @@ import com.example.orderservice.dto.response.QuoteItemResponse;
 import com.example.orderservice.dto.response.QuoteResponse;
 import com.example.orderservice.dto.response.UserAddressResponse;
 import com.example.orderservice.exception.BadRequestException;
-import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.exception.NotFoundException;
 import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.messaging.EmailEventPublisher;
@@ -42,6 +42,7 @@ import com.example.orderservice.model.PaymentMethod;
 import com.example.orderservice.repository.OrderItemRepository;
 import com.example.orderservice.repository.OrderRepository;
 import com.example.orderservice.repository.OrderStatusHistoryRepository;
+import com.example.orderservice.security.UserPrincipal;
 import com.example.orderservice.util.MoneyUtils;
 
 @Service
@@ -145,6 +146,7 @@ public class OrderService {
 				inventoryClient.release(new StockReleaseRequest(orderReservationId, reserveReq.items()));
 			} catch (Exception ignore) {
 				// log in real-world
+				log.warn("Create order exception: {}", ex);
 			}
 			throw ex;
 		}
@@ -191,9 +193,9 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<OrderResponse> listMy(UUID userId) {
-		List<Order> my = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
-		return my.stream().map(o -> {
+	public List<OrderResponse> findByUserId(UUID userId) {
+		List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+		return orders.stream().map(o -> {
 			List<OrderItem> items = orderItemRepository.findByOrderId(o.getId());
 			List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(o.getId());
 			return orderMapper.toResponse(o, items, history);
@@ -201,18 +203,16 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public OrderResponse get(UUID requester, boolean admin, UUID orderId) {
+	public OrderResponse findByOrderId(UUID orderId, UserPrincipal principal) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
-		if (!admin && !o.getUserId().equals(requester)) {
-			throw new ForbiddenException("You are not allowed to access this order");
-		}
+		assertOwnerOrAdmin(principal, o.getUserId());
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
 	}
 
 	@Transactional
-	public OrderResponse update(UUID adminId, UUID orderId, UpdateOrderRequest req) {
+	public OrderResponse update(UUID orderId, UpdateOrderRequest req, UUID userId) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 		OrderStatus previousStatus = o.statusEnum();
 
@@ -224,7 +224,7 @@ public class OrderService {
 
 		orderRepository.save(o);
 
-		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, req.status(), adminId));
+		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, req.status(), userId));
 
 		notifyOrderStatus(o);
 
@@ -236,7 +236,7 @@ public class OrderService {
 	@Transactional
 	public OrderResponse updateInternal(UUID orderId, UpdateOrderRequest req) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
-		return update(o.getUserId(), orderId, req);
+		return update(orderId, req, o.getUserId());
 	}
 
 	private void syncInventoryByStatusTransition(Order order, OrderStatus newStatus) {
@@ -255,6 +255,12 @@ public class OrderService {
 
 		if (newStatus == OrderStatus.CANCELLED) {
 			inventoryClient.release(request);
+		}
+	}
+
+	private void assertOwnerOrAdmin(UserPrincipal principal, UUID userId) {
+		if (!principal.isAdmin() && !principal.getUserId().equals(userId)) {
+			throw new AccessDeniedException("You are not allowed.");
 		}
 	}
 

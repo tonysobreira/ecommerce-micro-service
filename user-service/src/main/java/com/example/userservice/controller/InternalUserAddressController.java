@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.userservice.dto.response.UserAddressResponse;
 import com.example.userservice.service.UserAddressService;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
+@Hidden
 @RestController
 @RequestMapping("/internal/users/{userId}/addresses")
 public class InternalUserAddressController {
@@ -23,7 +26,7 @@ public class InternalUserAddressController {
 
 	@GetMapping("/{addressId}")
 	public ResponseEntity<UserAddressResponse> get(@PathVariable UUID userId, @PathVariable UUID addressId) {
-		return ResponseEntity.ok(userAddressService.getById(userId, addressId));
+		return ResponseEntity.ok(userAddressService.getByUserId(userId, addressId));
 	}
 
 }

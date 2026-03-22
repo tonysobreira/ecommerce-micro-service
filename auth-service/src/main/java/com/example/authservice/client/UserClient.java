@@ -10,6 +10,6 @@ import com.example.authservice.dto.user.CreateUserProfileRequest;
 public interface UserClient {
 
 	@PostMapping("/profiles")
-	void createProfileIfMissing(@RequestBody CreateUserProfileRequest request);
+	void createUserProfile(@RequestBody CreateUserProfileRequest request);
 
 }

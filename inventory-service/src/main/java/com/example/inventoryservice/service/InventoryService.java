@@ -48,6 +48,20 @@ public class InventoryService {
 		this.inventoryMapper = inventoryMapper;
 	}
 
+	@Transactional
+	public InventoryResponse upsertStock(UUID productId, Integer availableQuantity) {
+		Inventory inventory = inventoryRepository.findByProductId(productId).orElseGet(Inventory::new);
+
+		inventory.setProductId(productId);
+		inventory.setAvailableQuantity(availableQuantity);
+
+		if (inventory.getReservedQuantity() == null) {
+			inventory.setReservedQuantity(0);
+		}
+
+		return inventoryMapper.toResponse(inventoryRepository.save(inventory));
+	}
+
 	@Transactional(readOnly = true)
 	public List<AvailabilityItemResponse> availability(String idsCsv) {
 		List<UUID> productIds = Arrays.stream(idsCsv.split(",")).filter(s -> !s.isBlank()).map(String::trim)
@@ -85,20 +99,6 @@ public class InventoryService {
 		}).toList();
 
 		return new InventoryQuoteResponse(items);
-	}
-
-	@Transactional
-	public InventoryResponse upsertStock(UUID productId, Integer availableQuantity) {
-		Inventory inventory = inventoryRepository.findByProductId(productId).orElseGet(Inventory::new);
-
-		inventory.setProductId(productId);
-		inventory.setAvailableQuantity(availableQuantity);
-
-		if (inventory.getReservedQuantity() == null) {
-			inventory.setReservedQuantity(0);
-		}
-
-		return inventoryMapper.toResponse(inventoryRepository.save(inventory));
 	}
 
 	@Transactional
@@ -159,7 +159,8 @@ public class InventoryService {
 					"COMMITTED");
 			reservationRepository.save(reservation);
 
-			StockMovement movement = new StockMovement(item.productId(), reservedToCommit, "COMMIT", "Order: " + orderId);
+			StockMovement movement = new StockMovement(item.productId(), reservedToCommit, "COMMIT",
+					"Order: " + orderId);
 			movementRepository.save(movement);
 		}
 	}

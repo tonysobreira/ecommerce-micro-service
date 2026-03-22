@@ -22,9 +22,9 @@ import com.example.authservice.service.RoleService;
 
 import jakarta.validation.Valid;
 
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 @RestController
 @RequestMapping("/roles")
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class RoleController {
 
 	private final RoleService roleService;

@@ -28,8 +28,7 @@ public class SecurityConfig {
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
 						// Public GETs
-						.requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/product-images/**")
-						.permitAll()
+						.requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/product-images/**").permitAll()
 
 						// Internal product endpoints (service-to-service only)
 						.requestMatchers(HttpMethod.GET, "/internal/products/quote").authenticated()
@@ -40,12 +39,10 @@ public class SecurityConfig {
 						.requestMatchers("/actuator/health").permitAll()
 
 						// ADMIN writes
-						.requestMatchers(HttpMethod.POST, "/products/**", "/categories/**", "/product-images/**")
-						.hasRole("ADMIN").requestMatchers(HttpMethod.PUT, "/products/**", "/categories/**")
-						.hasRole("ADMIN").requestMatchers(HttpMethod.PATCH, "/products/**", "/categories/**")
-						.hasRole("ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/products/**", "/categories/**", "/product-images/**")
-						.hasRole("ADMIN")
+						.requestMatchers(HttpMethod.POST, "/products/**", "/categories/**", "/product-images/**").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/products/**", "/categories/**").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.PATCH, "/products/**", "/categories/**").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/products/**", "/categories/**", "/product-images/**").hasRole("ADMIN")
 
 						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);

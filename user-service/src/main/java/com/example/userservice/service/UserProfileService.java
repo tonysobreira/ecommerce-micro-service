@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +49,8 @@ public class UserProfileService {
 	}
 
 	@Transactional
-	public UserResponse update(UUID id, UserUpdateRequest req) {
+	public UserResponse update(UUID id, UserUpdateRequest req, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, id);
 		UserProfile p = findByIdActive(id);
 
 		if (req.email() != null && !req.email().isBlank()) {
@@ -76,8 +78,9 @@ public class UserProfileService {
 	}
 
 	@Transactional
-	public void softDelete(UUID id) {
-		UserProfile p = findByIdActive(id);
+	public void softDelete(UUID userId, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
+		UserProfile p = findByIdActive(userId);
 		p.setDeletedAt(Instant.now());
 		userProfileRepository.save(p);
 	}
@@ -87,7 +90,8 @@ public class UserProfileService {
 	 * activation.
 	 */
 	@Transactional
-	public UserResponse createIfMissing(UserPrincipal principal) {
+	public UserResponse createIfMissing(UUID userId, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
 		UserProfile userProfile = userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
 			UserProfile p = new UserProfile(principal.getUserId(), principal.getEmail());
 			return userProfileRepository.save(p);
@@ -115,6 +119,17 @@ public class UserProfileService {
 	public UserProfile findByIdActive(UUID id) {
 		return userProfileRepository.findById(id).filter(p -> p.getDeletedAt() == null)
 				.orElseThrow(() -> new NotFoundException("User not found"));
+	}
+
+	public UserResponse findUserProfileByUserId(UUID userId) {
+		return userProfileRepository.findById(userId).map(mapper::toResponse)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+	}
+
+	private void assertOwnerOrAdmin(UserPrincipal principal, UUID userId) {
+		if (!principal.isAdmin() && !principal.getUserId().equals(userId)) {
+			throw new AccessDeniedException("You are not allowed.");
+		}
 	}
 
 }

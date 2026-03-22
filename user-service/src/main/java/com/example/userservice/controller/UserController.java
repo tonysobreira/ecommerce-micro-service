@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.userservice.dto.request.UserUpdateRequest;
 import com.example.userservice.dto.response.UserResponse;
-import com.example.userservice.exception.ForbiddenException;
 import com.example.userservice.security.UserPrincipal;
 import com.example.userservice.service.UserProfileService;
 
@@ -37,51 +36,34 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserResponse> getById(@PathVariable("id") UUID id, Authentication auth) {
-		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-
-		if (!p.isAdmin() && !p.getUserId().equals(id)) {
-			throw new ForbiddenException("Not allowed");
-		}
-
-		return ResponseEntity.ok(service.createIfMissing(p));
+	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID id, Authentication auth) {
+		UserPrincipal princpical = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.createIfMissing(id, princpical));
 	}
 
 	@GetMapping("/me")
 	public ResponseEntity<UserResponse> me(Authentication auth) {
-		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.createIfMissing(p));
+		UserPrincipal princpical = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.findUserProfileByUserId(princpical.getUserId()));
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<UserResponse> update(@PathVariable("id") UUID id, @Valid @RequestBody UserUpdateRequest req,
 			Authentication auth) {
-		assertOwnerOrAdmin(id, auth);
-		return ResponseEntity.ok(service.update(id, req));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.update(id, req, principal));
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable("id") UUID id, Authentication auth) {
-		assertOwnerOrAdmin(id, auth);
-		service.softDelete(id);
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		service.softDelete(id, principal);
 		return ResponseEntity.noContent().build();
 	}
 
 	@GetMapping("/user/{id}")
 	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID id) {
 		return ResponseEntity.ok(service.getById(id));
-	}
-
-	private void assertOwnerOrAdmin(UUID targetUserId, Authentication auth) {
-		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-
-		if (principal.isAdmin()) {
-			return;
-		}
-
-		if (!principal.getUserId().equals(targetUserId)) {
-			throw new ForbiddenException("Not allowed");
-		}
 	}
 
 }

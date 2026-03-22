@@ -3,6 +3,7 @@ package com.example.userservice.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import com.example.userservice.exception.NotFoundException;
 import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.model.UserAddress;
 import com.example.userservice.repository.UserAddressRepository;
+import com.example.userservice.security.UserPrincipal;
 
 @Service
 public class UserAddressService {
@@ -31,13 +33,23 @@ public class UserAddressService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<UserAddressResponse> listByUserId(UUID userId) {
+	public List<UserAddressResponse> listByUserId(UUID userId, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
 		userProfileService.getActive(userId);
 		return userAddressRepository.findAllByUserProfileId(userId).stream().map(mapper::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
-	public UserAddressResponse getById(UUID userId, UUID addressId) {
+	public UserAddressResponse getByUserId(UUID userId, UUID addressId, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
+		userProfileService.getActive(userId);
+		UserAddress ua = userAddressRepository.findByIdAndUserProfileId(addressId, userId)
+				.orElseThrow(() -> new NotFoundException("Address not found"));
+		return mapper.toResponse(ua);
+	}
+	
+	@Transactional(readOnly = true)
+	public UserAddressResponse getByUserId(UUID userId, UUID addressId) {
 		userProfileService.getActive(userId);
 		UserAddress ua = userAddressRepository.findByIdAndUserProfileId(addressId, userId)
 				.orElseThrow(() -> new NotFoundException("Address not found"));
@@ -45,7 +57,8 @@ public class UserAddressService {
 	}
 
 	@Transactional
-	public UserAddressResponse create(UUID userId, CreateUserAddressRequest request) {
+	public UserAddressResponse create(UUID userId, CreateUserAddressRequest request, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
 		userProfileService.getActive(userId);
 		UserAddress address = new UserAddress(userId, request.line1().trim(), trimToNull(request.line2()),
 				request.city().trim(), request.state().trim(), request.zip().trim(), request.country().trim());
@@ -53,7 +66,9 @@ public class UserAddressService {
 	}
 
 	@Transactional
-	public UserAddressResponse update(UUID userId, UUID addressId, UpdateUserAddressRequest request) {
+	public UserAddressResponse update(UUID userId, UUID addressId, UpdateUserAddressRequest request,
+			UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
 		UserAddress address = findById(userId, addressId);
 		address.setLine1(request.line1().trim());
 		address.setLine2(trimToNull(request.line2()));
@@ -65,7 +80,8 @@ public class UserAddressService {
 	}
 
 	@Transactional
-	public void delete(UUID userId, UUID addressId) {
+	public void delete(UUID userId, UUID addressId, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
 		UserAddress address = findById(userId, addressId);
 		userAddressRepository.delete(address);
 	}
@@ -83,6 +99,12 @@ public class UserAddressService {
 		}
 		String trimmed = value.trim();
 		return trimmed.isEmpty() ? null : trimmed;
+	}
+
+	private void assertOwnerOrAdmin(UserPrincipal principal, UUID userId) {
+		if (!principal.isAdmin() && !principal.getUserId().equals(userId)) {
+			throw new AccessDeniedException("You are not allowed.");
+		}
 	}
 
 }

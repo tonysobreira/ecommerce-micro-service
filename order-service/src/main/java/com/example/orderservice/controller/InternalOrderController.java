@@ -16,6 +16,7 @@ import com.example.orderservice.service.OrderService;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 
+@Hidden
 @RestController
 @RequestMapping("/internal/orders")
 public class InternalOrderController {

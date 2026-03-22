@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.paymentservice.dto.response.PaymentResponse;
 import com.example.paymentservice.service.PaymentService;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
+@Hidden
 @RestController
 @RequestMapping("/internal/payments")
 public class InternalPaymentController {

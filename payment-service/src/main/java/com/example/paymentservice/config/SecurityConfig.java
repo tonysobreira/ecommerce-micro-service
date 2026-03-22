@@ -27,10 +27,10 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-						.permitAll().requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.GET, "/internal/payments/**").authenticated().anyRequest()
-						.authenticated())
+						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.GET, "/internal/payments/**").authenticated()
+						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}

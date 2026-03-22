@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.userservice.dto.request.CreateUserAddressRequest;
 import com.example.userservice.dto.request.UpdateUserAddressRequest;
 import com.example.userservice.dto.response.UserAddressResponse;
-import com.example.userservice.exception.ForbiddenException;
 import com.example.userservice.security.UserPrincipal;
 import com.example.userservice.service.UserAddressService;
 
@@ -36,48 +35,36 @@ public class UserAddressController {
 
 	@GetMapping
 	public ResponseEntity<List<UserAddressResponse>> list(@PathVariable UUID userId, Authentication auth) {
-		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.ok(userAddressService.listByUserId(userId));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(userAddressService.listByUserId(userId, principal));
 	}
 
 	@GetMapping("/{addressId}")
 	public ResponseEntity<UserAddressResponse> get(@PathVariable UUID userId, @PathVariable UUID addressId,
 			Authentication auth) {
-		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.ok(userAddressService.getById(userId, addressId));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(userAddressService.getByUserId(userId, addressId, principal));
 	}
 
 	@PostMapping
 	public ResponseEntity<UserAddressResponse> create(@PathVariable UUID userId,
 			@Valid @RequestBody CreateUserAddressRequest request, Authentication auth) {
-		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.status(HttpStatus.CREATED).body(userAddressService.create(userId, request));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.status(HttpStatus.CREATED).body(userAddressService.create(userId, request, principal));
 	}
 
 	@PutMapping("/{addressId}")
 	public ResponseEntity<UserAddressResponse> update(@PathVariable UUID userId, @PathVariable UUID addressId,
 			@Valid @RequestBody UpdateUserAddressRequest request, Authentication auth) {
-		assertOwnerOrAdmin(userId, auth);
-		return ResponseEntity.ok(userAddressService.update(userId, addressId, request));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(userAddressService.update(userId, addressId, request, principal));
 	}
 
 	@DeleteMapping("/{addressId}")
 	public ResponseEntity<Void> delete(@PathVariable UUID userId, @PathVariable UUID addressId, Authentication auth) {
-		assertOwnerOrAdmin(userId, auth);
-		userAddressService.delete(userId, addressId);
-		return ResponseEntity.noContent().build();
-	}
-
-	private void assertOwnerOrAdmin(UUID targetUserId, Authentication auth) {
 		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-
-		if (principal.isAdmin()) {
-			return;
-		}
-
-		if (!principal.getUserId().equals(targetUserId)) {
-			throw new ForbiddenException("Not allowed");
-		}
+		userAddressService.delete(userId, addressId, principal);
+		return ResponseEntity.noContent().build();
 	}
 
 }

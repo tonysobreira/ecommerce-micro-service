@@ -12,7 +12,7 @@ import com.example.cartservice.dto.response.InventoryAvailabilityResponse;
 @FeignClient(name = "${inventory-service.name:inventory-service}", configuration = FeignConfig.class)
 public interface InventoryClient {
 
-	@GetMapping("/inventory/internal/availability")
+	@GetMapping("/internal/inventory/availability")
 	List<InventoryAvailabilityResponse> availability(@RequestParam("ids") String idsCsv);
 
 }

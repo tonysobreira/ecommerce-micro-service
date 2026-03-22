@@ -14,16 +14,16 @@ import com.example.orderservice.dto.response.QuoteResponse;
 @FeignClient(name = "${inventory-service.name:inventory-service}", configuration = FeignConfig.class)
 public interface InventoryClient {
 
-	@GetMapping("/inventory/internal/quote")
+	@GetMapping("/internal/inventory/quote")
 	QuoteResponse quote(@RequestParam("ids") String idsCsv);
 
-	@PostMapping("/inventory/internal/stock/reserve")
+	@PostMapping("/internal/inventory/stock/reserve")
 	void reserve(@RequestBody StockReserveRequest req);
 
-	@PostMapping("/inventory/internal/stock/release")
+	@PostMapping("/internal/inventory/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
 
-	@PostMapping("/inventory/internal/stock/commit")
+	@PostMapping("/internal/inventory/stock/commit")
 	void commit(@RequestBody StockReleaseRequest req);
 
 }

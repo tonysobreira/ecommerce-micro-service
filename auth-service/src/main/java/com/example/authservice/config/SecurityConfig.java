@@ -62,7 +62,8 @@ public class SecurityConfig {
 								.requestMatchers("/auth/register", "/auth/login", "/auth/activate",
 										"/auth/activation/resend", "/auth/password/forgot", "/auth/password/reset",
 										"/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-								.permitAll().anyRequest().authenticated())
+								.permitAll()
+								.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class)
 				.httpBasic(Customizer.withDefaults());
 		http.exceptionHandling(eh -> eh.authenticationEntryPoint(authenticationEntryPoint()));

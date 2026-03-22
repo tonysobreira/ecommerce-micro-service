@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.UpdateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
-import com.example.orderservice.exception.ForbiddenException;
 import com.example.orderservice.security.UserPrincipal;
 import com.example.orderservice.service.OrderService;
 
@@ -40,25 +40,23 @@ public class OrderController {
 	}
 
 	@GetMapping("/my")
-	public ResponseEntity<List<OrderResponse>> my(Authentication auth) {
-		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.listMy(p.getUserId()));
+	public ResponseEntity<List<OrderResponse>> findByUserId(Authentication auth) {
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.findByUserId(principal.getUserId()));
 	}
 
 	@GetMapping("/{orderId}")
-	public ResponseEntity<OrderResponse> get(@PathVariable("orderId") UUID orderId, Authentication auth) {
-		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.get(p.getUserId(), p.isAdmin(), orderId));
+	public ResponseEntity<OrderResponse> findByOrderId(@PathVariable("orderId") UUID orderId, Authentication auth) {
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.findByOrderId(orderId, principal));
 	}
 
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
-		UserPrincipal p = (UserPrincipal) auth.getPrincipal();
-		if (!p.isAdmin()) {
-			throw new ForbiddenException("Admin role required to update orders");
-		}
-		return ResponseEntity.ok(service.update(p.getUserId(), orderId, req));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.update(orderId, req, principal.getUserId()));
 	}
 
 }
