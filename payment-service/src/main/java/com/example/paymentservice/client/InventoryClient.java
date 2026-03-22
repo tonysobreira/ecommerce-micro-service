@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.example.paymentservice.config.FeignConfig;
 import com.example.paymentservice.dto.request.StockReleaseRequest;
 
-@FeignClient(name = "${inventory-service.name:inventory-service}", configuration = FeignConfig.class)
+@FeignClient(name = "${inventory-service.name:inventory-service}", path = "/internal", configuration = FeignConfig.class)
 public interface InventoryClient {
 
-	@PostMapping("/internal/inventory/stock/release")
+	@PostMapping("/inventory/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
 
 }

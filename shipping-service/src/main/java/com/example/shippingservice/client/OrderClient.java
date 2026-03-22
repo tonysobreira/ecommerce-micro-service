@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.example.shippingservice.config.FeignConfig;
 import com.example.shippingservice.dto.response.OrderResponse;
 
-@FeignClient(name = "${order-service.name:order-service}", configuration = FeignConfig.class)
+@FeignClient(name = "${order-service.name:order-service}", path = "/orders", configuration = FeignConfig.class)
 public interface OrderClient {
 
-	@GetMapping("/orders/{orderId}")
+	@GetMapping("/{orderId}")
 	OrderResponse getById(@PathVariable("orderId") UUID orderId);
 
 }

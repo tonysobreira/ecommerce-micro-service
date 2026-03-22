@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.example.shippingservice.config.FeignConfig;
 import com.example.shippingservice.dto.response.PaymentResponse;
 
-@FeignClient(name = "${payment-service.name:payment-service}", path = "/internal/payments", configuration = FeignConfig.class)
+@FeignClient(name = "${payment-service.name:payment-service}", path = "/internal", configuration = FeignConfig.class)
 public interface PaymentClient {
 
-	@GetMapping("/{id}")
+	@GetMapping("/payments/{id}")
 	PaymentResponse getPaymentById(@PathVariable UUID id);
 
 }

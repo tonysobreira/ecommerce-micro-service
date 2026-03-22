@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.example.productservice.config.FeignConfig;
 import com.example.productservice.dto.request.UpsertStockRequest;
 
-@FeignClient(name = "${inventory-service.name:inventory-service}", configuration = FeignConfig.class)
+@FeignClient(name = "${inventory-service.name:inventory-service}", path = "/inventory", configuration = FeignConfig.class)
 public interface InventoryClient {
 
-	@PostMapping("/inventory/stock")
+	@PostMapping("/stock")
 	ResponseEntity<Void> upsertStock(@RequestBody UpsertStockRequest request);
 
 }
