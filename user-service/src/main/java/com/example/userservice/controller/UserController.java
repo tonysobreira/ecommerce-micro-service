@@ -37,14 +37,14 @@ public class UserController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<UserResponse> findById(@PathVariable("id") UUID userId, Authentication auth) {
-		UserPrincipal princpical = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.createIfMissing(userId, princpical));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.findById(userId, principal));
 	}
 
 	@GetMapping("/me")
 	public ResponseEntity<UserResponse> me(Authentication auth) {
-		UserPrincipal princpical = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.findUserProfileByUserId(princpical.getUserId()));
+		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+		return ResponseEntity.ok(service.findUserProfileByUserId(principal.getUserId()));
 	}
 
 	@PutMapping("/{id}")

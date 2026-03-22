@@ -33,7 +33,6 @@ public class UserProfileService {
 	public List<UserResponse> listAllActive() {
 		List<UserProfile> list = userProfileRepository.findAll().stream().filter(p -> p.getDeletedAt() == null)
 				.toList();
-
 		return list.stream().map(mapper::toResponse).toList();
 	}
 
@@ -92,7 +91,7 @@ public class UserProfileService {
 	@Transactional
 	public UserResponse createIfMissing(UUID userId, UserPrincipal principal) {
 		assertOwnerOrAdmin(principal, userId);
-		UserProfile userProfile = userProfileRepository.findById(principal.getUserId()).orElseGet(() -> {
+		UserProfile userProfile = userProfileRepository.findById(userId).orElseGet(() -> {
 			UserProfile p = new UserProfile(userId, principal.getEmail());
 			return userProfileRepository.save(p);
 		});
@@ -100,7 +99,7 @@ public class UserProfileService {
 	}
 
 	@Transactional
-	public UserResponse createIfMissing(UUID userId, String email) {
+	public UserResponse createProfileIfMissing(UUID userId, String email) {
 		UserProfile userProfile = userProfileRepository.findById(userId).orElseGet(() -> {
 			UserProfile p = new UserProfile(userId, email.trim().toLowerCase());
 			return userProfileRepository.save(p);
@@ -108,12 +107,10 @@ public class UserProfileService {
 		return mapper.toResponse(userProfile);
 	}
 
-	public UserResponse getById(UUID id) {
-		return mapper.toResponse(findById(id));
-	}
-
-	public UserProfile findById(UUID id) {
-		return userProfileRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+	public UserResponse findById(UUID userId, UserPrincipal principal) {
+		assertOwnerOrAdmin(principal, userId);
+		return userProfileRepository.findById(userId).map(mapper::toResponse)
+				.orElseThrow(() -> new NotFoundException("User not found"));
 	}
 
 	public UserProfile findByIdActive(UUID id) {

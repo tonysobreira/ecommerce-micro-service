@@ -11,19 +11,19 @@ import com.example.orderservice.dto.request.StockReleaseRequest;
 import com.example.orderservice.dto.request.StockReserveRequest;
 import com.example.orderservice.dto.response.QuoteResponse;
 
-@FeignClient(name = "${inventory-service.name:inventory-service}", configuration = FeignConfig.class)
+@FeignClient(name = "${inventory-service.name:inventory-service}", path = "/internal", configuration = FeignConfig.class)
 public interface InventoryClient {
 
-	@GetMapping("/internal/inventory/quote")
+	@GetMapping("/inventory/quote")
 	QuoteResponse quote(@RequestParam("ids") String idsCsv);
 
-	@PostMapping("/internal/inventory/stock/reserve")
+	@PostMapping("/inventory/stock/reserve")
 	void reserve(@RequestBody StockReserveRequest req);
 
-	@PostMapping("/internal/inventory/stock/release")
+	@PostMapping("/inventory/stock/release")
 	void release(@RequestBody StockReleaseRequest req);
 
-	@PostMapping("/internal/inventory/stock/commit")
+	@PostMapping("/inventory/stock/commit")
 	void commit(@RequestBody StockReleaseRequest req);
 
 }

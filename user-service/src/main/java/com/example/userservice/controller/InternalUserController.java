@@ -25,7 +25,7 @@ public class InternalUserController {
 
 	@PostMapping("/profiles")
 	public ResponseEntity<Void> createProfileIfMissing(@Valid @RequestBody CreateUserProfileRequest request) {
-		userProfileService.createIfMissing(request.id(), request.email());
+		userProfileService.createProfileIfMissing(request.id(), request.email());
 		return ResponseEntity.noContent().build();
 	}
 

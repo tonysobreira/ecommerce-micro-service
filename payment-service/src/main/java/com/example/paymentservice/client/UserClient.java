@@ -12,7 +12,7 @@ import com.example.paymentservice.dto.response.UserResponse;
 @FeignClient(name = "${user-service.name:user-service}", path = "/users", configuration = FeignConfig.class)
 public interface UserClient {
 
-	@GetMapping("/user/{id}")
+	@GetMapping("/{id}")
 	UserResponse findById(@PathVariable("id") UUID id);
 
 }
