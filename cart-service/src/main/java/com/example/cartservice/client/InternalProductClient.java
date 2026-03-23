@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.cartservice.config.FeignConfig;
 import com.example.cartservice.dto.response.ProductQuoteResponse;
 
-@FeignClient(name = "${product-service.name:product-service}", path = "/internal", configuration = FeignConfig.class)
-public interface ProductClient {
+@FeignClient(name = "${product-service.name:product-service}", path = "/internal/products", configuration = FeignConfig.class)
+public interface InternalProductClient {
 
-	@GetMapping("/products/quote")
+	@GetMapping("/quote")
 	ProductQuoteResponse quote(@RequestParam("ids") String ids);
 
 }

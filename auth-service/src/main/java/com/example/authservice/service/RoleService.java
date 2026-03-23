@@ -11,7 +11,7 @@ import com.example.authservice.dto.request.UpdateRoleRequest;
 import com.example.authservice.dto.response.RoleResponse;
 import com.example.authservice.exception.ConflictException;
 import com.example.authservice.exception.NotFoundException;
-import com.example.authservice.mapper.RoleMapper;
+import com.example.authservice.mapper.AuthMapper;
 import com.example.authservice.model.Role;
 import com.example.authservice.repository.RoleRepository;
 
@@ -20,22 +20,22 @@ public class RoleService {
 
 	private final RoleRepository roleRepository;
 
-	private final RoleMapper roleMapper;
+	private final AuthMapper mapper;
 
-	public RoleService(RoleRepository roleRepository, RoleMapper roleMapper) {
+	public RoleService(RoleRepository roleRepository, AuthMapper mapper) {
 		this.roleRepository = roleRepository;
-		this.roleMapper = roleMapper;
+		this.mapper = mapper;
 	}
 
 	@Transactional(readOnly = true)
 	public List<RoleResponse> findAll() {
-		return roleRepository.findAll().stream().map(roleMapper::toResponse).toList();
+		return roleRepository.findAll().stream().map(mapper::toResponse).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public RoleResponse findById(UUID id) {
-		Role role = roleRepository.findById(id).orElseThrow(() -> new NotFoundException("Role not found"));
-		return roleMapper.toResponse(role);
+		return roleRepository.findById(id).map(mapper::toResponse)
+				.orElseThrow(() -> new NotFoundException("Role not found"));
 	}
 
 	@Transactional
@@ -48,7 +48,7 @@ public class RoleService {
 
 		Role role = new Role(normalizedName);
 		roleRepository.save(role);
-		return roleMapper.toResponse(role);
+		return mapper.toResponse(role);
 	}
 
 	@Transactional
@@ -64,7 +64,7 @@ public class RoleService {
 
 		role.setName(normalizedName);
 		roleRepository.save(role);
-		return roleMapper.toResponse(role);
+		return mapper.toResponse(role);
 	}
 
 	@Transactional

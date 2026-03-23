@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.inventoryservice.client.ProductClient;
+import com.example.inventoryservice.client.InternalProductClient;
 import com.example.inventoryservice.dto.request.StockItemRequest;
 import com.example.inventoryservice.dto.response.AvailabilityItemResponse;
 import com.example.inventoryservice.dto.response.InventoryQuoteItemResponse;
@@ -35,16 +35,17 @@ public class InventoryService {
 
 	private final StockMovementRepository movementRepository;
 
-	private final ProductClient productClient;
+	private final InternalProductClient internalProductClient;
 
 	private final InventoryMapper inventoryMapper;
 
 	public InventoryService(InventoryRepository inventoryRepository, StockReservationRepository reservationRepository,
-			StockMovementRepository movementRepository, ProductClient productClient, InventoryMapper inventoryMapper) {
+			StockMovementRepository movementRepository, InternalProductClient internalProductClient,
+			InventoryMapper inventoryMapper) {
 		this.inventoryRepository = inventoryRepository;
 		this.reservationRepository = reservationRepository;
 		this.movementRepository = movementRepository;
-		this.productClient = productClient;
+		this.internalProductClient = internalProductClient;
 		this.inventoryMapper = inventoryMapper;
 	}
 
@@ -83,7 +84,7 @@ public class InventoryService {
 
 	@Transactional(readOnly = true)
 	public InventoryQuoteResponse quote(String idsCsv) {
-		List<ProductQuoteItemResponse> productQuoteItems = productClient.quote(idsCsv).items();
+		List<ProductQuoteItemResponse> productQuoteItems = internalProductClient.quote(idsCsv).items();
 
 		List<ProductQuoteItemResponse> productItems = Objects.requireNonNullElse(productQuoteItems, List.of());
 

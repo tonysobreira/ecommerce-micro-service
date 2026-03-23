@@ -3,6 +3,7 @@ package com.example.orderservice.controller;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,11 +28,15 @@ public class InternalOrderController {
 		this.service = service;
 	}
 
-	@Hidden
+	@GetMapping("/{orderId}")
+	public ResponseEntity<OrderResponse> findByOrderIdInternal(@PathVariable("orderId") UUID orderId) {
+		return ResponseEntity.ok(service.findByOrderIdInternal(orderId));
+	}
+
 	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> updateInternal(@PathVariable("orderId") UUID orderId,
 			@Valid @RequestBody UpdateOrderRequest req) {
-		return ResponseEntity.ok(service.updateInternal(orderId, req));
+		return ResponseEntity.ok(service.update(orderId, req));
 	}
 
 }

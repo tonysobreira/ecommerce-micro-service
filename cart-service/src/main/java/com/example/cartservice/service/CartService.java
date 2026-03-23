@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.example.cartservice.client.InventoryClient;
+import com.example.cartservice.client.InternalInventoryClient;
 import com.example.cartservice.client.OrderClient;
-import com.example.cartservice.client.ProductClient;
-import com.example.cartservice.client.UserClient;
+import com.example.cartservice.client.InternalProductClient;
+import com.example.cartservice.client.InternalUserClient;
 import com.example.cartservice.dto.request.AddCartItemRequest;
 import com.example.cartservice.dto.request.CheckoutRequest;
 import com.example.cartservice.dto.request.CreateOrderItemRequest;
@@ -43,24 +43,25 @@ public class CartService {
 
 	private final CartRepository repository;
 
-	private final ProductClient productClient;
+	private final InternalProductClient internalProductClient;
 
-	private final InventoryClient inventoryClient;
+	private final InternalInventoryClient internalInventoryClient;
+
+	private final InternalUserClient internalUserClient;
 
 	private final OrderClient orderClient;
 
 	private final CartMapper mapper;
 
-	private final UserClient userClient;
-
-	public CartService(CartRepository repository, ProductClient productClient, InventoryClient inventoryClient,
-			OrderClient orderClient, CartMapper mapper, UserClient userClient) {
+	public CartService(CartRepository repository, InternalProductClient internalProductClient,
+			InternalInventoryClient internalInventoryClient, InternalUserClient internalUserClient,
+			OrderClient orderClient, CartMapper mapper) {
 		this.repository = repository;
-		this.productClient = productClient;
-		this.inventoryClient = inventoryClient;
+		this.internalProductClient = internalProductClient;
+		this.internalInventoryClient = internalInventoryClient;
+		this.internalUserClient = internalUserClient;
 		this.orderClient = orderClient;
 		this.mapper = mapper;
-		this.userClient = userClient;
 	}
 
 	public CartResponse getCart(UUID userId) {
@@ -143,7 +144,7 @@ public class CartService {
 		List<CreateOrderItemRequest> orderItems = cart.getItems().stream()
 				.map(i -> new CreateOrderItemRequest(i.getProductId(), i.getQuantity())).toList();
 
-		UserAddressResponse a = userClient.findByUserIdAndUserProfileId(userId, req.userAddressId());
+		UserAddressResponse a = internalUserClient.findByUserIdAndUserProfileId(userId, req.userAddressId());
 
 		OrderResponse order = orderClient.createOrder(new CreateOrderRequest(orderItems, a.id(), req.paymentMethod()));
 
@@ -154,7 +155,7 @@ public class CartService {
 
 	private void revalidateCart(CartDocument cart) {
 		String ids = cart.getItems().stream().map(i -> i.getProductId().toString()).collect(Collectors.joining(","));
-		ProductQuoteResponse quote = productClient.quote(ids);
+		ProductQuoteResponse quote = internalProductClient.quote(ids);
 		Map<UUID, ProductQuoteItemResponse> quotedById = quote.items().stream()
 				.collect(Collectors.toMap(ProductQuoteItemResponse::productId, Function.identity()));
 
@@ -171,7 +172,7 @@ public class CartService {
 	}
 
 	private ProductQuoteItemResponse quoteSingle(UUID productId) {
-		ProductQuoteResponse quote = productClient.quote(productId.toString());
+		ProductQuoteResponse quote = internalProductClient.quote(productId.toString());
 		if (quote.items() == null || quote.items().isEmpty()) {
 			throw new NotFoundException("Product not found");
 		}
@@ -193,7 +194,7 @@ public class CartService {
 	}
 
 	private int availableForProduct(UUID productId) {
-		List<InventoryAvailabilityResponse> availability = inventoryClient.availability(productId.toString());
+		List<InventoryAvailabilityResponse> availability = internalInventoryClient.availability(productId.toString());
 
 		if (availability == null || availability.isEmpty()) {
 			return 0;

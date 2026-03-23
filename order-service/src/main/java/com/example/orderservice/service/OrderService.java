@@ -16,9 +16,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.orderservice.client.InventoryClient;
+import com.example.orderservice.client.InternalInventoryClient;
+import com.example.orderservice.client.InternalUserClient;
 import com.example.orderservice.client.PaymentClient;
-import com.example.orderservice.client.UserClient;
 import com.example.orderservice.dto.request.CreateOrderItemRequest;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.CreatePaymentRequest;
@@ -50,33 +50,34 @@ public class OrderService {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
-	private final PaymentClient paymentClient;
-
-	private final InventoryClient inventoryClient;
-
 	private final OrderRepository orderRepository;
 
 	private final OrderItemRepository orderItemRepository;
 
 	private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
-	private final EmailEventPublisher emailEventPublisher;
+	private final PaymentClient paymentClient;
+
+	private final InternalInventoryClient internalInventoryClient;
+
+	private final InternalUserClient internalUserClient;
 
 	private final OrderMapper orderMapper;
 
-	private final UserClient userClient;
+	private final EmailEventPublisher emailEventPublisher;
 
-	public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient, OrderRepository orderRepository,
-			OrderItemRepository orderItemRepository, OrderStatusHistoryRepository orderStatusHistoryRepository,
-			EmailEventPublisher emailEventPublisher, OrderMapper orderMapper, UserClient userClient) {
-		this.paymentClient = paymentClient;
-		this.inventoryClient = inventoryClient;
+	public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+			OrderStatusHistoryRepository orderStatusHistoryRepository, PaymentClient paymentClient,
+			InternalInventoryClient internalInventoryClient, InternalUserClient internalUserClient,
+			OrderMapper orderMapper, EmailEventPublisher emailEventPublisher) {
 		this.orderRepository = orderRepository;
 		this.orderItemRepository = orderItemRepository;
 		this.orderStatusHistoryRepository = orderStatusHistoryRepository;
-		this.emailEventPublisher = emailEventPublisher;
+		this.paymentClient = paymentClient;
+		this.internalInventoryClient = internalInventoryClient;
+		this.internalUserClient = internalUserClient;
 		this.orderMapper = orderMapper;
-		this.userClient = userClient;
+		this.emailEventPublisher = emailEventPublisher;
 	}
 
 	/**
@@ -93,7 +94,7 @@ public class OrderService {
 		List<UUID> productIds = req.items().stream().map(CreateOrderItemRequest::productId).distinct().toList();
 		String idsCsv = productIds.stream().map(UUID::toString).collect(Collectors.joining(","));
 
-		QuoteResponse quote = inventoryClient.quote(idsCsv);
+		QuoteResponse quote = internalInventoryClient.quote(idsCsv);
 		Map<UUID, QuoteItemResponse> quoteMap = quote.items().stream()
 				.collect(Collectors.toMap(QuoteItemResponse::productId, Function.identity(), (a, b) -> a));
 
@@ -136,14 +137,14 @@ public class OrderService {
 		StockReserveRequest reserveReq = new StockReserveRequest(orderReservationId,
 				req.items().stream().map(i -> new StockReserveItem(i.productId(), i.quantity())).toList());
 
-		inventoryClient.reserve(reserveReq);
+		internalInventoryClient.reserve(reserveReq);
 
 		try {
 			return persistOrder(userId, email, req, quoteMap, currency, subtotal);
 		} catch (RuntimeException ex) {
 			// Best-effort compensation: release
 			try {
-				inventoryClient.release(new StockReleaseRequest(orderReservationId, reserveReq.items()));
+				internalInventoryClient.release(new StockReleaseRequest(orderReservationId, reserveReq.items()));
 			} catch (Exception ignore) {
 				// log in real-world
 				log.warn("Create order exception: {}", ex);
@@ -166,7 +167,7 @@ public class OrderService {
 			throw new BadRequestException("Unsupported paymentMethod: " + req.paymentMethod());
 		}
 
-		UserAddressResponse a = userClient.findByUserIdAndUserProfileId(userId, req.userAddressId());
+		UserAddressResponse a = internalUserClient.findByUserIdAndUserProfileId(userId, req.userAddressId());
 
 		Order order = new Order(userId, email, OrderStatus.CREATED, pm, a.line1(), a.line2(), a.city(), a.state(),
 				a.zip(), a.country(), currency, subtotal, shipping, total);
@@ -212,7 +213,7 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderResponse update(UUID orderId, UpdateOrderRequest req, UUID userId) {
+	public OrderResponse update(UUID orderId, UpdateOrderRequest req) {
 		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
 		OrderStatus previousStatus = o.statusEnum();
 
@@ -224,19 +225,13 @@ public class OrderService {
 
 		orderRepository.save(o);
 
-		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, req.status(), userId));
+		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, req.status(), o.getUserId()));
 
 		notifyOrderStatus(o);
 
 		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
 		return orderMapper.toResponse(o, items, history);
-	}
-
-	@Transactional
-	public OrderResponse updateInternal(UUID orderId, UpdateOrderRequest req) {
-		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
-		return update(orderId, req, o.getUserId());
 	}
 
 	private void syncInventoryByStatusTransition(Order order, OrderStatus newStatus) {
@@ -249,12 +244,12 @@ public class OrderService {
 				items.stream().map(i -> new StockReserveItem(i.getProductId(), i.getQuantity())).toList());
 
 		if (newStatus == OrderStatus.PAID) {
-			inventoryClient.commit(request);
+			internalInventoryClient.commit(request);
 			return;
 		}
 
 		if (newStatus == OrderStatus.CANCELLED) {
-			inventoryClient.release(request);
+			internalInventoryClient.release(request);
 		}
 	}
 
@@ -271,6 +266,15 @@ public class OrderService {
 		} catch (Exception ex) {
 			log.warn("Unable to send order status email for order {}", order.getId(), ex);
 		}
+	}
+
+	// INTERNAL
+	@Transactional(readOnly = true)
+	public OrderResponse findByOrderIdInternal(UUID orderId) {
+		Order o = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+		List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+		List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId);
+		return orderMapper.toResponse(o, items, history);
 	}
 
 }

@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.authservice.client.UserClient;
+import com.example.authservice.client.InternalUserClient;
 import com.example.authservice.dto.response.AuthResponse;
 import com.example.authservice.dto.response.MeResponse;
 import com.example.authservice.dto.response.RegisterResponse;
@@ -62,7 +62,9 @@ public class AuthService {
 
 	private final PasswordResetEmailService passwordResetEmailService;
 
-	private final UserClient userClient;
+	private final InternalUserClient internalUserClient;
+
+	private final AuthMapper mapper;
 
 	private final long refreshTtlDays;
 
@@ -70,15 +72,14 @@ public class AuthService {
 
 	private final long passwordResetTtlMinutes;
 
-	private final AuthMapper authMapper;
-
 	public AuthService(UserAccountRepository userAccountRepository, RefreshTokenRepository refreshTokenRepository,
 			PasswordResetTokenRepository passwordResetTokenRepository, RoleRepository roleRepository,
 			AuthenticationManager authManager, PasswordEncoder passwordEncoder, JwtIssuer issuer, JwtVerifier verifier,
 			ActivationEmailService activationEmailService, PasswordResetEmailService passwordResetEmailService,
-			UserClient userClient, @Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
+			InternalUserClient internalUserClient, AuthMapper mapper,
+			@Value("${security.jwt.refresh-ttl-days}") long refreshTtlDays,
 			@Value("${security.activation.ttl-minutes:30}") long activationTtlMinutes,
-			@Value("${security.password-reset.ttl-minutes:30}") long passwordResetTtlMinutes, AuthMapper authMapper) {
+			@Value("${security.password-reset.ttl-minutes:30}") long passwordResetTtlMinutes) {
 		this.userAccountRepository = userAccountRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
 		this.passwordResetTokenRepository = passwordResetTokenRepository;
@@ -89,11 +90,11 @@ public class AuthService {
 		this.verifier = verifier;
 		this.activationEmailService = activationEmailService;
 		this.passwordResetEmailService = passwordResetEmailService;
-		this.userClient = userClient;
+		this.internalUserClient = internalUserClient;
+		this.mapper = mapper;
 		this.refreshTtlDays = refreshTtlDays;
 		this.activationTtlMinutes = activationTtlMinutes;
 		this.passwordResetTtlMinutes = passwordResetTtlMinutes;
-		this.authMapper = authMapper;
 	}
 
 	@Transactional
@@ -227,7 +228,7 @@ public class AuthService {
 		account.activate();
 
 		userAccountRepository.save(account);
-		userClient.createUserProfile(new CreateUserProfileRequest(account.getId(), account.getEmail()));
+		internalUserClient.createUserProfile(new CreateUserProfileRequest(account.getId(), account.getEmail()));
 	}
 
 	@Transactional
@@ -267,7 +268,7 @@ public class AuthService {
 	public MeResponse getUser(UUID userId) {
 		UserAccount user = userAccountRepository.findById(userId)
 				.orElseThrow(() -> new NotFoundException("User not found"));
-		return authMapper.toMeResponse(user);
+		return mapper.toMeResponse(user);
 	}
 
 	public AuthResponse issueTokens(UserAccount account) {

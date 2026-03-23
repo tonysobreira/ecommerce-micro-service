@@ -14,13 +14,13 @@ import com.example.paymentservice.dto.response.OrderResponse;
 
 import jakarta.validation.Valid;
 
-@FeignClient(name = "${order-service.name:order-service}", configuration = FeignConfig.class)
-public interface OrderClient {
+@FeignClient(name = "${order-service.name:order-service}", path = "/internal/orders", configuration = FeignConfig.class)
+public interface InternalOrderClient {
 
-	@GetMapping("/orders/{orderId}")
+	@GetMapping("/{orderId}")
 	OrderResponse getById(@PathVariable("orderId") UUID orderId);
 
-	@PutMapping("/internal/orders/{orderId}")
+	@PutMapping("/{orderId}")
 	OrderResponse updateInternal(@PathVariable("orderId") UUID orderId, @Valid @RequestBody UpdateOrderRequest req);
 
 }

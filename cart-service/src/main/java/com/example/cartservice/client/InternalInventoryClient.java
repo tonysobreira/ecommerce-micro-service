@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.cartservice.config.FeignConfig;
 import com.example.cartservice.dto.response.InventoryAvailabilityResponse;
 
-@FeignClient(name = "${inventory-service.name:inventory-service}", path = "/internal", configuration = FeignConfig.class)
-public interface InventoryClient {
+@FeignClient(name = "${inventory-service.name:inventory-service}", path = "/internal/inventory", configuration = FeignConfig.class)
+public interface InternalInventoryClient {
 
-	@GetMapping("/inventory/availability")
+	@GetMapping("/availability")
 	List<InventoryAvailabilityResponse> availability(@RequestParam("ids") String idsCsv);
 
 }

@@ -8,7 +8,7 @@ import com.example.cartservice.config.FeignConfig;
 import com.example.cartservice.dto.request.CreateOrderRequest;
 import com.example.cartservice.dto.response.OrderResponse;
 
-@FeignClient(name = "order-service", path = "/orders", configuration = FeignConfig.class)
+@FeignClient(name = "${order-service.name:order-service}", path = "/orders", configuration = FeignConfig.class)
 public interface OrderClient {
 
 	@PostMapping

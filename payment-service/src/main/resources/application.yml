@@ -44,11 +44,11 @@ order-service:
 product-service:
   name: ${PRODUCT_SERVICE_NAME:product-service}
 
-inventory-service:
-  name: ${INVENTORY_SERVICE_NAME:inventory-service}
-
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+springdoc:
+  paths-to-exclude: /internal/**

@@ -10,7 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.paymentservice.client.OrderClient;
+import com.example.paymentservice.client.InternalOrderClient;
 import com.example.paymentservice.client.UserClient;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
 import com.example.paymentservice.dto.request.UpdateOrderRequest;
@@ -39,15 +39,15 @@ public class PaymentService {
 
 	private final UserClient userClient;
 
-	private final OrderClient orderClient;
+	private final InternalOrderClient internalOrderClient;
 
 	private final PaymentMapper mapper;
 
-	public PaymentService(PaymentRepository paymentRepository, UserClient userClient, OrderClient orderClient,
-			PaymentMapper mapper) {
+	public PaymentService(PaymentRepository paymentRepository, UserClient userClient,
+			InternalOrderClient internalOrderClient, PaymentMapper mapper) {
 		this.paymentRepository = paymentRepository;
 		this.userClient = userClient;
-		this.orderClient = orderClient;
+		this.internalOrderClient = internalOrderClient;
 		this.mapper = mapper;
 	}
 
@@ -68,6 +68,7 @@ public class PaymentService {
 
 		Payment payment = new Payment(request.orderId(), request.userId(), request.amount(), request.paymentMethod());
 		payment = paymentRepository.save(payment);
+
 		log.info("Pending payment created: {}", payment.getId());
 		return mapper.toResponse(payment);
 	}
@@ -89,7 +90,7 @@ public class PaymentService {
 		validateProcessPaymentRequest(order, payment);
 
 		try {
-			orderClient.updateInternal(order.id(), new UpdateOrderRequest("PAID"));
+			internalOrderClient.updateInternal(order.id(), new UpdateOrderRequest("PAID"));
 			payment.setStatus(PaymentStatus.COMPLETED);
 			payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
 			log.info("Payment processed successfully: {}", payment.getId());
@@ -149,7 +150,7 @@ public class PaymentService {
 		}
 
 		OrderResponse order = fetchOrder(payment.getOrderId());
-		orderClient.updateInternal(order.id(), new UpdateOrderRequest("CANCELLED"));
+		internalOrderClient.updateInternal(order.id(), new UpdateOrderRequest("CANCELLED"));
 
 		payment.setStatus(PaymentStatus.REFUNDED);
 		log.info("Payment refunded: {}", id);
@@ -174,7 +175,7 @@ public class PaymentService {
 
 	private OrderResponse fetchOrder(UUID orderId) {
 		try {
-			return orderClient.getById(orderId);
+			return internalOrderClient.getById(orderId);
 		} catch (FeignException.NotFound ex) {
 			throw new NotFoundException("Order not found.");
 		} catch (FeignException.Forbidden ex) {

@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.example.cartservice.config.FeignConfig;
 import com.example.cartservice.dto.response.UserAddressResponse;
 
-@FeignClient(name = "${user-service.name:user-service}", path = "/internal", configuration = FeignConfig.class)
-public interface UserClient {
+@FeignClient(name = "${user-service.name:user-service}", path = "/internal/users", configuration = FeignConfig.class)
+public interface InternalUserClient {
 
-	@GetMapping("/users/{userId}/addresses/{addressId}")
+	@GetMapping("/{userId}/addresses/{addressId}")
 	UserAddressResponse findByUserIdAndUserProfileId(@PathVariable UUID userId, @PathVariable UUID addressId);
 
 }

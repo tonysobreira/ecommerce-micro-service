@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.example.authservice.dto.user.CreateUserProfileRequest;
 
-@FeignClient(name = "${user-service.name:user-service}", path = "/internal")
-public interface UserClient {
+@FeignClient(name = "${user-service.name:user-service}", path = "/internal/users")
+public interface InternalUserClient {
 
-	@PostMapping("/users/profiles")
+	@PostMapping("/profiles")
 	void createUserProfile(@RequestBody CreateUserProfileRequest request);
 
 }

@@ -8,8 +8,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.shippingservice.client.OrderClient;
-import com.example.shippingservice.client.PaymentClient;
+import com.example.shippingservice.client.InternalOrderClient;
+import com.example.shippingservice.client.InternalPaymentClient;
 import com.example.shippingservice.dto.request.CreateShipmentRequest;
 import com.example.shippingservice.dto.request.TrackingRequest;
 import com.example.shippingservice.dto.response.OrderResponse;
@@ -40,24 +40,25 @@ public class ShippingService {
 
 	private final TrackingRepository trackingRepository;
 
-	private final OrderClient orderClient;
+	private final InternalOrderClient internalOrderClient;
 
-	private final EmailEventPublisher emailEventPublisher;
+	private final InternalPaymentClient internalPaymentClient;
 
 	private final ShippingMapper mapper;
 
-	private final PaymentClient paymentClient;
+	private final EmailEventPublisher emailEventPublisher;
 
 	public ShippingService(ShippingMethodRepository methodRepository, ShipmentRepository shipmentRepository,
-			TrackingRepository trackingRepository, OrderClient orderClient, EmailEventPublisher emailEventPublisher,
-			ShippingMapper mapper, PaymentClient paymentClient) {
+			TrackingRepository trackingRepository, InternalOrderClient internalOrderClient,
+			InternalPaymentClient internalPaymentClient, ShippingMapper mapper,
+			EmailEventPublisher emailEventPublisher) {
 		this.methodRepository = methodRepository;
 		this.shipmentRepository = shipmentRepository;
 		this.trackingRepository = trackingRepository;
-		this.orderClient = orderClient;
-		this.emailEventPublisher = emailEventPublisher;
+		this.internalOrderClient = internalOrderClient;
+		this.internalPaymentClient = internalPaymentClient;
 		this.mapper = mapper;
-		this.paymentClient = paymentClient;
+		this.emailEventPublisher = emailEventPublisher;
 	}
 
 	@Transactional
@@ -73,13 +74,13 @@ public class ShippingService {
 
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request) {
-		PaymentResponse payment = paymentClient.getPaymentById(request.paymentId());
+		PaymentResponse payment = internalPaymentClient.getPaymentById(request.paymentId());
 
 		if (payment.status() != PaymentStatus.COMPLETED) {
 			throw new BadRequestException("Only completed payments can be shipped.");
 		}
 
-		OrderResponse order = orderClient.getById(payment.orderId());
+		OrderResponse order = internalOrderClient.getById(payment.orderId());
 
 		String destinationAddress = formatAddress(order);
 
@@ -109,7 +110,7 @@ public class ShippingService {
 	}
 
 	private void notifyShippingEvent(UUID orderId, String eventType, String details) {
-		OrderResponse order = orderClient.getById(orderId);
+		OrderResponse order = internalOrderClient.getById(orderId);
 		emailEventPublisher.publishShippingUpdate(order.customerEmail(), order.id(), eventType, details);
 	}
 

@@ -27,6 +27,17 @@ security:
     secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
     issuer: ${JWT_ISSUER:ecommerce-ms}
 
+# Feign + correlation header forwarding
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 8000
+
+inventory-service:
+  name: ${INVENTORY_SERVICE_NAME:inventory-service}
+
 management:
   endpoints:
     web:
@@ -35,7 +46,3 @@ management:
 
 springdoc:
   paths-to-exclude: /internal/**
-
-inventory-service:
-  # Use discovery by default with name "product-service" (lb://)
-  name: ${INVENTORY_SERVICE_NAME:inventory-service}

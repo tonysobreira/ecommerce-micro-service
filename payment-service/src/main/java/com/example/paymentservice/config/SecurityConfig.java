@@ -29,7 +29,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 						.requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.GET, "/internal/payments/**").authenticated()
+						.requestMatchers("/internal/**").authenticated()
 						.anyRequest().authenticated())
 				.addFilterBefore(new JwtAuthFilter(verifier), UsernamePasswordAuthenticationFilter.class);
 		return http.build();

@@ -24,12 +24,6 @@ security:
     secret: ${JWT_SECRET:dev-jwt-secret-32-bytes-long-123456}
     issuer: ${JWT_ISSUER:ecommerce-ms}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
 feign:
   client:
     config:
@@ -39,3 +33,12 @@ feign:
 
 product-service:
   name: ${PRODUCT_SERVICE_NAME:product-service}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  paths-to-exclude: /internal/**

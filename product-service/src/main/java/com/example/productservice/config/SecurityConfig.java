@@ -31,7 +31,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/product-images/**").permitAll()
 
 						// Internal product endpoints (service-to-service only)
-						.requestMatchers(HttpMethod.GET, "/internal/products/quote").authenticated()
+						.requestMatchers("/internal/**").authenticated()
 
 						// Swagger/OpenAPI
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()

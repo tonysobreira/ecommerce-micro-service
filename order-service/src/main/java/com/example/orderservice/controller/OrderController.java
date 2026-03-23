@@ -54,9 +54,8 @@ public class OrderController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{orderId}")
 	public ResponseEntity<OrderResponse> update(@PathVariable("orderId") UUID orderId,
-			@Valid @RequestBody UpdateOrderRequest req, Authentication auth) {
-		UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-		return ResponseEntity.ok(service.update(orderId, req, principal.getUserId()));
+			@Valid @RequestBody UpdateOrderRequest req) {
+		return ResponseEntity.ok(service.update(orderId, req));
 	}
 
 }
