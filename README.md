@@ -148,12 +148,20 @@ docker compose down
 
 ---
 
-## 👥 Colaboração
+## 👩‍💻 Desenvolvido por
 
-1. Faça um fork (ou branch).
-2. Implemente sua melhoria.
-3. Valide localmente.
-4. Abra um PR descrevendo impacto técnico e funcional.
+**Tony Sobreira Lemos da Costa**
+
+💡 Profissional e estudante da área de Tecnologia da Informação, com foco em **desenvolvimento de sistemas usando Java, Spring Boot e Angular**
+
+📌 Este projeto foi desenvolvido com o objetivo de **praticar conceitos de programação, construir experiência técnica e fortalecer portfólio profissional**.
+
+---
+
+## 📬 Contato
+
+- GitHub: [@tonysobreira](https://github.com/tonysobreira/)
+- LinkedIn: [Tony Sobreira Lemos da Costa](https://www.linkedin.com/in/tonysobreira/)
 
 ---
 
