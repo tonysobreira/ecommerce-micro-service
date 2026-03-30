@@ -1,189 +1,225 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2100" height="1280" viewBox="0 0 2100 1280">
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1320" viewBox="0 0 2200 1320">
   <defs>
     <style>
-      .title { font: 700 46px Arial, sans-serif; fill: #0f172a; }
-      .subtitle { font: 22px Arial, sans-serif; fill: #334155; }
-      .section { font: 700 24px Arial, sans-serif; fill: #0f172a; }
-      .label { font: 700 20px Arial, sans-serif; fill: #0f172a; }
-      .meta { font: 17px Arial, sans-serif; fill: #334155; }
-      .note { font: 15px Arial, sans-serif; fill: #475569; }
-      .box { stroke-width: 2.5; rx: 14; ry: 14; }
-      .lane { stroke: #cbd5e1; stroke-width: 2.2; stroke-dasharray: 10 8; rx: 18; ry: 18; }
-      .route { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrowBlue); }
-      .discovery { stroke: #0f766e; stroke-width: 2.6; fill: none; stroke-dasharray: 8 7; marker-end: url(#arrowTeal); }
-      .interservice { stroke: #b45309; stroke-width: 2.8; fill: none; marker-end: url(#arrowOrange); }
-      .infra { stroke: #7c3aed; stroke-width: 2.8; fill: none; marker-end: url(#arrowPurple); }
+      .title { font: 700 44px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 20px 'Segoe UI', Arial, sans-serif; fill: #334155; }
+      .section { font: 700 24px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 18px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .meta { font: 15px 'Segoe UI', Arial, sans-serif; fill: #334155; }
+      .note { font: 14px 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .lane { stroke: #cbd5e1; stroke-width: 2.2; stroke-dasharray: 8 8; rx: 18; ry: 18; }
+      .box { stroke-width: 2.3; rx: 14; ry: 14; }
+      .route { stroke: #2563eb; stroke-width: 3.1; fill: none; marker-end: url(#arrowBlue); }
+      .discovery { stroke: #0f766e; stroke-width: 2.6; fill: none; stroke-dasharray: 8 6; marker-end: url(#arrowTeal); }
+      .sync { stroke: #b45309; stroke-width: 2.7; fill: none; marker-end: url(#arrowOrange); }
+      .infra { stroke: #7c3aed; stroke-width: 2.7; fill: none; marker-end: url(#arrowPurple); }
+      .event { stroke: #dc2626; stroke-width: 2.8; fill: none; stroke-dasharray: 6 5; marker-end: url(#arrowRed); }
     </style>
 
-    <marker id="arrowBlue" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#2563eb" />
     </marker>
-    <marker id="arrowTeal" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <marker id="arrowTeal" markerWidth="12" markerHeight="12" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#0f766e" />
     </marker>
-    <marker id="arrowOrange" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#b45309" />
     </marker>
-    <marker id="arrowPurple" markerWidth="11" markerHeight="11" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <marker id="arrowPurple" markerWidth="12" markerHeight="12" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed" />
+    </marker>
+    <marker id="arrowRed" markerWidth="12" markerHeight="12" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
     </marker>
   </defs>
 
-  <rect x="20" y="20" width="2060" height="1240" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" rx="18" />
-  <text x="1050" y="80" text-anchor="middle" class="title">E-commerce Microservices Architecture</text>
-  <text x="1050" y="115" text-anchor="middle" class="subtitle">Updated with Cart Service + MongoDB + pgAdmin and current service ports/routes</text>
+  <rect x="20" y="20" width="2160" height="1280" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" rx="18" />
+  <text x="1100" y="82" text-anchor="middle" class="title">E-commerce Microservices Architecture</text>
+  <text x="1100" y="116" text-anchor="middle" class="subtitle">Spring Boot + Eureka + Gateway + Kafka + PostgreSQL + MongoDB</text>
 
-  <!-- lanes -->
-  <rect class="lane" x="60" y="160" width="510" height="960" fill="#eff6ff" />
-  <text x="85" y="198" class="section">Client + Entry</text>
+  <rect class="lane" x="60" y="165" width="480" height="1080" fill="#eff6ff" />
+  <text x="85" y="205" class="section">Client &amp; API Entry</text>
 
-  <rect class="lane" x="600" y="160" width="1090" height="960" fill="#fff7ed" />
-  <text x="625" y="198" class="section">Discovery + Business Services</text>
+  <rect class="lane" x="570" y="165" width="1220" height="1080" fill="#fff7ed" />
+  <text x="595" y="205" class="section">Service Mesh (Business + Discovery)</text>
 
-  <rect class="lane" x="1720" y="160" width="330" height="960" fill="#faf5ff" />
-  <text x="1745" y="198" class="section">Infrastructure</text>
+  <rect class="lane" x="1820" y="165" width="320" height="1080" fill="#faf5ff" />
+  <text x="1845" y="205" class="section">Infrastructure</text>
 
-  <!-- entry -->
-  <rect class="box" fill="#dbeafe" stroke="#3b82f6" x="130" y="280" width="180" height="95" />
-  <text x="220" y="320" text-anchor="middle" class="label">Frontend</text>
-  <text x="220" y="348" text-anchor="middle" class="meta">Angular :4200</text>
+  <rect class="box" fill="#dbeafe" stroke="#3b82f6" x="110" y="280" width="180" height="95" />
+  <text x="200" y="320" text-anchor="middle" class="label">Frontend</text>
+  <text x="200" y="348" text-anchor="middle" class="meta">Angular :4200</text>
 
-  <rect class="box" fill="#bfdbfe" stroke="#2563eb" x="350" y="280" width="190" height="95" />
-  <text x="445" y="320" text-anchor="middle" class="label">API Gateway</text>
-  <text x="445" y="348" text-anchor="middle" class="meta">:8080</text>
+  <rect class="box" fill="#bfdbfe" stroke="#2563eb" x="330" y="280" width="190" height="95" />
+  <text x="425" y="320" text-anchor="middle" class="label">API Gateway</text>
+  <text x="425" y="348" text-anchor="middle" class="meta">:8080</text>
 
-  <!-- discovery -->
-  <rect class="box" fill="#ccfbf1" stroke="#0f766e" x="1035" y="250" width="220" height="95" />
-  <text x="1145" y="290" text-anchor="middle" class="label">Eureka Server</text>
-  <text x="1145" y="318" text-anchor="middle" class="meta">:8761</text>
+  <rect class="box" fill="#ccfbf1" stroke="#0f766e" x="1070" y="250" width="230" height="95" />
+  <text x="1185" y="290" text-anchor="middle" class="label">Eureka Server</text>
+  <text x="1185" y="318" text-anchor="middle" class="meta">:8761</text>
 
-  <!-- services row 1 -->
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="670" y="420" width="215" height="95" />
-  <text x="777" y="458" text-anchor="middle" class="label">Auth Service</text>
-  <text x="777" y="485" text-anchor="middle" class="meta">:8081</text>
+  <!-- row 1 -->
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="640" y="420" width="200" height="90" />
+  <text x="740" y="455" text-anchor="middle" class="label">Auth</text>
+  <text x="740" y="480" text-anchor="middle" class="meta">:8081</text>
 
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="915" y="420" width="215" height="95" />
-  <text x="1022" y="458" text-anchor="middle" class="label">User Service</text>
-  <text x="1022" y="485" text-anchor="middle" class="meta">:8082</text>
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="870" y="420" width="200" height="90" />
+  <text x="970" y="455" text-anchor="middle" class="label">User</text>
+  <text x="970" y="480" text-anchor="middle" class="meta">:8082</text>
 
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1160" y="420" width="215" height="95" />
-  <text x="1267" y="458" text-anchor="middle" class="label">Product Service</text>
-  <text x="1267" y="485" text-anchor="middle" class="meta">:8083</text>
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1100" y="420" width="200" height="90" />
+  <text x="1200" y="455" text-anchor="middle" class="label">Product</text>
+  <text x="1200" y="480" text-anchor="middle" class="meta">:8083</text>
 
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1405" y="420" width="215" height="95" />
-  <text x="1512" y="458" text-anchor="middle" class="label">Email Service</text>
-  <text x="1512" y="485" text-anchor="middle" class="meta">:8086</text>
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1330" y="420" width="200" height="90" />
+  <text x="1430" y="455" text-anchor="middle" class="label">Notification</text>
+  <text x="1430" y="480" text-anchor="middle" class="meta">:8086</text>
 
-  <!-- services row 2 -->
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="760" y="610" width="215" height="95" />
-  <text x="867" y="648" text-anchor="middle" class="label">Order Service</text>
-  <text x="867" y="675" text-anchor="middle" class="meta">:8084</text>
+  <!-- row 2 -->
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="640" y="590" width="200" height="90" />
+  <text x="740" y="625" text-anchor="middle" class="label">Order</text>
+  <text x="740" y="650" text-anchor="middle" class="meta">:8084</text>
 
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1005" y="610" width="215" height="95" />
-  <text x="1112" y="648" text-anchor="middle" class="label">Payment Service</text>
-  <text x="1112" y="675" text-anchor="middle" class="meta">:8085</text>
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="870" y="590" width="200" height="90" />
+  <text x="970" y="625" text-anchor="middle" class="label">Payment</text>
+  <text x="970" y="650" text-anchor="middle" class="meta">:8085</text>
 
-  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1250" y="610" width="215" height="95" />
-  <text x="1357" y="648" text-anchor="middle" class="label">Cart Service</text>
-  <text x="1357" y="675" text-anchor="middle" class="meta">:8087</text>
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1100" y="590" width="200" height="90" />
+  <text x="1200" y="625" text-anchor="middle" class="label">Cart</text>
+  <text x="1200" y="650" text-anchor="middle" class="meta">:8087</text>
 
-  <!-- infra -->
-  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1765" y="350" width="240" height="100" />
-  <text x="1885" y="390" text-anchor="middle" class="label">PostgreSQL</text>
-  <text x="1885" y="418" text-anchor="middle" class="meta">:5432</text>
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="1330" y="590" width="200" height="90" />
+  <text x="1430" y="625" text-anchor="middle" class="label">Inventory</text>
+  <text x="1430" y="650" text-anchor="middle" class="meta">:8088</text>
 
-  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1765" y="500" width="240" height="100" />
-  <text x="1885" y="540" text-anchor="middle" class="label">MongoDB</text>
-  <text x="1885" y="568" text-anchor="middle" class="meta">:27017</text>
+  <!-- row 3 -->
+  <rect class="box" fill="#ffedd5" stroke="#f97316" x="980" y="760" width="220" height="90" />
+  <text x="1090" y="795" text-anchor="middle" class="label">Shipping</text>
+  <text x="1090" y="820" text-anchor="middle" class="meta">:8089</text>
 
-  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1765" y="650" width="240" height="120" />
-  <text x="1885" y="690" text-anchor="middle" class="label">MailHog</text>
-  <text x="1885" y="718" text-anchor="middle" class="meta">SMTP :1025</text>
-  <text x="1885" y="744" text-anchor="middle" class="meta">UI :8025</text>
+  <!-- Infrastructure -->
+  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1860" y="290" width="230" height="90" />
+  <text x="1975" y="325" text-anchor="middle" class="label">PostgreSQL</text>
+  <text x="1975" y="350" text-anchor="middle" class="meta">:5432</text>
 
-  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1765" y="820" width="240" height="100" />
-  <text x="1885" y="860" text-anchor="middle" class="label">pgAdmin</text>
-  <text x="1885" y="888" text-anchor="middle" class="meta">:8090</text>
+  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1860" y="420" width="230" height="90" />
+  <text x="1975" y="455" text-anchor="middle" class="label">MongoDB</text>
+  <text x="1975" y="480" text-anchor="middle" class="meta">:27017</text>
 
-  <!-- route flow -->
-  <path class="route" d="M310 327 L350 327" />
-  <path class="route" d="M540 327 L620 327 L620 468 L670 468" />
-  <path class="route" d="M620 327 L620 468 L915 468" />
-  <path class="route" d="M620 327 L620 468 L1160 468" />
-  <path class="route" d="M620 327 L620 468 L1405 468" />
-  <path class="route" d="M620 327 L620 657 L760 657" />
-  <path class="route" d="M620 327 L620 657 L1005 657" />
-  <path class="route" d="M620 327 L620 657 L1250 657" />
+  <rect class="box" fill="#fee2e2" stroke="#dc2626" x="1860" y="550" width="230" height="110" />
+  <text x="1975" y="590" text-anchor="middle" class="label">Kafka</text>
+  <text x="1975" y="615" text-anchor="middle" class="meta">External :9092</text>
+  <text x="1975" y="638" text-anchor="middle" class="meta">Internal :29092</text>
 
-  <!-- route list -->
-  <rect x="120" y="430" width="420" height="360" fill="#ffffff" stroke="#93c5fd" stroke-width="2" rx="12" />
-  <text x="145" y="462" class="section">Gateway Routes</text>
-  <text x="145" y="494" class="meta">/auth/**              → auth-service</text>
-  <text x="145" y="526" class="meta">/users/**             → user-service</text>
-  <text x="145" y="558" class="meta">/products/**          → product-service</text>
-  <text x="145" y="590" class="meta">/categories/**        → product-service</text>
-  <text x="145" y="622" class="meta">/product-images/**    → product-service</text>
-  <text x="145" y="654" class="meta">/orders/**            → order-service</text>
-  <text x="145" y="686" class="meta">/payments/**          → payment-service</text>
-  <text x="145" y="718" class="meta">/notifications/**            → notification-service</text>
-  <text x="145" y="750" class="meta">/cart/**              → cart-service</text>
+  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1860" y="700" width="230" height="110" />
+  <text x="1975" y="740" text-anchor="middle" class="label">MailHog</text>
+  <text x="1975" y="765" text-anchor="middle" class="meta">SMTP :1025</text>
+  <text x="1975" y="788" text-anchor="middle" class="meta">UI :8025</text>
 
-  <!-- discovery connections -->
-  <path class="discovery" d="M445 280 L1085 260" />
-  <path class="discovery" d="M777 420 L1085 345" />
-  <path class="discovery" d="M1022 420 L1125 345" />
-  <path class="discovery" d="M1267 420 L1165 345" />
-  <path class="discovery" d="M1512 420 L1205 345" />
-  <path class="discovery" d="M867 610 L1090 345" />
-  <path class="discovery" d="M1112 610 L1145 345" />
-  <path class="discovery" d="M1357 610 L1200 345" />
+  <rect class="box" fill="#ede9fe" stroke="#7c3aed" x="1860" y="850" width="230" height="90" />
+  <text x="1975" y="885" text-anchor="middle" class="label">pgAdmin</text>
+  <text x="1975" y="910" text-anchor="middle" class="meta">:8090</text>
 
-  <!-- inter-service calls -->
-  <path class="interservice" d="M975 645 L1005 645" />
-  <text x="990" y="625" text-anchor="middle" class="note">order → payment</text>
+  <!-- Gateway route flow -->
+  <path class="route" d="M290 327 L330 327" />
+  <path class="route" d="M520 327 L620 327 L620 465 L640 465" />
+  <path class="route" d="M620 327 L620 465 L870 465" />
+  <path class="route" d="M620 327 L620 465 L1100 465" />
+  <path class="route" d="M620 327 L620 465 L1330 465" />
+  <path class="route" d="M620 327 L620 635 L640 635" />
+  <path class="route" d="M620 327 L620 635 L870 635" />
+  <path class="route" d="M620 327 L620 635 L1100 635" />
+  <path class="route" d="M620 327 L620 635 L1330 635" />
+  <path class="route" d="M620 327 L620 805 L980 805" />
 
-  <path class="interservice" d="M975 675 L1250 675" />
-  <text x="1110" y="700" text-anchor="middle" class="note">order → cart</text>
+  <!-- Discovery -->
+  <path class="discovery" d="M425 280 L1135 250" />
+  <path class="discovery" d="M740 420 L1135 345" />
+  <path class="discovery" d="M970 420 L1165 345" />
+  <path class="discovery" d="M1200 420 L1190 345" />
+  <path class="discovery" d="M1430 420 L1220 345" />
+  <path class="discovery" d="M740 590 L1135 345" />
+  <path class="discovery" d="M970 590 L1170 345" />
+  <path class="discovery" d="M1200 590 L1200 345" />
+  <path class="discovery" d="M1430 590 L1235 345" />
+  <path class="discovery" d="M1090 760 L1185 345" />
 
-  <path class="interservice" d="M1220 645 L1250 628" />
-  <text x="1235" y="615" text-anchor="middle" class="note">payment → cart</text>
+  <!-- Sync service-to-service -->
+  <path class="sync" d="M840 620 L870 620" />
+  <text x="855" y="602" text-anchor="middle" class="note">order → payment</text>
 
-  <path class="interservice" d="M975 628 L1160 468" />
-  <text x="1038" y="575" text-anchor="middle" class="note">order → product</text>
+  <path class="sync" d="M840 650 L1100 650" />
+  <text x="970" y="674" text-anchor="middle" class="note">order → cart</text>
 
-  <path class="interservice" d="M1220 628 L1160 495" />
-  <text x="1210" y="560" text-anchor="middle" class="note">payment → product</text>
+  <path class="sync" d="M1070 620 L1100 620" />
+  <text x="1085" y="602" text-anchor="middle" class="note">payment → cart</text>
 
-  <path class="interservice" d="M867 610 L1405 515" />
-  <text x="1120" y="542" text-anchor="middle" class="note">order → email</text>
+  <path class="sync" d="M840 605 L1100 470" />
+  <text x="952" y="558" text-anchor="middle" class="note">order → product</text>
 
-  <path class="interservice" d="M777 515 L1405 452" />
-  <text x="1095" y="472" text-anchor="middle" class="note">auth → email</text>
+  <path class="sync" d="M1070 605 L1100 500" />
+  <text x="1088" y="552" text-anchor="middle" class="note">payment → product</text>
 
-  <!-- infra dependencies -->
-  <path class="infra" d="M885 468 L1765 370" />
-  <path class="infra" d="M1130 468 L1765 385" />
-  <path class="infra" d="M1375 468 L1765 400" />
-  <path class="infra" d="M975 657 L1765 415" />
-  <path class="infra" d="M1220 657 L1765 430" />
-  <path class="infra" d="M1465 657 L1765 550" />
-  <path class="infra" d="M1620 468 L1765 700" />
+  <path class="sync" d="M1300 635 L1330 635" />
+  <text x="1315" y="617" text-anchor="middle" class="note">cart → inventory</text>
 
-  <!-- legend -->
-  <rect x="650" y="870" width="1030" height="220" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" rx="12" />
-  <text x="680" y="910" class="section">Legend</text>
+  <path class="sync" d="M840 650 L980 805" />
+  <text x="905" y="742" text-anchor="middle" class="note">order → shipping</text>
 
-  <line x1="680" y1="945" x2="790" y2="945" class="route" />
-  <text x="810" y="951" class="meta">Gateway request flow</text>
+  <!-- Event flow -->
+  <path class="event" d="M740 510 L1860 605" />
+  <text x="1270" y="535" text-anchor="middle" class="note">auth publishes events</text>
 
-  <line x1="680" y1="980" x2="790" y2="980" class="discovery" />
-  <text x="810" y="986" class="meta">Service registration/discovery (Eureka)</text>
+  <path class="event" d="M740 680 L1860 620" />
+  <text x="1270" y="704" text-anchor="middle" class="note">order publishes events</text>
 
-  <line x1="1180" y1="945" x2="1290" y2="945" class="interservice" />
-  <text x="1310" y="951" class="meta">Inter-service calls</text>
+  <path class="event" d="M1860 640 L1530 465" />
+  <text x="1680" y="610" text-anchor="middle" class="note">notification consumes events</text>
 
-  <line x1="1180" y1="980" x2="1290" y2="980" class="infra" />
-  <text x="1310" y="986" class="meta">Database / tools / SMTP dependencies</text>
+  <!-- Infra dependencies -->
+  <path class="infra" d="M840 455 L1860 320" />
+  <path class="infra" d="M1070 455 L1860 335" />
+  <path class="infra" d="M1300 455 L1860 350" />
+  <path class="infra" d="M840 635 L1860 365" />
+  <path class="infra" d="M1070 635 L1860 380" />
+  <path class="infra" d="M1530 635 L1860 395" />
+  <path class="infra" d="M1200 635 L1860 450" />
+  <path class="infra" d="M1200 850 L1860 700" />
 
-  <text x="680" y="1030" class="note">Host-exposed ports include 8080, 8761, 5432, 27017, 8025, 8090. Service ports are internal on Docker network.</text>
+  <!-- Gateway route map -->
+  <rect x="100" y="430" width="420" height="420" fill="#ffffff" stroke="#93c5fd" stroke-width="2" rx="12" />
+  <text x="125" y="462" class="section">Gateway Routes</text>
+  <text x="125" y="492" class="meta">/auth/**              → auth-service</text>
+  <text x="125" y="520" class="meta">/users/**             → user-service</text>
+  <text x="125" y="548" class="meta">/products/**          → product-service</text>
+  <text x="125" y="576" class="meta">/categories/**        → product-service</text>
+  <text x="125" y="604" class="meta">/product-images/**    → product-service</text>
+  <text x="125" y="632" class="meta">/orders/**            → order-service</text>
+  <text x="125" y="660" class="meta">/payments/**          → payment-service</text>
+  <text x="125" y="688" class="meta">/notifications/**     → notification-service</text>
+  <text x="125" y="716" class="meta">/cart/**              → cart-service</text>
+  <text x="125" y="744" class="meta">/inventory/**         → inventory-service</text>
+  <text x="125" y="772" class="meta">/shipping/**          → shipping-service</text>
+
+  <!-- Legend -->
+  <rect x="640" y="930" width="1130" height="260" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" rx="12" />
+  <text x="670" y="970" class="section">Legend</text>
+
+  <line x1="670" y1="1005" x2="790" y2="1005" class="route" />
+  <text x="810" y="1011" class="meta">Fluxo de entrada via API Gateway</text>
+
+  <line x1="670" y1="1040" x2="790" y2="1040" class="discovery" />
+  <text x="810" y="1046" class="meta">Registro e descoberta no Eureka</text>
+
+  <line x1="1230" y1="1005" x2="1350" y2="1005" class="sync" />
+  <text x="1370" y="1011" class="meta">Chamadas síncronas entre serviços</text>
+
+  <line x1="1230" y1="1040" x2="1350" y2="1040" class="event" />
+  <text x="1370" y="1046" class="meta">Eventos assíncronos via Kafka</text>
+
+  <line x1="670" y1="1075" x2="790" y2="1075" class="infra" />
+  <text x="810" y="1081" class="meta">Dependências de infraestrutura</text>
+
+  <text x="670" y="1130" class="note">Portas expostas no host: 4200, 8080, 8761, 5432, 27017, 9092, 9093, 1025, 8025, 8090.</text>
+  <text x="670" y="1155" class="note">Portas dos serviços de negócio (8081-8089) são internas na rede Docker.</text>
 </svg>
